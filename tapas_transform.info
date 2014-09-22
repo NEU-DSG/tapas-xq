@@ -1,0 +1,16 @@
+; $Id$
+
+name = TAPAS TEI Transformations
+description = Get xml and xsl documents from fields during multistep and transform document in an iframe
+package = TAPAS
+core = 7.x
+
+; Information added by drupal.org packaging script on 2012-10-17
+version = "7.x-0.1"
+core = "7.x"
+project = "TAPAS"
+
+files[] = tapas_transform.install
+files[] = tapas_transform.module
+
+
