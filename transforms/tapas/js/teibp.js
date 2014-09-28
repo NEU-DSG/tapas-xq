@@ -4,17 +4,30 @@ function clearPageBreaks(){
 }
 
 function addPageBreaks(){
-	$("pb").css("display","block");	
-	$(".-teibp-pb").css("display","block");
-
+    var viewBox = $('select#viewBox');
+    var cssFile = viewBox.val();
+    if (cssFile == '../css/tapasGdiplo.css') {
+        Tapas.currentTheme = 'diplomatic';
+    } else {
+        Tapas.currentTheme = 'normalized';
+    }    
+    if (Tapas.currentTheme == 'diplomatic') {
+    	$("pb").css("display","block");	
+    	$(".-teibp-pb").css("display","block");        
+    } else {
+    	$("pb").css("display","inline");	
+    	$(".-teibp-pb").css("display","inline");        
+    }
 }
 
 function init(){
 	document.getElementById('pbToggle').onclick = function(){
 		if(document.getElementById('pbToggle').checked){
 			clearPageBreaks();
+			Tapas.showPbs = false;
 		}else{
 			addPageBreaks();
+			Tapas.showPbs = true;
 		}
 	};
 	addPageBreaks();
@@ -33,6 +46,15 @@ if(document.addEventListener){
 }
 
 function switchThemes(event) {
+    var cssFile = jQuery(event.target).val();
+    if (cssFile == '../css/tapasGdiplo.css') {
+        Tapas.currentTheme = 'diplomatic';
+    } else {
+        Tapas.currentTheme = 'normalized';
+    }
+    if (Tapas.showPbs) {
+        addPageBreaks();
+    }
 	document.getElementById('maincss').href = jQuery(event.target).val();
 }
 

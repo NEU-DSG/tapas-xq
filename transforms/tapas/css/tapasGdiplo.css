@@ -5,9 +5,42 @@
 /* @namespace "http://www.tei-c.org/ns/1.0"; */
 /* @namespace with prefix, as below, throws and error in less. */
 /* @namespace html "http://www.w3.org/1999/xhtml"; */
+body {
+  margin: 0;
+}
 /* Less variables */
+.block {
+  display: block;
+}
+.block-margins {
+  display: block;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+.hide {
+  display: none;
+}
+.inline {
+  display: inline;
+}
+.list-item {
+  display: list-item;
+}
+.italic {
+  font-style: italic;
+}
+.mono {
+  font-family: Courier,monospace;
+}
+.box-shadow {
+  -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
 .note-like {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
   border: 1px solid black;
@@ -17,6 +50,7 @@
   border: 1px solid #4d88cd;
   background: #faf3ed;
   /* reset text-indent for note with <l> ancestors. */
+
   text-indent: 0;
   font-size: 85%;
   text-align: justify;
@@ -24,21 +58,14 @@
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-/* US Style Quotes */
 .quotesUS {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-/* UK-Style Quotes */
 .quotesUK {
   quotes: "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019";
 }
 .quotes {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
-}
-.block-margins {
-  display: block;
-  margin-top: 1em;
-  margin-bottom: 1em;
 }
 /* teibp classes */
 .-teibp-thumbnail {
@@ -46,38 +73,31 @@
 }
 .-teibp-pb {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   width: 100%;
   text-align: right;
   color: gray;
-  margin: 2em 0 2em 0;
+  padding: 1em 0;
+  margin: 1em 0;
   font-size: 11pt;
 }
-.box-shadow {
-  -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-}
-.hide {
+.-teibp-pbFacs {
   display: none;
-}
-.block {
-  display: block;
-}
-.mono {
-  font-family: Courier,monospace;
 }
 .page-setup {
   margin-left: 2em;
   margin-right: 4em;
   padding: 2.5em;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
-  font-size: 14pt;
+  font-size: 13pt;
+  line-height: 1.5;
   background-color: #edf3fa;
   color: #232936;
   width: 33em;
 }
 .table-border {
-  border: 1px dotted #4d88cd;
+  border: 1px dotted #333333;
 }
 /* Choice elements */
 choice abbr + expan:before,
@@ -108,14 +128,16 @@ ab {
 }
 accMat {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 accMat:before {
   content: "accompanying materials: ";
 }
 acquisition {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 acquisition:before {
   font-weight: bold;
@@ -123,15 +145,13 @@ acquisition:before {
 }
 activity {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 activity:before {
   content: "activity: ";
 }
-actor {
-  /* Empty Rule Set */
-}
 /* add */
-/* Could add other [place=] variations */
 add {
   vertical-align: super;
   font-size: 90%;
@@ -140,84 +160,68 @@ add[place=below] {
   vertical-align: sub;
   font-size: 90%;
 }
-addName {
-  /* Empty Rule Set */
-}
-addSpan {
-  /* Empty Rule Set */
-}
 additional {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 additions {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 additions:before {
   content: "Significant additions within the document: ";
 }
 addrLine {
   display: block;
-}
-address {
-  /* Empty Rule Set */
+  margin-top: 0;
+  margin-bottom: 0;
 }
 address[rend~="block"],
 addresss[rendition~="#block"] {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 adminInfo {
   display: block;
-}
-affiliation {
-  /* Empty Rule Set */
-}
-age {
-  /* Empty Rule Set */
-}
-alt {
-  /* Empty Rule Set */
-}
-altGrp {
-  /* Empty Rule Set */
-}
-altIdent {
-  /* Empty Rule Set */
+  margin-top: 0;
+  margin-bottom: 0;
 }
 altIdentifier {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 altIdentifier:before {
   content: "Alternate ID: ";
 }
-am {
-  /* Empty Rule Set */
-}
-analytic {
-  /* Empty Rule Set */
-}
-anchor {
-  /* Empty Rule Set */
-}
 app {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 appInfo {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 appInfo:before {
   content: "Application information: ";
 }
 application {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 application:after {
   content: " " attr(version);
 }
-arc {
-  /* Empty Rule Set */
-}
 argument {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 att {
   font-family: Courier,monospace;
@@ -225,26 +229,13 @@ att {
 att:before {
   content: "@";
 }
-attDef {
-  /* Empty Rule Set */
-}
-attList {
-  /* Empty Rule Set */
-}
-attRef {
-  /* Empty Rule Set */
-}
-author {
-  /* Empty Rule Set */
-}
 titleStmt > author {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
   font-weight: normal;
   margin-bottom: 1em;
-}
-authority {
-  /* Empty Rule Set */
 }
 publicationStmt > availability {
   font-size: 80%;
@@ -260,39 +251,35 @@ publicationStmt > availability[status]:before {
 /* B */
 back {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
-bibl {
-  /* Empty Rule Set */
+epigraph bibl:before {
+  content: "\2014";
 }
 bibl[rend~="block"],
 bibl[rendition~="#block"] {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   padding-left: 2em;
   text-indent: -2em;
 }
+bibl title {
+  font-style: italic;
+}
 biblFull {
   display: block;
-}
-biblScope {
-  /* Empty Rule Set */
-}
-biblStruct {
-  /* Empty Rule Set */
-}
-bicond {
-  /* Empty Rule Set */
-}
-binary {
-  /* Empty Rule Set */
-}
-binaryObject {
-  /* Empty Rule Set */
+  margin-top: 0;
+  margin-bottom: 0;
 }
 binding {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 binding:before {
-  content: "Binding: \a";
+  content: "Binding: \A";
   white-space: pre-wrap;
 }
 binding[contemporary]:before {
@@ -301,43 +288,32 @@ binding[contemporary]:before {
 }
 bindingDesc {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 bindngDesc:before {
   content: "Binding Description: \A";
 }
 birth {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 birth:before {
   content: "Birth: ";
-}
-bloc {
-  /* Empty Rule Set */
 }
 body {
   color: inherit;
   background-color: inherit;
 }
-broadcast {
-  /* Empty Rule Set */
-}
 byline {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 /* c */
-c {
-  /* Empty Rule Set */
-}
 cRefPattern {
   display: none;
-}
-caesura {
-  /* Empty Rule Set */
-}
-camera {
-  /* Empty Rule Set */
 }
 caption {
   display: block;
@@ -357,20 +333,11 @@ castItem {
   display: list-item;
   list-style-type: none;
 }
-castList {
+castlist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   margin-left: 2em;
-}
-catDesc {
-  /* Empty Rule Set */
-}
-catRef {
-  /* Empty Rule Set */
-}
-category {
-  /* Empty Rule Set */
 }
 cb {
   display: block;
@@ -379,57 +346,16 @@ cb {
 }
 cb:before {
   content: "[column break]";
+  color: gray;
 }
 cell {
   display: table-cell;
   padding: 1em 1.5em 1em 1em;
-  border: 1px dotted #4d88cd;
+  border: 1px dotted #333333;
 }
 /* for cell or row with @role = label */
 [role=label] {
   font-weight: bold;
-}
-certainty {
-  /* Empty Rule Set */
-}
-change {
-  /* Empty Rule Set */
-}
-channel {
-  /* Empty Rule Set */
-}
-charDecl {
-  /* Empty Rule Set */
-}
-charName {
-  /* Empty Rule Set */
-}
-charProp {
-  /* Empty Rule Set */
-}
-choice {
-  /* Empty Rule Set */
-}
-cit {
-  /* Empty Rule Set */
-}
-cl {
-  /* Empty Rule Set */
-}
-classCode {
-  /* Empty Rule Set */
-}
-classDecl {
-  /* Empty Rule Set */
-}
-classRef {
-  /* Empty Rule Set */
-}
-classSpec {
-  /* Empty Rule Set */
-}
-classes {
-  /* Empty Rule Set */
 }
 climate {
   display: block;
@@ -441,13 +367,17 @@ climate:before {
   content: "Climate: ";
 }
 closer {
-  /* Empty Rule Set */
+  margin-bottom: 1em;
+  padding-bottom: 1em;
+  border-bottom: 1px dotted #333333;
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 code {
   font-family: Courier,monospace;
 }
-/* jawalsh:
-For things like collation, condition, etc. that can have text or paragraphs as 
+/* For things like collation, condition, etc. that can have text or paragraphs as 
 children, we should use margins, when the content is text, and no margins when there 
 are child paragraphs (or other block elements). Otherwise we end up with double 
 margins. */
@@ -456,19 +386,10 @@ collation {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-collection {
-  /* Empty Rule Set */
-}
-colloc {
-  /* Empty Rule Set */
-}
 colophon {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
-}
-cond {
-  /* Empty Rule Set */
 }
 condition {
   display: block;
@@ -502,30 +423,8 @@ constitution[type=frags]:before {
   font-weight: bold;
   content: "Constitution (fragments): ";
 }
-constraint {
-  /* Empty Rule Set */
-}
-constraintSpec {
-  /* Empty Rule Set */
-}
-content {
-  /* Empty Rule Set */
-}
-/* jawalsh:
-Need to discuss and coordinate handling of sic/corr, abbr/expan, and orig/reg */
-corr {
-  /* Empty Rule Set */
-}
-correction {
-  /* Empty Rule Set */
-}
-country {
-  /* Empty Rule Set */
-}
-creation {
-  /* Empty Rule Set */
-}
-/*jawalsh:
+/* Need to discuss and coordinate handling of sic/corr, abbr/expan, and orig/reg */
+/*
 Need to handle attributes for custEvent. All the att.datable* attributes will be tricky. 
 custodialHist and custEvent may normally be hidden along with other header metadata, but
 we'll have other datable elements that may be tricky. */
@@ -539,39 +438,36 @@ custodialHist {
 }
 /* d */
 [data-tapas-hashed-ref] {
-  border-bottom: 1px dashed gray;
+  border-bottom: 1px dotted #000000;
 }
 date[when]:empty:before {
   content: attr(when);
 }
-docAuthor {
-  margin-top: 0;
-  margin-bottom: 0;
-  display: block;
-}
 docDate {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 docEdition {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 docImprint {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 docTitle {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 /* e */
 egXML {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   font-size: 80%;
   margin-left: 1em;
   padding-left: 1em;
@@ -583,6 +479,9 @@ egXML {
   font-family: monospace;
   white-space: pre;
 }
+emph {
+  font-style: italic;
+}
 encodingDesc {
   display: none;
 }
@@ -590,6 +489,7 @@ epigraph {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
+  padding: 0 1em;
 }
 fileDesc > extent {
   display: none;
@@ -597,37 +497,15 @@ fileDesc > extent {
 /* f */
 figure {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   text-align: center;
   margin-left: auto;
   margin-right: auto;
 }
 /* g */
-g {
-  /* Empty Rule Set */
-}
 gap {
   /* GLS: Depending upon how we handle gap and lacuna, we may want to enclose in [] */
-}
-gb {
-  /* Empty Rule Set */
-}
-gen {
-  /* Empty Rule Set */
-}
-genName {
-  /* Empty Rule Set */
-}
-geo {
-  /* Empty Rule Set */
-}
-geoDecl {
-  /* Empty Rule Set */
-}
-geogFeat {
-  /* Empty Rule Set */
-}
-geogName {
-  /* Empty Rule Set */
 }
 gi {
   font-family: Courier,monospace;
@@ -638,46 +516,15 @@ gi:before {
 gi:after {
   content: ">";
 }
-gloss {
-  /* Empty Rule Set */
-}
-glyph {
-  /* Empty Rule Set */
-}
-glyphName {
-  /* Empty Rule Set */
-}
-gram {
-  /* Empty Rule Set */
-}
-gramGrp {
-  /* Empty Rule Set */
-}
-graph {
-  /* Empty for now */
-}
 graphic {
   display: none;
 }
-group {
-  /* Empty Rule Set */
-}
 /* h */
-handDesc {
-  /* Empty Rule Set */
-}
-handNote {
-  /* Empty Rule Set */
-}
-handNotes {
-  /* Empty Rule Set */
-}
-handShift {
-  /* Empty Rule Set */
-}
 /* Need head with TEI parent to distinguish from HTML head */
 TEI head {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
   font-weight: normal;
 }
@@ -705,6 +552,8 @@ div > div > div > div > div > div head {
 }
 figure > head {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
   border: 1px solid black;
@@ -714,6 +563,7 @@ figure > head {
   border: 1px solid #4d88cd;
   background: #faf3ed;
   /* reset text-indent for note with <l> ancestors. */
+
   text-indent: 0;
   font-size: 85%;
   text-align: justify;
@@ -722,178 +572,114 @@ figure > head {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   width: 85%;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
-  font-size: 14pt;
+  font-size: 13pt;
 }
-headItem {
-  /* Empty Rule Set */
+div[type="canto"] head {
+  display: block;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
 }
-headLabel {
-  /* Empty Rule Set */
+div head[type="sub"] {
+  font-size: 115%;
 }
-height {
-  /* Empty Rule Set */
+div[type="chapter"] > head {
+  text-align: center;
+  margin-bottom: 1em;
 }
-heraldry {
-  /* Empty Rule Set */
+div[type="half_title"] > head {
+  text-align: center;
+  padding: 1em;
+  border: 1px dashed lightgray;
 }
-hi {
-  /* GLS: do we want to bold this or change the background color? */
-}
-history {
-  /* Empty Rule Set */
-}
-hom {
-  /* Empty Rule Set */
-}
-hyph {
-  /* Empty Rule Set */
-}
-hyphenation {
-  /* Empty Rule Set */
+head[type="supplied"] {
+  display: none;
 }
 /* i */
-iNode {
-  /* Empty Rule Set */
-}
-iType {
-  /* Empty Rule Set */
-}
 ident {
   font-family: Courier,monospace;
 }
-idno {
-  /* Empty Rule Set */
-}
-if {
-  /* Empty Rule Set */
-}
-iff {
-  /* Empty Rule Set */
-}
-imprimatur {
-  /* Empty Rule Set */
-}
-imprint {
-  /* Empty Rule Set */
-}
-incident {
-  /* Empty Rule Set */
-}
-incipit {
-  /* Empty Rule Set */
-}
-index {
-  /* Empty Rule Set */
-}
-institution {
-  /* Empty Rule Set */
-}
-interaction {
-  /* Empty Rule Set */
-}
-interpGrp {
-  /* Empty Rule Set */
-}
-interpretation {
-  /* Empty Rule Set */
-}
 item {
   display: list-item;
+}
+list item {
   margin-left: 1em;
+  margin-top: .125em;
+  margin-bottom: .125em;
 }
 cell item {
   margin-left: 1em;
 }
-list[type="gloss"] > item {
-  margin-left: 2em;
-}
 /* j */
-join {
-  /* Empty Rule Set */
-}
-joinGrp {
-  /* Empty Rule Set */
-}
 /* k */
-keywords {
-  /* Empty Rule Set */
-}
-kinesic {
-  /* Empty Rule Set */
-}
 /* l */
 l {
   display: block;
-  padding-left: 2em;
-  text-indent: -2em;
+  margin-top: 0;
+  margin-bottom: 0;
+  /*padding-left:2em;
+text-indent:-2em;*/
+
+}
+.poem-line-count {
+  font-size: 80%;
+  display: inline-block;
+  margin-left: -2em;
+  width: 1.5em;
+  vertical-align: top;
+  padding-top: 1em;
+}
+.poem-line-count + l {
+  margin-top: 1em;
+  display: inline-block;
+  text-indent: 0em;
+  padding-left: 0;
+}
+label + item {
+  list-style: none;
+}
+list label {
+  float: left;
+}
+list label:after {
+  content: " ";
 }
 list[type="gloss"] > label {
-  display: block;
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
+  display: inline-block;
+  margin-top: .25em;
+  margin-bottom: .25em;
   font-weight: bold;
-}
-lacunaEnd {
-  /* Empty Rule Set */
-}
-lacunaStart {
-  /* Empty Rule Set */
-}
-lang {
-  /* Empty Rule Set */
-}
-langKnowledge {
-  /* Empty Rule Set */
-}
-langKnown {
-  /* Empty Rule Set */
-}
-langUsage {
-  /* Empty Rule Set */
-}
-language {
-  /* Empty Rule Set */
-}
-layout {
-  /* Empty Rule Set */
-}
-layoutDesc {
-  /* Empty Rule Set */
-}
-lb {
-  /* Empty Rule Set */
-}
-lb:after {
-  content: '\a';
-  white-space: pre;
-}
-lbl {
-  /* Empty Rule Set */
-}
-leaf {
-  /* Empty Rule Set */
-}
-lem {
-  /* Empty Rule Set */
 }
 lg {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-link {
-  /* Empty Rule Set */
-}
-linkGrp {
-  /* Empty Rule Set */
+lg[style*="text-align:center"],
+lg[style*="text-align: center"] {
+  text-align: left !important;
 }
 list {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
+p list {
+  text-align: left;
+}
 item > list {
   margin-top: 0;
+}
+list label {
+  display: inline-block;
+  min-width: 1.5em;
+}
+list label + item {
+  list-style-type: none;
+  margin-left: 0em;
+}
+list label + item:after {
+  content: "\A";
+  white-space: pre;
 }
 /* Match only lists that are descendants of 
 text. Otherwise they show up in the header. */
@@ -906,81 +692,89 @@ text list[type=bulleted] {
 text list[type=ordered] {
   list-style-type: none;
   counter-reset: items 0;
+  margin-left: 1em;
+}
+text list[type=ordered] label {
+  display: none;
 }
 text list[type=ordered] > item {
   display: list-item;
   margin-left: 0;
 }
-item > list[type=ordered] {
-  margin-left: 1em;
-}
 text list[type=ordered] > item:before {
   counter-increment: items 1;
   content: counter(items, decimal) ". ";
 }
-text list[type=gloss] {
+text list[type=gloss],
+text list[type=gloss] > item {
   list-style-type: none;
 }
-item > list[type=ordered] {
-  margin-left: 1em;
+text list[type=toc] > item {
+  list-style-type: none;
+}
+text div[type~="contents"] list item {
+  padding-top: .5em;
+}
+text list item a[rend~="right"] {
+  float: right;
+}
+text list[type=toc] {
+  list-style: none;
+  margin-bottom: 20px;
+}
+text list[type=toc] item {
+  position: relative;
+  background: url('http://5thirtyone.com/sandbox/share/toc/dot.gif') repeat-x bottom left;
+  overflow: hidden;
+  padding-bottom: 2px;
+}
+text list[type=toc] a,
+text list[type=toc] label,
+text list[type=toc] rs {
+  display: inline-block;
+  background: #edf3fa;
+  position: relative;
+  bottom: -4px;
+}
+text list[type=toc] a {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0 0 3px 2px;
+  width: 70px;
+  border-bottom: 0;
+  text-decoration: none;
+}
+text list[type=toc] label {
+  background-color: #edf3fa;
+  float: left;
+  padding: 0 2px 3px 0;
+}
+text list[type=toc] rs {
+  padding: 0 2px 3px 0;
+}
+text list item p:first-child {
+  display: inline;
 }
 listBibl bibl {
-  display: block;
+  display: list-item;
+  list-style: none;
+  margin: .5em 0;
 }
-localName {
-  /* Empty Rule Set */
+listBibl biblStruct {
+  display: list-item;
+  list-style: none;
+  margin: .5em 0;
 }
-locale {
-  /* Empty Rule Set */
-}
-location {
-  /* Empty Rule Set */
-}
-locus {
-  /* Empty Rule Set */
-}
-locusGrp {
-  /* Empty Rule Set */
+listBibl bibl:last-child,
+listBibl biblStruct:last-child {
+  padding-bottom: 1em;
 }
 /* m */
-m {
-  /* Empty Rule Set */
-}
-macroRef {
-  /* Empty Rule Set NOT SURE WHAT EXACTLY*/
-}
-macroSpec {
-  /* dunno */
-}
-mapping {
-  /* not sure, maybe create rends for a few standard types, maybe hide */
-}
-material {
-  /* Empty Rule Set */
-}
-measure {
-  /* Empty Rule Set */
-}
-measureGrp {
-  /* probably want to display attributes, at least units and type */
-}
-meeting {
-  /*Block */
-}
-memberOf {
-  /* Empty Rule Set */
-}
-mentioned {
-  /* think do nothing, not real clear on function, maybe hide? */
-}
-metDecl {
-  /* Empty Rule Set */
-}
-metSym {
-  /* Empty Rule Set */
-}
 milestone {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
@@ -988,43 +782,10 @@ milestone {
 milestone:before {
   content: "* * * * *";
 }
-moduleRef {
-  /* probably hide, not sure how we want to deal */
-}
-moduleSpec {
-  /* probably hide, not sure how we want to deal */
-}
-monogr {
-  /* block with space above, below */
-}
-mood {
-  /* Empty Rule Set */
-}
-move {
-  /* not sure, block, maybe just ital, maybe in parenths*/
-}
 msContents .block-margins {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
-}
-msDesc {
-  /* block with space above, below */
-}
-msIdentifier {
-  /* block */
-}
-msItem {
-  /* block */
-}
-msItemStruct {
-  /* block */
-}
-msName {
-  /* Empty Rule Set */
-}
-msPart {
-  /* not sure, think block */
 }
 musicNotation {
   font-weight: bold;
@@ -1034,77 +795,65 @@ musicNotation:before {
   content: "Musical Notation: ";
 }
 /* n */
-name {
-  /* Empty Rule Set */
-}
-nameLink {
-  /* Empty Rule Set */
-}
-namespace {
-  /* not sure, hide? */
-}
-nationality {
-  /* Empty Rule Set */
-}
 node {
   display: none;
 }
-normalization {
-  /* Empty Rule Set */
-}
 note {
   display: none;
+}
+note[place~="foot"],
+note[place~="bottom"] {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 90%;
+  padding: 2px 0;
+  font-family: Arial, Verdana, sans-serif;
+}
+note[place~="foot"]:before,
+note[place~="bottom"]:before {
+  vertical-align: super;
+  font-size: 70%;
+  content: attr(data-tapas-note-num) "\00a0";
+}
+div[type="endnotes"]:before {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-top: 1em;
+  content: 'Endnotes: ';
+  font-family: Arial, Verdana, sans-serif;
+}
+div[type="endnotes"] note {
+  display: block;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  font-size: 90%;
+  font-family: Arial, Verdana, sans-serif;
 }
 .note-marker {
   vertical-align: super;
   font-size: 70%;
 }
 notesStmt {
-  /* do we want to box each individual <note> if they're in a <notesStmt>? */
   display: none;
 }
-num {
-  /* Empty Rule Set */
-}
-number {
-  /* Empty Rule Set */
-}
-numeric {
-  /* not sure, depends how we're dealing with <f>'s */
-}
-nym {
-  /* not really sure here */
-}
 /* o */
-oRef {
-  /* not sure, think do nothing */
-}
 oVar {
   font-style: italic;
 }
-objectDesc {
-  /* Empty Rule Set */
+opener placeName,
+opener date {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
-objectType {
-  /* Empty Rule Set */
+opener salute {
+  display: inline;
 }
-occupation {
-  /* Empty Rule Set */
-}
-offset {
-  /* Empty Rule Set */
-}
-opener {
-  /* Empty Rule Set */
-}
-org {
-  /* Empty Rule Set */
-}
-orgName {
-  /* Empty Rule Set */
-}
-origDate {
-  /* Empty Rule Set */
+opener salute:before {
+  content: "\00000a";
+  white-space: pre;
 }
 origPlace {
   font-weight: bold;
@@ -1112,9 +861,6 @@ origPlace {
 origPlace:before {
   font-weight: bold;
   content: "Place of Origin: ";
-}
-origin {
-  /* Empty Rule Set */
 }
 /* p */
 p {
@@ -1135,44 +881,38 @@ pRef {
 pVar {
   /* rend attribute target */
 }
-particDesc {
-  /* Empty Rule Set */
-}
-pause {
-  /* Empty Rule Set*/
+.pb {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+  width: 100%;
+  text-align: right;
+  color: gray;
+  padding: 1em 0;
+  margin: 1em 0;
+  font-size: 11pt;
 }
 pb {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   width: 100%;
   text-align: right;
   color: gray;
-  margin: 2em 0 2em 0;
-  font-size: 11pt;
-}
-.pb {
-  display: block;
-  width: 100%;
-  text-align: right;
-  color: gray;
-  margin: 2em 0 2em 0;
+  padding: 1em 0;
+  margin: 1em 0;
   font-size: 11pt;
 }
 pb:before {
   content: "page:\a0" attr(n);
-}
-pc {
-  /* Empty Rule Set */
-}
-per {
-  /* don't know, check back */
 }
 performance {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-persName {
-  border: 0px;
+persName[ref] {
+  border-bottom: 1px dotted #000000;
 }
 person {
   display: block;
@@ -1184,39 +924,16 @@ personGrp {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-phr {
-  /* Empty Rule Set */
-}
-physDesc {
-  /* Empty Rule Set */
-}
-place {
-  /* Empty Rule Set */
-}
-placeName {
-  /* Empty Rule Set */
-}
-population {
-  /* dunno with this one */
-}
-pos {
-  /* Empty Rule Set */
-}
-postBox {
-  /* Empty Rule Set */
-}
-postCode {
-  /* Empty Rule Set */
+div[type="poem"] {
+  display: block;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 postscript {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   margin-top: 2em;
-}
-precision {
-  /* Empty Rule Set */
-}
-preparedness {
-  /* Empty Rule Set */
 }
 principal {
   font-weight: bold;
@@ -1228,25 +945,15 @@ principal:before {
 profileDesc {
   display: none;
 }
-projectDesc {
-  /* Empty Rule Set */
-}
-prologue {
-  /* Empty Rule Set */
-}
-pron {
-  /* Empty Rule Set */
-}
 provenance {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
+}
+docImprint pubPlace {
   display: block;
-}
-ptr {
-  /* dunno */
-}
-pubPlace {
-  /* Empty Rule Set */
+  margin-top: 0;
+  margin-bottom: 0;
 }
 publicationStmt > * {
   display: none;
@@ -1262,9 +969,6 @@ publicationStmt > date {
 publicationStmt > publisher {
   display: none;
 }
-purpose {
-  /* Empty Rule Set */
-}
 /* q */
 q {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
@@ -1275,17 +979,15 @@ q:before {
 q:after {
   content: close-quote;
 }
-q[next]:after {
-  content: "" !important;
-}
+q[next]:after,
 q[prev]:before {
   content: "" !important;
 }
-quotation {
-  /* Empty Rule Set */
-}
 quote {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 quote:before {
   content: open-quote;
@@ -1293,50 +995,63 @@ quote:before {
 quote:after {
   content: close-quote;
 }
-quote[next]:after {
-  content: "" !important;
-}
+quote[next]:after,
 quote[prev]:before {
   content: "" !important;
 }
+q l:first-child,
+quote l:first-child {
+  display: inline;
+  padding-left: 0;
+  text-indent: 0;
+}
+q l:last-child,
+quote l:last-child {
+  display: inline;
+  padding-left: 0;
+  text-indent: 0;
+}
+q lg:first-child,
+quote lg:first-child {
+  display: inline;
+}
+q p:last-child,
+quote p:last-child {
+  margin-bottom: 0;
+  display: inline;
+}
+q p:first-child,
+quote p:first-child {
+  margin-top: 0;
+  display: inline;
+}
 /* r */
-rdg {
-  /*perhaps choice */
-}
-rdgGrp {
-  /* Empty Rule Set */
-}
 re {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 recordHist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-recording {
-  /* not sure here, only in header? */
+.ref-external:link {
+  border-bottom: 1px solid #333333;
+  text-decoration: none;
 }
-recordingStmt {
-  /* Empty Rule Set */
+.ref-note:link {
+  border-bottom: 1px dotted #808080;
+  text-decoration: none;
 }
-ref {
-  /*include link if target */
+.ref-note:hover {
+  border-bottom: 1px dotted #000000;
+  text-decoration: none;
 }
-region {
-  /* Empty Rule Set */
-}
-relatedItem {
-  /* Empty Rule Set */
-}
-relation {
-  /* Don't Know*/
-}
-relationGrp {
-  /* Empty Rule Set */
-}
+/*
+*[ref] {
+border-bottom: 1px dotted #000000;
+}*/
 remarks {
   font-weight: bold;
 }
@@ -1344,52 +1059,20 @@ remarks:before {
   font-weight: bold;
   content: "remarks: ";
 }
-rendition {
-  /*Don't remember what we decided to do with this*/
-}
-repository {
-  /* Empty Rule Set */
-}
-residence {
-  /* Empty Rule Set */
-}
-resp {
-  /* Empty Rule Set */
-}
 respStmt {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
-/* hide */
-restore {
-  /* footnote or sidenote perhaps*/
+bibl respStmt {
+  display: inline;
 }
 revisionDesc {
   display: none;
 }
-rhyme {
-  /* Empty Rule Set */
-}
-role {
-  /* put on same line as roledesc? */
-}
-roleDesc {
-  /* put on same line as role */
-}
-roleName {
-  /* Empty Rule Set */
-}
-root {
-  /* don't know */
-}
 row {
   display: table-row;
 }
-rs {
-  /* Empty Rule Set */
-}
-/*label*/
 /* s */
 /* When TEI document is embedded in HTML page, 
    TEI's <s> element can be interpreted by
@@ -1399,37 +1082,28 @@ rs {
 s {
   text-decoration: none;
 }
-said {
-  /* Empty Rule Set */
-}
 salute {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
+closer salute {
+  display: inline;
+}
 samplingDecl {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
-}
-schemaSpec {
-  /*NOT SURE, talk over with group */
-}
-scriptDesc {
-  /*NOT SURE, talk over with group */
 }
 scriptNote {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-scriptStmt {
-  /* not sure */
-}
 seal {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 seal:before {
   font-weight: bold;
@@ -1444,53 +1118,34 @@ secFol:before {
   font-weight: bold;
   content: "Second Folio: ";
 }
-seg {
-  /* Empty Set Rule */
-}
-segmentation {
-  /* Empty Rule Set */
-}
 sense {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
-}
-series {
-  /* treat same as seriesstmt? */
 }
 seriesStmt {
   display: none;
 }
-set {
-  /* Empty Set Rule */
-}
 setting {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
-}
-settingDesc {
-  /* Empty Set Rule */
-}
-settlement {
-  /* Empty Set Rule */
-}
-sex {
-  /* Empty Rule Set */
-}
-shift {
-  /* seems a bit to complex to do anything with */
-}
-sic {
-  /* rend as choice when contained within a choice tag, perhaps as label with parenthesis after when alone */
-}
-signatures {
-  /* DON't KNOW, look again later */
 }
 signed {
+  display: inline-block;
+  margin-top: 1.5em;
+}
+signed persName {
   display: block;
-  margin-top: 2em;
-  /*should make name a block when contained within  */
+  margin-top: 0;
+  margin-bottom: 0;
+}
+closer signed:before {
+  content: "\00000a";
+  white-space: pre;
+}
+closer signed {
+  margin-top: 0;
 }
 soCalled {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
@@ -1501,68 +1156,44 @@ soCalled:before {
 soCalled:after {
   content: close-quote;
 }
-soCalled[next]:after {
-  content: "" !important;
-}
+soCalled[next]:after,
 soCalled[prev]:before {
   content: "" !important;
-}
-socecStatus {
-  /* Empty Set Rule */
 }
 sound {
   font-style: italic;
 }
 source {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
 }
 sourceDesc {
   display: none;
-}
-sp {
-  /*empty rule set*/
 }
 space:before {
   font-weight: bold;
   content: "";
 }
 TEI span {
-  /* jawalsh: why were we hiding this? */
   /* .hide; */
+
 }
 TEI egXML span {
   display: inline;
-}
-spanGrp {
-  /* NOT SURE, look back on */
 }
 speaker {
   font-weight: bold;
   margin-right: 0;
 }
-specDesc {
-  /* NOT SURE, look back on */
-}
-specGrp {
-  /* NOT SURE, look back on */
-}
-specGrpRef {
-  /* NOT SURE, look back on */
-}
-specList {
-  /* Empty Set Rule */
-}
 sponsor {
+  display: block;
   margin-top: 0;
   margin-bottom: 0;
-  display: block;
-  /* Block element, maybe labeled  */
 }
 sponsor:before {
   font-weight: bold;
-  content: "Sponsor:";
+  content: "Sponsor: ";
 }
 stage {
   display: block;
@@ -1579,62 +1210,14 @@ stamp:before {
   font-weight: bold;
   content: "Stamped: ";
 }
-state {
-  /* Empty Set Rule */
-}
-stdVals {
-  /* Empty Set Rule */
-}
-street {
-  /* Empty Set Rule */
-}
-stress {
-  /* Empty Set Rule */
-}
-string {
-  /* Empty Set Rule */
-}
 stringVal {
   /* doesn't seem to be part of tei 5 */
-}
-subc {
-  /* Empty Set Rule */
-}
-subst {
-  /* Empty Set Rule */
-}
-summary {
-  /* Empty Set Rule */
 }
 superEntry {
   /* Block with space above and below, maybe have no block and space for <entry> when contained by this element */
 }
-supplied {
-  /* not sure on this one, seems like we should indicate somehow. Is there a standard way to do this? */
-}
-support {
-  /* Empty Set Rule */
-}
-supportDesc {
-  /* do nothing with or maybe block */
-}
-surface {
-  /* choice */
-}
-surname {
-  /* Empty Set Rule */
-}
 surplus {
   display: none;
-}
-surrogates {
-  /*Empty Rule Set */
-}
-syll {
-  /* Empty Set Rule */
-}
-symbol {
-  /* Empty Set Rule */
 }
 /* t */
 #tapasToolbox {
@@ -1682,7 +1265,7 @@ symbol {
   vertical-align: text-bottom;
 }
 #tapasToolbox input[type=checkbox]:checked {
-  background: #27568c;
+  background: #337dd3;
 }
 #tapasToolbox input[type=select] {
   border: 1px solid #4d88cd;
@@ -1696,11 +1279,15 @@ symbol {
 }
 TEI {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 table {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   border-collapse: separate;
   border-spacing: 2px;
-  display: block;
   margin-top: 2em;
   margin-bottom: 2em;
   font-size: 12pt;
@@ -1721,25 +1308,25 @@ table > head {
 #tapas-ref-dialog p {
   text-align: left;
 }
-#tapas-ref-dialog span.ography-data {
+#tapas-ref-dialog .ography-data {
   font-weight: bold;
+}
+#tapas-ref-dialog .ography title {
+  display: inline;
 }
 #tei_contextual {
   display: none;
 }
 teiHeader {
   display: none;
-  /*
-border-radius: 15px;
-border: 1px solid black;
-background:white;
-*/
   margin-top: 2em;
   margin-bottom: 2em;
   border-bottom: 1px solid #999;
 }
 TEI > text {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 textClass {
   display: none;
@@ -1758,6 +1345,8 @@ TEI metadata source {
 TEI metadata date,
 TEI metadata creator {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 /* title */
 /* Need TEI ancestor to distinguish TEI title from HTML title */
@@ -1786,6 +1375,8 @@ title[level=m] {
 /* as a hack to solve a JavaScript/jQuery issue. */
 titleStmt > tei-title {
   display: block;
+  margin-top: 0;
+  margin-bottom: 0;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
   font-weight: normal;
   font-weight: bold !important;
@@ -1794,18 +1385,45 @@ titleStmt > tei-title {
 titleStmt > editor:before {
   content: "Edited by ";
 }
+titlePage argument,
+titlePage byline,
+titlePage cb,
+titlePage docAuthor,
+titlePage docDate,
+titlePage docEdition,
+titlePage docImprint,
+titlePage docTitle,
+titlePage epigraph,
+titlePage figure,
+titlePage gap,
+titlePage imprimatur,
+titlePage lb,
+titlePage milestone,
+titlePage note,
+titlePage pb,
+titlePage space,
+titlePage titlePart {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+titlePage byline docAuthor {
+  display: inline;
+}
+trailer {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-bottom: 1em;
+  padding-bottom: 1em;
+  border-bottom: 1px dotted #333333;
+}
 typeDesc {
   display: none;
 }
 /* u */
 u:before {
   content: "-";
-}
-unicodeName {
-  /* Empty Rule Set */
-}
-usg {
-  /* Empty Rule Set */
 }
 .ui-widget-header {
   border: 0px;
@@ -1819,87 +1437,12 @@ usg {
   right: 0;
 }
 /* v */
-vAlt {
-  /* Empty Rule Set */
-}
-vColl {
-  /* Empty Rule Set */
-}
-vDefault {
-  /* Empty Rule Set */
-}
-vLabel {
-  /* Empty Rule Set */
-}
-vMerge {
-  /* Empty Rule Set */
-}
-vNot {
-  /* Empty Rule Set */
-}
-vRange {
-  /* Empty Rule Set */
-}
-val {
-  /* Empty Rule Set */
-}
-valDesc {
-  /* Empty Rule Set */
-}
-valItem {
-  /* Empty Rule Set */
-}
-valList {
-  /* Empty Rule Set */
-}
-value {
-  /* Empty Rule Set */
-}
-variantEncoding {
-  /* Empty Rule Set */
-}
 view {
   font-style: italic;
 }
-vocal {
-  /* Empty Rule Set */
-}
 /* w */
-w {
-  /* Empty Rule Set */
-}
-watermark {
-  /* Empty Rule Set */
-}
-e("when {/* Empty Rule Set */}") width {
-  /* Empty Rule Set */
-}
-wit {
-  /* Empty Rule Set */
-}
-witDetail {
-  /* Empty Rule Set */
-}
-witEnd {
-  /* Empty Rule Set */
-}
-witStart {
-  /* Empty Rule Set */
-}
-witness {
-  /* Empty Rule Set */
-}
-writing {
-  /* Empty Rule Set */
-}
 /* x */
-xr {
-  /* Empty Rule Set */
-}
 /* z */
-zone {
-  /* Empty Rule Set */
-}
 /* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
 html > body {
   margin: 0;
@@ -1912,7 +1455,8 @@ html {
   margin-right: 4em;
   padding: 2.5em;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
-  font-size: 14pt;
+  font-size: 13pt;
+  line-height: 1.5;
   background-color: #edf3fa;
   color: #232936;
   width: 33em;
@@ -1929,11 +1473,11 @@ footer {
 a:link,
 a:visited,
 a:active {
-  color: #27568c;
+  color: #337dd3;
   text-decoration: none;
 }
 a:hover {
-  color: #27568c;
+  color: #337dd3;
   text-decoration: underline;
 }
 #teibpToolbox {
@@ -2019,9 +1563,12 @@ div#footer {
 div#footer > p {
   text-align: center;
 }
-.head-font {
-  font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
-  font-weight: normal;
+add {
+  background: #ffff66;
+}
+add:hover:before {
+  font-style: italic;
+  content: "(Added by: " attr(hand) " ) ";
 }
 choice orig,
 choice sic,
@@ -2047,44 +1594,25 @@ gap:hover,
 unclear:hover {
   display: inline;
 }
-unclear {
-  padding-bottom: 5px;
-  border-bottom: 2px dotted #000000;
-}
-unclear {
-  background: #3399ff;
-}
-milestone {
-  background: #cccccc;
-}
-add {
-  background: #ffff66;
-}
-add:hover:before {
-  font-style: italic;
-  content: "(Added by: " attr(hand) " ) ";
-}
-unclear[reason]:hover:before {
-  font-style: italic;
-  content: " (Unclear text: " attr(reason) ") ";
-}
-unclear:hover:before {
-  font-style: italic;
-  content: " (Unclear text) ";
+choice abbr + expan:after,
+choice expan + abbr:after,
+choice sic + corr:after,
+choice corr + sic:after,
+choice orig + reg:after,
+choice reg + orig:after,
+choice abbr + expan:before,
+choice expan + abbr:before,
+choice sic + corr:before,
+choice corr + sic:before,
+choice orig + reg:before,
+choice reg + orig:before {
+  content: "";
 }
 del {
   text-decoration: line-through;
 }
-supplied:before,
-gap:before {
-  content: "[";
-}
-supplied:after,
-gap:after {
-  content: "]";
-}
-supplied:hover:before {
-  content: "[(Text supplied: " attr(reason) ") ";
+fw {
+  display: none;
 }
 gap[reason]:after,
 gap[extent]:after,
@@ -2104,24 +1632,16 @@ gap[quantity]:after {
 gap:after {
   content: "(Unclear text)]";
 }
-subst {
-  background: #ffffff;
-  padding: 5px;
-  border: 1px solid #cccccc;
+.head-font {
+  font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
+  font-weight: normal;
 }
-choice abbr + expan:after,
-choice expan + abbr:after,
-choice sic + corr:after,
-choice corr + sic:after,
-choice orig + reg:after,
-choice reg + orig:after,
-choice abbr + expan:before,
-choice expan + abbr:before,
-choice sic + corr:before,
-choice corr + sic:before,
-choice orig + reg:before,
-choice reg + orig:before {
-  content: "";
+lb:after {
+  content: '\a';
+  white-space: pre;
+}
+milestone {
+  background: #cccccc;
 }
 milestone[n]:before,
 milestone[unit]:before,
@@ -2137,12 +1657,38 @@ milestone[unit]:before {
 milestone:before {
   content: ;
 }
-fw {
-  display: none;
+subst {
+  background: #ffffff;
+  padding: 5px;
+  border: 1px solid #cccccc;
 }
-.-teibp-pb a {
-  padding: 30px;
-  border-bottom: 2px dotted #000000;
+supplied:before,
+gap:before {
+  content: "[";
+}
+supplied:after,
+gap:after {
+  content: "]";
+}
+supplied:hover:before {
+  content: "[(Text supplied: " attr(reason) ") ";
+}
+unclear {
+  padding-bottom: 5px;
+  border-bottom: 2px dotted #808080;
+  background: #3399ff;
+}
+unclear[reason]:hover:before {
+  font-style: italic;
+  content: " (Unclear text: " attr(reason) ") ";
+}
+unclear:hover:before {
+  font-style: italic;
+  content: " (Unclear text) ";
+}
+.-teibp-pb {
+  border-bottom: 2px dotted #808080;
+  bordet-top: 2px dotted #808080;
 }
 .-teibp-pb a:hover {
   text-decoration: none;
@@ -2157,7 +1703,4 @@ fw {
 }
 .-teibp-thumbnail {
   padding: 15px;
-}
-*[ref] {
-  border-bottom: 1px dotted #000000;
 }

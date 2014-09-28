@@ -15,8 +15,16 @@
       <xd:p>TAPAS generic: Copies TEI document, with a very few
       modifications into an HTML 5 shell, which provides access to
       javascript and other features from the html/browser
-      environment.</xd:p>
+      environment. Originally named <tt>genericTEI2genericXHTML5.xslt</tt>.</xd:p>
       <xd:p><xd:b>change log:</xd:b></xd:p>
+      <xd:p><xd:i>2014-05-23</xd:i> by Syd: second bug of 05-20 fixed: identifier of contextualItem was being generated w/o spaces in some cases</xd:p>
+      <xd:p><xd:i>2014-05-22</xd:i> by Syd: added processing of person/@sex and person/sex.</xd:p>
+      <xd:p><xd:i>2014-05-20</xd:i> by Syd: Note:
+      had worked a lot on contextual information between 05-01 and now. Today I fixed
+      1 of two bugs: <tt>persName</tt> content was getting duplicated inside contextualItem in some cases</xd:p>
+      <xd:p><xd:i>2014-05-01</xd:i> by Syd: move <tt>TEI</tt> content out
+      of TEI namespace into HTML namespace, ala TEI-Boilerplate</xd:p>
+      <xd:p><xd:i>2014-04-30</xd:i> by Syd: add metrical line numbering</xd:p>
       <xd:p><xd:i>2014-03-16</xd:i> by Syd: <xd:i>finally</xd:i> put in Patrick's
       2014-10-02 request for an <tt>html:span</tt> before each <tt>tei:note</tt>.</xd:p>
       <xd:p><xd:i>2013-10-21/22</xd:i> by Syd: incorporate changes John and
@@ -128,31 +136,19 @@
   <xsl:template name="contextual">
     <div id="tei_contextual">
       <xsl:for-each select="
-        //@data-tapas-hashed-ref
-        [ not( ../@data-tapas-ref-1 ) ]
+        //@data-tapas-flattened-ref
         [ parent::tei:name or parent::tei:orgName or parent::tei:persName or parent::tei:rs ]
-        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@data-tapas-hashed-ref) ]
-        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@data-tapas-hashed-ref-1) ]
+        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@data-tapas-flattened-ref ) ]
         |
-        //@data-tapas-hashed-ref-1
+        //@ref
+        [ not( ../@data-tapas-flattened-ref ) ]
         [ parent::tei:name or parent::tei:orgName or parent::tei:persName or parent::tei:rs ]
-        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@data-tapas-hashed-ref) ]
-        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@data-tapas-hashed-ref-1) ]
+        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@ref ) ]
         ">
         <xsl:sort select="concat(local-name(..),'=',.)"/>
-        <xsl:variable name="hashedRef">
-          <xsl:choose>
-            <xsl:when test="local-name(.) = 'data-tapas-hashed-ref'">
-              <xsl:value-of select="../@data-tapas-hashed-ref"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="../@data-tapas-hashed-ref-1"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
         <xsl:call-template name="generateContextItem">
           <xsl:with-param name="ref" select="../@ref"/>
-          <xsl:with-param name="hashedRef" select="$hashedRef"/>
+          <xsl:with-param name="flatRef" select="."/>
         </xsl:call-template>
       </xsl:for-each>
     </div>
@@ -168,7 +164,7 @@
   <xsl:template match="@*">
     <xsl:copy/>
   </xsl:template>
-
+  
   <xd:doc>
     <xd:desc>
       <xd:p>Template for elements.
@@ -183,12 +179,12 @@
     </xd:desc>
   </xd:doc>
   <xsl:template match="*">
-    <xsl:copy>
+    <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
       <xsl:call-template name="addID"/>
       <xsl:call-template name="addRend"/>
       <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
       <xsl:apply-templates select="node()"/>
-    </xsl:copy>
+    </xsl:element>
   </xsl:template>
 
   <xd:doc>
@@ -237,30 +233,60 @@
 
   <xd:doc>
     <xd:desc>
-      <xd:p>Transforms TEI ref element to html a (link) element.</xd:p>
+      <xd:p>Transforms each TEI <tt>ref</tt> or <tt>ptr</tt> element to an html <tt>a</tt> (link) element.</xd:p>
     </xd:desc>
   </xd:doc>
-  <xsl:template match="tei:ref[@target]" priority="99">
-    <a href="{@target}">
+  <xsl:template match="tei:ref[@target]|tei:ptr[@target]" priority="99">
+    <xsl:variable name="gi">
+      <xsl:choose>
+        <xsl:when test="normalize-space(.) = ''">ptr</xsl:when>
+        <xsl:otherwise>ref</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="target">
+      <xsl:choose>
+        <xsl:when test="@data-tapas-flattened-target">
+          <xsl:value-of select="normalize-space(@data-tapas-flattened-target)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="normalize-space(@target)"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="class">
+      <xsl:variable name="count">
+        <xsl:choose>
+          <xsl:when test="starts-with($target,'#')">
+            <xsl:value-of select="count(//*[@xml:id = substring-after($target,'#')])"/>
+          </xsl:when>
+          <xsl:otherwise>0</xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      <xsl:choose>
+        <xsl:when test="@data-tapas-target-warning = 'target not found'">
+          <xsl:value-of select="concat($gi,'-not-found')"/>
+        </xsl:when>
+        <xsl:when test="$count = 0  and  starts-with($target,'#')">
+          <xsl:value-of select="concat($gi,'-not-found')"/>
+        </xsl:when>
+        <xsl:when test="$count = 0">
+          <xsl:value-of select="concat($gi,'-external')"/>
+        </xsl:when>
+        <xsl:when test="$count = 1">
+          <xsl:value-of select="concat($gi,'-', local-name(//*[@xml:id = substring-after($target,'#')]) )"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="concat($gi,'-internals')"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <a href="{@target}" class="{$class}">
       <xsl:apply-templates select="@*[not( local-name(.) = 'target') ]"/>
       <xsl:call-template name="rendition"/>
       <xsl:apply-templates select="node()"/>
     </a>
   </xsl:template>
 
-  <xd:doc>
-    <xd:desc>
-      <xd:p>Transforms TEI ptr element to html a (link) element.</xd:p>
-    </xd:desc>
-  </xd:doc>
-  <xsl:template match="tei:ptr[@target]" priority="99">
-    <a href="{@target}">
-      <xsl:apply-templates select="@*[not( local-name(.) = 'target') ]"/>
-      <xsl:call-template name="rendition"/>
-      <xsl:value-of select="normalize-space(@target)"/>
-    </a>
-  </xsl:template>
-  
   <xd:doc>
     <xd:desc>Insert an HTML note-anchor before each <tt>&lt;note></tt>, except those
     that already have something pointing at them</xd:desc>
@@ -272,20 +298,28 @@
     <xsl:choose>
       <xsl:when test="@xml:id  and  ( //@target ) = concat('#',@xml:id )"/>
       <xsl:otherwise>
-        <span class="note-marker">
+        <a class="note-marker">
+          <xsl:variable name="ID">
+            <xsl:call-template name="generate-unique-id">
+              <xsl:with-param name="root" select="generate-id()"/>
+            </xsl:call-template>
+          </xsl:variable>          
+          <xsl:attribute name="href">
+            <xsl:value-of select="concat('#', $ID )"/>
+          </xsl:attribute>
           <xsl:value-of select="$noteNum"/>
-        </span>
+        </a>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:copy>
+    <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
       <xsl:attribute name="data-tapas-note-num">
         <xsl:value-of select="$noteNum"/>
       </xsl:attribute>
       <xsl:call-template name="addID"/>
       <xsl:call-template name="addRend"/>
-      <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
+      <xsl:apply-templates select="@*[not( local-name(.)='id'  and  starts-with(local-name(.),'rend') )  and  not( local-name(.)='style' )]"/>
       <xsl:apply-templates select="node()"/>
-    </xsl:copy>
+    </xsl:element>
   </xsl:template>
   
   <!-- need something else for images with captions; specifically
@@ -297,12 +331,12 @@
     </xd:desc>
   </xd:doc>
   <xsl:template match="tei:figure[tei:graphic[@url]]" priority="99">
-    <xsl:copy>
+    <xsl:element name="{local-name(.)}">
       <xsl:apply-templates select="@*"/>
       <xsl:call-template name="addID"/>
       <img alt="{normalize-space(tei:figDesc)}" src="{tei:graphic/@url}"/>
       <xsl:apply-templates select="*[ not( self::tei:graphic | self::tei:figDesc ) ]"/>
-    </xsl:copy>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template name="addID">
@@ -363,7 +397,7 @@
         <xsl:when test="$rend = 'align(RIGHT)'"     >text-align: right;</xsl:when>      <!--   111 -->
         <xsl:when test="$rend = 'valign(bottom)'"   >vertical-align: bottom;</xsl:when> <!--   104 -->
         <xsl:when test="$rend = 'align(right)'"     >text-align: right;</xsl:when>      <!--   101 -->
-        <xsl:when test="$rend = 'blockquote'"       ></xsl:when>                        <!--    85 -->
+        <xsl:when test="$rend = 'blockquote'"       >display: block; padding: 0em 1em;</xsl:when>                        <!--    85 -->
         <xsl:when test="$rend = 'ti-3'"             ></xsl:when>                        <!--    84 -->
         <xsl:when test="$rend = 'run-in'"           >display: run-in;</xsl:when>        <!--    80 -->
         <xsl:when test="$rend = 'valign(TOP)'"      >vertical-align: top;</xsl:when>    <!--    78 -->
@@ -421,6 +455,10 @@
         <xsl:when test="$rend = 'Center'"           ></xsl:when>                        <!--     1 -->
         <xsl:when test="$rend = 'above'"            ></xsl:when>                        <!--     1 -->
         <xsl:when test="$rend = '20'"               ></xsl:when>                        <!--     1 -->
+        <!-- above from profiling data; below from elsewhere or my head -->
+        <xsl:when test="$rend = 'case(upper)'"      >text-transform: uppercase;</xsl:when>
+        <xsl:when test="$rend = 'align(center)case(upper)'"      >text-align:center; text-transform:uppercase;</xsl:when>
+        <xsl:when test="$rend = 'case(upper)align(center)'"      >text-align:center; text-transform:uppercase;</xsl:when>
         <xsl:otherwise>
           <xsl:message>WARNING: I don't know what to do with rend="<xsl:value-of select="."/>"</xsl:message>
           <xsl:value-of select="."/>
@@ -564,11 +602,10 @@
         </span>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:copy>
+        <xsl:element name="{local-name(.)}">
           <xsl:apply-templates select="@*"/>
           <xsl:attribute name="data-tapas-n"><xsl:value-of select="$pn"/></xsl:attribute>
-          <xsl:apply-templates select="node()"/>
-        </xsl:copy>
+        </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -682,6 +719,29 @@
   </xsl:template>
 
   <xd:doc>
+    <xd:desc>add line numbers to poetry</xd:desc>
+  </xd:doc>
+  <xsl:template match="tei:lg/tei:l[ not(@prev) and not(@part='M') and not(@part='F') ]">
+    <xsl:variable name="cnt" select="count(
+      preceding::tei:l[
+        generate-id( ancestor::tei:lg[ not( ancestor::tei:lg ) ] )
+        =
+        generate-id( current()/ancestor::tei:lg[ not( ancestor::tei:lg ) ] )
+        ]
+      ) +1"/>
+    <xsl:if test="( $cnt mod 5 ) = 0">
+      <span class="poem-line-count">
+	<xsl:value-of select="$cnt"/>
+      </span>
+    </xsl:if>
+    <xsl:element name="{local-name(.)}">
+      <xsl:call-template name="addRend"/>
+      <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
+      <xsl:apply-templates select="node()"/>
+    </xsl:element>
+  </xsl:template>
+  
+  <xd:doc>
     <xd:desc>Template to drop insigificant whitespace nodes</xd:desc>
   </xd:doc>
   <xsl:template match="tei:choice/text()[normalize-space(.)='']"/>
@@ -690,6 +750,7 @@
   <!-- handle contextual information -->
   <!-- ***************************** -->
 
+  <!-- ignore lists of contextual info when they occur in normal processing -->
   <xsl:template match="tei:nymList|tei:listOrg|tei:listPerson|tei:placeList|tei:nym|tei:org|tei:person|tei:place"/>
 
   <xd:doc>
@@ -697,7 +758,7 @@
   </xd:doc>
   <xsl:template name="generateContextItem">
     <xsl:param name="ref"/>
-    <xsl:param name="hashedRef"/>
+    <xsl:param name="flatRef"/>
     <xsl:variable name="uri" select="normalize-space($ref)"/>
     <xsl:variable name="scheme" select="substring-before($uri,':')"/>
     <xsl:variable name="fragID" select="substring-after($uri,'#')"/>
@@ -706,69 +767,360 @@
       <xsl:when test="$scheme = ''  and  $fragID = ''  and
         translate( $uri, $non-NCName-chars, '') = $uri">
         <!-- looks like encoder probably forgot initial sharp symbol ("#") -->
-        <xsl:comment> 1: </xsl:comment>
+        <xsl:comment> debug 1: </xsl:comment>
         <xsl:comment> uri=<xsl:value-of select="$uri"/> </xsl:comment>
         <xsl:comment> scheme=<xsl:value-of select="$scheme"/> </xsl:comment>
         <xsl:comment> fragID=<xsl:value-of select="$fragID"/> </xsl:comment>
         <xsl:if test="id( $uri )">
-          <p class="contextualItem">
-            <a id="{$hashedRef}"/>
-            <xsl:apply-templates select="id( $uri )" mode="stripID"/>
-          </p>
+          <xsl:apply-templates select="id( $uri )" mode="genCon">
+            <xsl:with-param name="flatRef" select="$flatRef"/>
+          </xsl:apply-templates>
         </xsl:if>
       </xsl:when>
       <xsl:when test="$scheme = ''  and  $fragID != ''  and
         substring-before($uri,'#') = ''">
-        <xsl:comment> 2: </xsl:comment>
+        <xsl:comment> debug 2: </xsl:comment>
         <xsl:comment> uri=<xsl:value-of select="$uri"/> </xsl:comment>
         <xsl:comment> scheme=<xsl:value-of select="$scheme"/> </xsl:comment>
         <xsl:comment> fragID=<xsl:value-of select="$fragID"/> </xsl:comment>
         <!-- just a bare name identifier, i.e. local -->
         <xsl:if test="id( $fragID )">
-          <p class="contextualItem">
-            <a id="{$hashedRef}"/>
-            <xsl:apply-templates select="id( $fragID )" mode="stripID"/>
-          </p>
+          <xsl:apply-templates select="id( $fragID )" mode="genCon">
+            <xsl:with-param name="flatRef" select="$flatRef"/>
+          </xsl:apply-templates>
         </xsl:if>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:comment> 3: </xsl:comment>
+        <xsl:comment> debug 3: </xsl:comment>
         <xsl:comment> uri=<xsl:value-of select="$uri"/> </xsl:comment>
         <xsl:comment> scheme=<xsl:value-of select="$scheme"/> </xsl:comment>
         <xsl:comment> fragID=<xsl:value-of select="$fragID"/> </xsl:comment>
         <xsl:if test="document( $uri, $input )">
-          <p class="contextualItem">
-            <a id="{$hashedRef}"/>
-            <xsl:apply-templates select="document( $uri, $input )" mode="stripID"/>
-          </p>
+          <xsl:apply-templates select="document( $uri, $input )" mode="genCon">
+            <xsl:with-param name="flatRef" select="$flatRef"/>
+          </xsl:apply-templates>
         </xsl:if>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+  
+  
+  <!-- In general, just copy stuff over, changing namespace and ditching -->
+  <!-- xml:id=, comments, and PIs -->
+  <xsl:template match="*" mode="genCon">
+    <xsl:element name="{local-name()}">
+      <xsl:apply-templates select="@*|*|text()" mode="genCon"/>
+    </xsl:element>
+  </xsl:template>
+  <xsl:template match="@*" mode="genCon">
+    <xsl:copy/>
+  </xsl:template>
+  <xsl:template match="@xml:id" mode="genCon"/>
+  <xsl:template match="comment()|processing-instruction()" mode="genCon"/>
+  
+  <!-- For the outer contextual element we want to -->
+  <!-- generate output in a particular order. Note that we are ignoring -->
+  <!-- the possibility of <personGrp> or <nym> because there are *none* in -->
+  <!-- the profiling data. -->
+  <xsl:template match="tei:org|tei:person|tei:place" mode="genCon">
+    <xsl:param name="flatRef"/>
+    <div class="contextualItem-{local-name(.)}">
+      <a id="{substring-after($flatRef,'#')}"/>
+      <p class="identifier">
+        <!-- We're relying on the fact that <orgName> does not appear as -->
+        <!-- a child of <person> or <place>, <persName> does not appear -->
+        <!-- as a child of <org> or <place>, etc. -->
+        <xsl:choose>
+          <xsl:when test="
+               self::tei:org and not( tei:orgName )
+            or self::tei:person and not( tei:persName )
+            or self::tei:place and not( tei:placeName )
+            ">
+            <xsl:choose>
+              <xsl:when test="@xml:id">
+                <xsl:value-of select="@xml:id"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="concat(local-name(.),'-',count(preceding::*[local-name(.)=local-name(current())]))"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:when>
+          <xsl:when test="count( tei:orgName | tei:persName | tei:placeName ) = 1">
+            <xsl:apply-templates select="tei:orgName
+                                       | tei:persName
+                                       | tei:placeName" mode="string"/>
+          </xsl:when>
+          <xsl:when test="tei:orgName[@type='main']|tei:persName[@type='main']|tei:placeName[@type='main']">
+            <xsl:apply-templates select="tei:orgName[@type='main'][1]
+                                       | tei:persName[@type='main'][1]
+                                       | tei:placeName[@type='main'][1]" mode="string"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:message>WARNING: not doing a good job of identifing <xsl:value-of
+              select="local-name(.)"/> #<xsl:value-of
+                select="count(preceding::*[local-name(.)=local-name(current())])+1"/>, “<xsl:value-of
+                  select="normalize-space(.)"/>”</xsl:message>
+            <xsl:apply-templates select="tei:orgName[1]
+                                       | tei:persName[1]
+                                       | tei:placeName[1]" mode="string"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </p>
+      <xsl:comment>debug: Y; <xsl:value-of select="count( tei:persName )"/></xsl:comment>
+      <xsl:apply-templates select="tei:orgName|tei:persName|tei:placeName" mode="genCon"/>
+      <xsl:comment>debug: Z</xsl:comment>
+      <xsl:apply-templates select="tei:ab|tei:p|tei:desc" mode="genCon"/>
+      <xsl:choose>
+        <xsl:when test="tei:sex">
+          <xsl:apply-templates select="tei:sex" mode="genCon"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="@sex" mode="genCon"/>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:apply-templates select="tei:birth" mode="genCon"/>
+      <xsl:apply-templates select="tei:location" mode="genCon"/>
+      <xsl:apply-templates select="tei:death" mode="genCon"/>
+      <xsl:apply-templates select="*
+         [ not(
+            self::tei:orgName
+         or self::tei:persName
+         or self::tei:placeName
+         or self::tei:ab
+         or self::tei:p
+         or self::tei:desc
+         or self::tei:sex
+         or self::tei:birth
+         or self::tei:location
+         or self::tei:death
+         or self::tei:note ) ]" mode="genCon">
+        <xsl:sort select="concat( local-name(.), @when, @from, @notBefore, @to, @notAfter )"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="tei:note" mode="genCon"/>
+    </div>
+  </xsl:template>
 
-  <xsl:template match="@*|*" mode="stripID">
-    <xsl:copy>
-      <xsl:apply-templates select="@*|*|text()" mode="stripID"/>
-    </xsl:copy>
+  <!-- In all our test data there is only 1 <org> that has > 1 <orgName>, and -->
+  <!-- it looks like an error. So for <org>s, we just presume the identifier  -->
+  <!-- above is sufficient. -->
+  <xsl:template match="tei:orgName" mode="genCon"/>
+  
+  <!-- We have no test gazeteers, so for the moment presume that the identifier -->
+  <!-- above is sufficient for <place>s, too. -->
+  <xsl:template match="tei:placeName" mode="genCon"/>
+  
+  <!-- <persName>s, however, are a pain -->
+  <xsl:template match="tei:persName" mode="genCon" priority="3">
+    <xsl:choose>
+      <xsl:when test="not( preceding-sibling::tei:persName|following-sibling::tei:persName )">
+        <xsl:comment>debug A</xsl:comment>
+        <!-- No siblings, I was used for the identifier, ignore me -->
+      </xsl:when>
+      <xsl:when test="not(*) and @type='main'">
+        <xsl:comment>debug B</xsl:comment>
+        <!-- there are sibling <persName>s, but this one was already used -->
+        <!-- for the identifier, so ignore it -->
+      </xsl:when>
+      <xsl:when test="*">
+        <xsl:comment>debug C</xsl:comment>
+        <xsl:apply-templates select="*" mode="genCon" >
+          <xsl:with-param name="labelPart" select="@type"/>
+        </xsl:apply-templates>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:comment>debug D</xsl:comment>
+        <xsl:variable name="label">
+          <xsl:choose>
+            <xsl:when test="@type">
+              <xsl:value-of select="@type"/>
+            </xsl:when>
+            <xsl:otherwise>alternate</xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <p data-tapas-label="name, {$label}">
+          <span><xsl:value-of select="normalize-space(.)"/></span>
+        </p>        
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
-  <!-- for <person> elements we want children in a specific order -->
-  <xsl:template match="tei:person|tei:personGrp" mode="stripID">
-    <xsl:apply-templates select="@*" mode="stripID"/>
-    <xsl:apply-templates select="tei:persName" mode="stripID"/>
-    <xsl:apply-templates select="tei:ab|tei:p" mode="stripID"/>
-    <xsl:apply-templates select="tei:birth" mode="stripID"/>
-    <xsl:apply-templates select="tei:death" mode="stripID"/>
-    <xsl:apply-templates select="*
-      [ not(
-             self::tei:persName
-          or self::tei:ab
-          or self::tei:p
-          or self::tei:birth
-          or self::tei:death     ) ]" mode="stripID">
-      <xsl:sort select="concat( local-name(.), @when, @from, @notBefore, @to, @notAfter )"/>
-    </xsl:apply-templates>
+  <xsl:template match="tei:persName|tei:placeName|tei:orgName" mode="string">
+    <xsl:choose>
+      <xsl:when test="not(*)">
+        <!-- only text, no child elements -->
+        <xsl:value-of select="normalize-space(.)"/>
+      </xsl:when>
+      <xsl:when test="not( text()[ string-length( normalize-space(.) > 0 )] )">
+        <!-- only child elements, no text -->
+        <!-- We need heuristics in here to put out a useful string in the right order -->
+        <xsl:apply-templates select="node()" mode="string"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <!-- a mix of elements and text, in which case encoder is responsible for getting -->
+        <!-- whitespace right. -->
+        <xsl:value-of select="."/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
-  <xsl:template match="@xml:id" mode="stripID"/>
-  <xsl:template match="comment()|processing-instruction()" mode="stripID"/>
+  <xsl:template match="tei:forename|tei:surname|tei:genName|tei:roleName" mode="genCon" priority="3">
+    <xsl:param name="labelPart"/>
+    <xsl:param name="labelAdd">
+      <xsl:choose>
+        <xsl:when test="$labelPart">
+          <xsl:value-of select="concat('-',$labelPart)"/>
+        </xsl:when>
+        <xsl:otherwise/>
+      </xsl:choose>
+    </xsl:param>
+    <xsl:variable name="label" select="concat( local-name(.), $labelAdd )"/>
+    <span data-tapas-label="{$label}"><xsl:apply-templates/></span>
+  </xsl:template>
+  <xsl:template match="node()" mode="string">
+    <!-- regularize the whitespace, but leave leading or trailing iff present -->
+    <xsl:variable name="mePlus" select="normalize-space( concat('%',.,'%') )"/>
+    <xsl:variable name="regularized" select="substring( $mePlus, 2, string-length( $mePlus ) -2 )"/>
+    <xsl:value-of select="$regularized"/>
+  </xsl:template>
+  
+  <xsl:template match="*[normalize-space(.)='' and not( descendant-or-self::*/@* )]" mode="genCon"/>
+  <xsl:template match="tei:person/* | tei:place/* | tei:org/*" mode="genCon">
+    <xsl:variable name="me" select="local-name(.)"/>
+    <xsl:choose>
+      <xsl:when test="self::tei:socecStatus[@scheme]">
+        <xsl:variable name="sesLabel">
+          <xsl:text>status (</xsl:text>
+          <xsl:value-of select="substring-after(@scheme,'#')"/>
+          <xsl:text>)</xsl:text>
+        </xsl:variable>
+        <p data-tapas-label="{$sesLabel}">
+          <span><xsl:apply-templates select="node()"/></span>
+        </p>
+      </xsl:when>
+      <xsl:when test="not( preceding-sibling::*[ local-name(.) = $me ] )">
+        <xsl:variable name="mylabel">
+          <xsl:choose>
+            <xsl:when test="self::tei:socecStatus">social-economic status</xsl:when>
+            <xsl:when test="self::tei:death">died</xsl:when>
+            <xsl:when test="self::tei:birth">born</xsl:when>
+            <xsl:when test="self::tei:bibl">citation</xsl:when><!-- only 1, and it's empty -->
+            <xsl:otherwise><xsl:value-of select="local-name(.)"/></xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="label">
+          <xsl:choose>
+            <xsl:when test="
+              (
+                 $me = 'affiliation'
+              or $me = 'residence'
+              or $me = 'faith'
+              or $me = 'age'
+              or $me = 'bibl'
+              or $me = 'occupation'
+              )
+              and
+              following-sibling::*[local-name(.)=$me]">
+              <xsl:value-of select="concat( $mylabel,'s')"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$mylabel"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <p data-tapas-label="{$label}">
+          <xsl:call-template name="processGenCon">
+            <xsl:with-param name="this" select="."/>
+          </xsl:call-template>
+          <xsl:for-each select="( following-sibling::*[local-name(.)=$me] )">
+            <xsl:call-template name="processGenCon">
+              <xsl:with-param name="this" select="."/>
+            </xsl:call-template>
+          </xsl:for-each>
+        </p>
+      </xsl:when>
+      <xsl:otherwise/>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match="tei:sex" mode="genCon">
+    <p data-tapas-label="sex">
+      <span>
+        <xsl:choose>
+          <xsl:when test="normalize-space(.)!=''">
+            <xsl:apply-templates select="." mode="string"/>
+          </xsl:when>
+          <xsl:when test="@value">
+            <xsl:call-template name="getSex">
+              <xsl:with-param name="sexCode" select="normalize-space(@value)"/>
+            </xsl:call-template>
+          </xsl:when>
+        </xsl:choose>
+      </span>
+    </p>
+  </xsl:template>
+  
+  <xsl:template name="getSex" match="@sex">
+    <xsl:param name="sexCode" select="normalize-space(.)"/>
+    <xsl:choose>
+      <xsl:when test=". = '0'">unknown</xsl:when>
+      <xsl:when test=". = 'U'">unknown</xsl:when>
+      <xsl:when test=". = '1'">male</xsl:when>
+      <xsl:when test=". = 'M'">male</xsl:when>
+      <xsl:when test=". = '2'">female</xsl:when>
+      <xsl:when test=". = 'F'">female</xsl:when>
+      <xsl:when test=". = 'O'">other</xsl:when>
+      <xsl:when test=". = '9'">not applicable</xsl:when>
+      <xsl:when test=". = 'N'">none or not applicable</xsl:when>
+      <xsl:otherwise><xsl:value-of select="."/></xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="processGenCon">
+    <xsl:param name="this"/>
+    <xsl:for-each select="$this">
+      <span>
+        <xsl:if test="@when|@notBefore|@from|@to|@notAfter">
+          <span class="normalized-date">
+            <xsl:choose>
+              <xsl:when test="@when">
+                <xsl:value-of select="@when"/>
+              </xsl:when>
+              <xsl:when test="@from and @to">
+                <xsl:value-of select="concat(@from,'–',@to)"/>
+              </xsl:when>
+              <xsl:when test="@notBefore and @notAfter">
+                <xsl:text>sometime between </xsl:text>
+                <xsl:value-of select="concat( @notBefore, ' and ', @notAfter )"/>
+              </xsl:when>
+              <xsl:when test="
+                ( @notAfter and @to )
+                or ( @notBefore and @from )
+                or ( @notAfter and @from )
+                or ( @notBefore and @to )
+                ">
+                <xsl:message>unable to determine normalized date of <xsl:value-of
+                  select="concat( local-name(.),' with ' )"
+                /><xsl:for-each select="@*"><xsl:value-of select="concat( name(.),' ')"/></xsl:for-each>.</xsl:message>
+                <xsl:apply-templates select="./node()"/>
+              </xsl:when>
+              <xsl:when test="@notAfter">
+                <xsl:text>sometime before </xsl:text>
+                <xsl:value-of select="@notAfter"/>
+              </xsl:when>
+              <xsl:when test="@notBefore">
+                <xsl:text>sometime after </xsl:text>
+                <xsl:value-of select="@notBefore"/>
+              </xsl:when>
+              <xsl:when test="@from">
+                <xsl:value-of select="concat(@from,'–present')"/>
+              </xsl:when>
+              <xsl:when test="@to">
+                <xsl:value-of select="concat('?–',@to)"/>
+              </xsl:when>
+            </xsl:choose>
+          </span>
+        </xsl:if>
+        <xsl:apply-templates select="./node()"/>
+      </span>
+    </xsl:for-each>
+  </xsl:template>
 
 </xsl:stylesheet>
