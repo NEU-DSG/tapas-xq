@@ -817,7 +817,7 @@
   </xsl:template>
   <xsl:template match="@xml:id" mode="genCon"/>
   <xsl:template match="html:script
-                      |script[@type='text/javascript']
+                      |script
                       |processing-instruction()
                       |comment()" mode="genCon"/>
   
