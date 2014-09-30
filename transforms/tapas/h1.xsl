@@ -816,7 +816,10 @@
     <xsl:copy/>
   </xsl:template>
   <xsl:template match="@xml:id" mode="genCon"/>
-  <xsl:template match="comment()|processing-instruction()" mode="genCon"/>
+  <xsl:template match="html:script
+                      |script[@type='text/javascript']
+                      |processing-instruction()
+                      |comment()" mode="genCon"/>
   
   <!-- For the outer contextual element we want to -->
   <!-- generate output in a particular order. Note that we are ignoring -->
