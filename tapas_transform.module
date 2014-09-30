@@ -620,7 +620,7 @@ function tapas_transform($node) {
       $xmlfinalurl[0] = str_replace("public://", "", $xmlfinalurl[0]);
       // $base and $files already in address
       //SYD - YOU CAN CHANGE THIS LINE TO ADD AS MANY h[x].xsl FILES AS YOU NEED!
-      for ($numoftransforms=1; $numoftransforms<=2; $numoftransforms++) {
+      for ($numoftransforms=1; $numoftransforms<=5; $numoftransforms++) {
         $uselastxmlfile=$numoftransforms - 1;
         $tapas_xslfilename[$numoftransforms]=$tapas_xsl_url."tapas/h".$numoftransforms.".xsl";
         $filetosave1[$numoftransforms]=make_transform($tapas_xslfilename[$numoftransforms],$xmlfinalurl[$uselastxmlfile],'xhtml');

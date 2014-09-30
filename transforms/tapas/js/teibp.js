@@ -6,7 +6,7 @@ function clearPageBreaks(){
 function addPageBreaks(){
     var viewBox = $('select#viewBox');
     var cssFile = viewBox.val();
-    if (cssFile == '../css/tapasGdiplo.css') {
+    if (cssFile.indexOf('tapasGdiplo') > -1) {
         Tapas.currentTheme = 'diplomatic';
     } else {
         Tapas.currentTheme = 'normalized';

@@ -100,7 +100,7 @@
         <xsl:call-template name="dialog"/>
         <xsl:call-template name="wrapper"/>
         <xsl:call-template name="contextual"/>
-        <xsl:copy-of select="$htmlFooter"/>
+        <!-- commented out 2014-09-28 by Syd xsl:copy-of select="$htmlFooter"/ -->
       </body>
     </html>
   </xsl:template>
