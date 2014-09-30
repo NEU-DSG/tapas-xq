@@ -368,25 +368,28 @@ function libxml_display_error($error) {
   $return = "<br/>\n"; 
   switch ($error->level) { 
     case LIBXML_ERR_WARNING: 
-//removed warnings at Syd's request
-//      $return .= "<b>Warning $error->code</b>: "; 
-return;
-    break; 
-    case LIBXML_ERR_ERROR: 
-//error 6 issues with bulk upload - "Error 6: Internal error: no state on line 0". happened in conjunction with "Warning: invalid name prefix 'xml'". Not sure what these were about but don't cause problems. Bypassing...
-if($error->code==6){
-return;
-}else{
+      //removed warnings at Syd's request
+      //      $return .= "<b>Warning $error->code</b>: "; 
+      return;
+      break; 
+  case LIBXML_ERR_ERROR: 
+    //error 6 issues with bulk upload - "Error 6: Internal error: no state on line 0".
+    // happened in conjunction with "Warning: invalid name prefix
+    // 'xml'". Not sure what these were about but don't cause
+    // problems. Bypassing...
+    if($error->code==6){
+      return;
+    }else{
       $return .= "<b>Error $error->code</b>: "; 
-}
+    }
     break; 
-    case LIBXML_ERR_FATAL: 
+  case LIBXML_ERR_FATAL: 
       $return .= "<b>Fatal Error $error->code</b>: "; 
-    break; 
+      break; 
   } 
   $return .= trim($error->message); 
   if ($error->file) { 
-  $error->file = substr(strrchr($error->file, "/"), 1);
+    $error->file = substr(strrchr($error->file, "/"), 1);
     $return .= " in <b>$error->file</b>"; 
   } 
   $return .= " on line <b>$error->line</b>\n"; 
@@ -611,41 +614,28 @@ function tapas_transform($node) {
     if($node->field_extract_metadata['und'][0]['value']==1){
       tapas_set_metadata($node, $finalfile);
     }
-    //NOW TAKE THE FILE GENERATED FROM tfc.xsl AND GENERATE THE FINAL FILE WITH 10 XSL PASSES!
+    //NOW TAKE THE FILE GENERATED FROM tfc.xsl AND GENERATE THE FINAL FILE WITH MULTIPLE XSL PASSES!
       $xmlfinalfilename[0]= $filetosave['filename'];
       $xmlfinalurl[0]= $filetosave['finalfile'];
       $xmlfinalurl[0] = str_replace("public://", "", $xmlfinalurl[0]);
       // $base and $files already in address
-//SYD - YOU CAN CHANGE THIS LINE TO ADD AS MANY h[x].xsl FILES AS YOU NEED!
-      for ($numoftransforms=1; $numoftransforms<=5; $numoftransforms++) {
+      //SYD - YOU CAN CHANGE THIS LINE TO ADD AS MANY h[x].xsl FILES AS YOU NEED!
+      for ($numoftransforms=1; $numoftransforms<=2; $numoftransforms++) {
         $uselastxmlfile=$numoftransforms - 1;
         $tapas_xslfilename[$numoftransforms]=$tapas_xsl_url."tapas/h".$numoftransforms.".xsl";
         $filetosave1[$numoftransforms]=make_transform($tapas_xslfilename[$numoftransforms],$xmlfinalurl[$uselastxmlfile],'xhtml');
         $xmlfinalfilename[$numoftransforms]= $filetosave1[$numoftransforms]['filename'];
         $xmlfinalurl[$numoftransforms]= $filetosave1[$numoftransforms]['finalfile'];
-//        drupal_set_message('pass '.$numoftransforms." filename: ".$xmlfinalfilename[$numoftransforms]." url: ".$xmlfinalurl[$numoftransforms]);
+	// drupal_set_message('pass '.$numoftransforms." filename: ".$xmlfinalfilename[$numoftransforms]." url: ".$xmlfinalurl[$numoftransforms]);
       }
-/*
-     //SECOND PASS
-      $tapas_xslfilename1=$tapas_xsl_url."tapas/h1.xsl";
-      $filetosave1=make_transform($tapas_xslfilename1,$xmlfinalurl,'xhtml');
-      $xmlfinalfilename1= $filetosave1['filename'];
-      $xmlfinalurl1= $filetosave1['finalfile'];
-      //NOW GENERATE ANOTHER FILE FROM RESULTS OF tfc.xsl and h1.xsl..SEE SYD FOR DETAILS
-      $tapas_xslfilename=$tapas_xsl_url."tapas/h2.xsl";
-      $filetosave=make_transform($tapas_xslfilename,$xmlfinalurl1,'xhtml');
-      //Save the final path address to drupal field - no need for $xmlfinalurl= "." . $base . $files . $xmlfinalurl;
-      $node->field_tei_custom_transform_addre['und'][0]['url'] = $filetosave['finalfile'];
-      $node->field_tei_custom_transform_addre['und'][0]['title'] = $filetosave['filename'] . '.xhtml';
-*/
       $node->field_tei_custom_transform_addre['und'][0]['url'] = end($xmlfinalurl);
       $node->field_tei_custom_transform_addre['und'][0]['title'] = end($xmlfinalfilename). '.xhtml';
-//drupal_set_message('finalurl: '.$node->field_tei_custom_transform_addre['und'][0]['url']);
-//drupal_set_message('finalfilename: '.$node->field_tei_custom_transform_addre['und'][0]['title']);
-    //SAVE THE NODE. FINALLY DONE
-    $node->revision = 0;
-    $node->revision_operation = 0;
-    node_save($node);
+      //drupal_set_message('finalurl: '.$node->field_tei_custom_transform_addre['und'][0]['url']);
+      //drupal_set_message('finalfilename: '.$node->field_tei_custom_transform_addre['und'][0]['title']);
+      //SAVE THE NODE. FINALLY DONE
+      $node->revision = 0;
+      $node->revision_operation = 0;
+      node_save($node);
   }
 }
 
