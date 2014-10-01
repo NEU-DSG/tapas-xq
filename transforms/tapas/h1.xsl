@@ -198,8 +198,6 @@
       &lt;title> elsewhere does not cause any problems, but we may
       need to extend this to other occurrences of &lt;title> outside
       the Header.</xd:p>
-      <xd:p>WARNING — for now we are putting the TEI namespace into
-        output, as we (TAPAS) are not using JQuery.</xd:p>
     </xd:desc>
   </xd:doc>
   <xsl:template match="tei:teiHeader//tei:title">
@@ -729,16 +727,16 @@
         generate-id( current()/ancestor::tei:lg[ not( ancestor::tei:lg ) ] )
         ]
       ) +1"/>
-    <xsl:if test="( $cnt mod 5 ) = 0">
-      <span class="poem-line-count">
-	<xsl:value-of select="$cnt"/>
-      </span>
-    </xsl:if>
     <xsl:element name="{local-name(.)}">
       <xsl:call-template name="addRend"/>
       <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
       <xsl:apply-templates select="node()"/>
     </xsl:element>
+    <xsl:if test="( $cnt mod 5 ) = 0">
+      <span class="poem-line-count">
+        <xsl:value-of select="$cnt"/>
+      </span>
+    </xsl:if>
   </xsl:template>
   
   <xd:doc>
