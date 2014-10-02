@@ -27,7 +27,6 @@ margin-bottom:@margins;
 .block(1em);
 }
 
-
 .hide {
 display:none;
 }
@@ -83,15 +82,10 @@ quotes: "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" 
 	.quotesUS;
 }
 
-
 /* teibp classes */
 
 .-teibp-thumbnail {
 max-height: 60px;
-}
-
-.-teibp-pb {
-.pb;
 }
 
 .-teibp-pbFacs {
@@ -144,6 +138,14 @@ choice {
 a[rend~="super"] {
 vertical-align:super;
 font-size: 70%;
+}
+
+a.ref-not-found, 
+.ptr-not-found,
+[class$="-not-found"] {
+text-decoration: none;
+color: inherit;
+pointer: text;
 }
 
 ab {
@@ -260,7 +262,8 @@ argument {
 }  
 
 att {
-	.mono;
+.mono;
+line-height: normal;
 } 
 
 att:before {
@@ -560,7 +563,9 @@ date[when]:empty:before {
 	content: attr(when);
 }
 
-dateline {}
+dateline {
+.block;
+}
 
 death {}
 
@@ -833,6 +838,10 @@ TEI head {
 .head-font;
 }
 
+TEI text front > head, TEI text body > head, TEI text back > head {
+margin-bottom: 1em;
+}
+
 body > head {
 font-size: 140%;
 } 
@@ -849,7 +858,8 @@ div > div > div > head {
 font-size: 125%;
 }
 
-div > div > div > div > head, list > head {
+div > div > div > div > head, 
+list > head {
 font-size: 120%;
 }
 
@@ -952,7 +962,7 @@ item {
 list item {
 margin-left: 1em;
 margin-top: .125em;
-margin-bottom: .125em;
+margin-bottom: .25em;
 }
 
 cell item {
@@ -982,18 +992,17 @@ text-indent:-2em;*/
 .poem-line-count {
 font-size: 80%;
 display: inline-block;
-margin-left: -2em;
-width: 1.5em;
-vertical-align: top;
-padding-top: 1em;
+min-width: 1.5em;
+float: right;
 }
 
+/*
 .poem-line-count + l {
 margin-top: 1em;
 display: inline-block;
 text-indent: 0em;
 padding-left: 0
-}
+}*/
 
 label {}
 
@@ -1011,8 +1020,6 @@ list label:after {
 
 list[type = "gloss"] > label {
 display: inline-block;
-margin-top: .25em;
-margin-bottom: .25em;
 font-weight:bold;
 }
 
@@ -1093,6 +1100,10 @@ text list[type=simple],  {
 list-style-type:none;
 }
 
+text list[type=simple] > item {
+margin-left: 0;
+}
+
 text list[type=bulleted] {
 list-style-type:disc;
 }
@@ -1122,10 +1133,6 @@ text list[type=gloss] > item {
 list-style-type: none;
 }
 
-text list[type=toc] > item {
-list-style-type: none;
-}
-
 text div[type~="contents"] list item {
 padding-top:.5em;
 }
@@ -1135,15 +1142,20 @@ float:right;
 }
 
 text list[type=toc] {
-    list-style: none;
-    margin-bottom: 20px;
+list-style: none;
+margin-bottom: 20px;
+}
+
+text list[type=toc] > item {
+list-style-type: none;
 }
 
 text list[type=toc] item {
-    position:relative;
-    background: url('http://5thirtyone.com/sandbox/share/toc/dot.gif') repeat-x bottom left;
-    overflow: hidden;
-    padding-bottom: 2px;
+position:relative;
+background: url('http://5thirtyone.com/sandbox/share/toc/dot.gif') repeat-x bottom left;
+overflow: hidden;
+padding-bottom: 2px;
+margin-left: 0;
 }
 
 text list[type=toc] a,
@@ -1372,18 +1384,20 @@ occupation {}
 
 offset {}
 
-opener {}
+opener {
+.block;
+}
 
 opener placeName,
 opener date {
 .block;
 }
 
-opener salute {
+opener tapas_metadata {
 .inline;
 }
 
-opener salute:before {
+opener tapas_metadata:before {
 content: "\00000a";
 white-space: pre;
 }
@@ -1407,7 +1421,7 @@ orth {}
 
 p {
 .block-margins;
-text-align:justify;
+/*text-align:justify;*/
 }
 
 *[rendition~="#center"] p {
@@ -1418,31 +1432,30 @@ availability > p:first-child {
 margin-top:0em;
 }
 
-pRef {/* rend attribute target */}
+pRef {}
 
-pVar {/* rend attribute target */}
+pVar {}
 
 particDesc {}
 
 pause {}
 
 .pb {
-.block;
+.block-margins;
 width: 100%;
 text-align: right;
 color: gray;
 padding: 1em 0;
-margin: 1em 0;
 font-size:11pt;
 }
 
 pb {
 .pb;
 }
-
+/*
 pb:before {
 content: "page:\a0" attr(n);
-}
+}*/
 
 pc {}
 
@@ -1644,11 +1657,6 @@ border-bottom: @hoverunderline;
 text-decoration: none;
 }
 
-/*
-*[ref] {
-border-bottom: 1px dotted #000000;
-}*/
-
 refState {}
 
 refsDecl {}
@@ -1720,11 +1728,11 @@ text-decoration:none;
 said {}
 
 
-salute {
+tapas_metadata {
 .block-margins;
 }
 
-closer salute {
+closer tapas_metadata {
 .inline;
 }
 
@@ -2041,17 +2049,17 @@ time {}
 
 timeline {}
 
-TEI teiHeader + metadata {
+TEI teiHeader + tapas_metadata {
  .hide; 
 }
 
-TEI metadata contributor,
-TEI metadata rights, 
-TEI metadata source { 
+TEI tapas_metadata contributor,
+TEI tapas_metadata rights, 
+TEI tapas_metadata source { 
 .hide; 
 }
 
-TEI metadata date, TEI metadata creator {
+TEI tapas_metadata date, TEI tapas_metadata creator {
 .block;
 }
 
