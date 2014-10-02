@@ -60,6 +60,10 @@ del, subst del {
 .hide;
 }
 
+fw {
+.hide;
+}
+
 gap {
 border-bottom: @hoverunderline;
 }
@@ -92,11 +96,22 @@ gap:after {
 content: "(Unclear text)]";
 }
 
-.-teibp-pb {
-display: inline-block;
+.-teibp-pb a {
+font-family: "sans-serif";
+display: inline;
 margin: 0; 
-padding: 0;
-width: 5px;
-height: 5px;
-background: @greybackground;
+text-align: left;
+text-decoration: none;
+color: gray;
+border-bottom: 0;
+}
+
+.-teibp-pb a:before {
+font-family: "Segoe UI Symbol", "Arial Unicode MS", "DejaVu Sans", "Meiryo UI", "MS UI Gothic", "Everson Mono Unicode", Meiryo, "MS Gothic", "MS Mincho", "MS PGothic", "MS PMincho", "Meslo LG L", "Meslo LG L DZ", "Meslo M L", "Meslo M L DZ", "Meslo S L", "Meslo S L DZ", "Symbola", "DejaVu Sans Condensed", "DejaVu Sans Mono", Code2000, "Everson Mono", Quivira, sans-serif;
+content:"\002119";
+padding: 0 .5em 0 0; 
+float:left;
+}
+.-teibp-pb a:hover:before {
+content:"\002119 " attr(data-tapas-n);
 }

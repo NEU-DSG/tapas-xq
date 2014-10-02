@@ -64,10 +64,6 @@ del {
 text-decoration: line-through;
 }
 
-fw {
-.hide;
-}
-
 gap[reason]:after, gap[extent]:after, gap[quantity]:after, gap:after {
 .italic;
 }
@@ -152,9 +148,11 @@ unclear:hover:before {
 content:" (Unclear text) " ;
 }
 
+
 .-teibp-pb {
-  border-bottom: @heavyhoverunderline;
-  bordet-top: @heavyhoverunderline;
+.pb;
+border-bottom: @heavyhoverunderline;
+bordet-top: @heavyhoverunderline;
 }
 
 .-teibp-pb a {}
