@@ -11,6 +11,8 @@
   <!-- of the same, step 1: -->
   <!-- * insert new <tapas:metadata> element with pre-digested metadata -->
   <!-- * strip off paths from relative URLs -->
+  <!-- * change PI names so that information is retained, but processors -->
+  <!--   don't actually act on them -->
   <!-- * for elements that have data.pointer attrs, add a hashed version thereof -->
 
   <xsl:output method="xml" indent="yes"/>
@@ -132,9 +134,13 @@
   
   <xsl:template name="get-creator">
     <xsl:variable name="got-creator">
+      <!-- also should look in <respStmt> and <editor> -->
       <xsl:choose>
         <xsl:when test="/*/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author">
           <xsl:value-of select="string(/*/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[1])"/>
+        </xsl:when>
+        <xsl:when test="/*/tei:teiHeader/tei:fileDesc/tei:sourceDesc//tei:author">
+          <xsl:value-of select="string(/*/tei:teiHeader/tei:fileDesc/tei:sourceDesc[1]//tei:author[1])"/>
         </xsl:when>
         <xsl:when test="//tei:titlePage/tei:docAuthor">
           <xsl:value-of select="string(//tei:titlePage[1]/tei:docAuthor[1])"/>
@@ -628,143 +634,117 @@
     </xsl:processing-instruction>
   </xsl:template>
   
+  <!-- ************************** -->
+  <!-- data manipulation routines -->
+  <!-- ************************** -->
+
+  <!-- Move janus tags to type= of <persName> when used inside <person>. -->
+  <!-- As current written this drops the type= of the <persName>. OK for -->
+  <!-- for now, as there are none. But we should fix that someday, likely -->
+  <!-- by using subtype= or data-tapas-type=. -->
+  <xsl:template match="tei:person/tei:persName[tei:choice]">
+    <xsl:apply-templates select="tei:choice/*" mode="makemeapersname"/>
+  </xsl:template>
+  <xsl:template match="tei:abbr|tei:expan|tei:sic|tei:corr|tei:orig|tei:reg"
+    mode="makemeapersname">
+    <persName type="{local-name(.)}"><xsl:apply-templates/></persName>
+  </xsl:template>
+
   <!-- ************************ -->
   <!-- data processing routines -->
   <!-- ************************ -->
   
-  <xsl:template name="handle_ptrs" match="@target|@url|@ref|@corresp">
-    <!-- Note: list of attrs matched should be extracted from -->
+  <xsl:template name="handle_ptrs" match="@target|@url|@ref|@corresp|@facs">
+    <!-- Note 1: list of attrs matched should be extracted from -->
     <!-- schema or ODD. But I don't have time for that right -->
     <!-- now, so we just match those that show up in profiling -->
     <!-- data we received. -->
+    <!-- Note 2: we simply don't support pointer attributes with -->
+    <!-- more than one URI in the value. See e-mail of 2014-06-19 16:14. -->
     <xsl:variable name="me" select="normalize-space(.)"/>
-    <xsl:variable name="me_sans_path">
-      <xsl:variable name="processed-URIs">
-        <xsl:call-template name="process-first-URI">
-          <xsl:with-param name="URIs" select="$me"/>
-        </xsl:call-template>
-      </xsl:variable>
-      <xsl:value-of select="normalize-space($processed-URIs)"/>
-    </xsl:variable>
+    <!-- Retain original: -->
     <xsl:attribute name="{name(.)}">
-      <xsl:value-of select="$me_sans_path"/>
+      <xsl:value-of select="$me"/>
     </xsl:attribute>
-    <xsl:attribute name="data-tapas-hashed-{local-name(.)}">
-      <xsl:variable name="hashed-URIs">
-        <xsl:call-template name="hash-first-URI">
-          <xsl:with-param name="URIs" select="$me"/>
-          <xsl:with-param name="me" select="local-name(.)"/>
-        </xsl:call-template>
-      </xsl:variable>
-      <xsl:value-of select="normalize-space($hashed-URIs)"/>
-    </xsl:attribute>
-    <xsl:if test="contains( $me_sans_path, ' ')">
-      <xsl:call-template name="hash-first-URI">
-        <xsl:with-param name="out" select="'attr'"/>
-        <xsl:with-param name="URIs" select="$me"/>
-        <xsl:with-param name="me" select="local-name(.)"/>
-      </xsl:call-template>
-    </xsl:if>
+    <xsl:choose>
+      <xsl:when test="contains( $me,' ')">
+        <xsl:attribute name="data-tapas-{name(.)}-warning">
+          <xsl:text>multiple URIs in value</xsl:text>
+        </xsl:attribute>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:variable name="myself">
+          <xsl:choose>
+            <xsl:when test="starts-with( $me,'file:/')">
+              <xsl:value-of select="substring-after( $me,':')"/>
+            </xsl:when>
+            <xsl:otherwise><xsl:value-of select="$me"/></xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="onNet">
+          <xsl:value-of select="
+            (  starts-with( $myself,'http://' )
+            or starts-with( $myself,'https://')
+            or starts-with( $myself,'ftp://'  ) )
+            "/>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="starts-with( $myself,'#')">
+            <!-- points to internal XML element -->
+            <xsl:variable name="bare-name" select="substring( $myself, 2 )"/>
+            <xsl:choose>
+              <xsl:when test="id( $bare-name )">
+                <!-- points to an existing internal XML element -->
+                <!-- current attr will do unless we're an @facs -->
+                <!-- that points to a <surface> -->
+                <xsl:if test="$me='facs'  and  id( $bare-name )[self::tei:surface]">
+                      <DEBUG>do right thing here!</DEBUG>
+                </xsl:if>
+              </xsl:when>
+              <xsl:otherwise>
+                <!-- points to non-existant internal XML element -->
+                <xsl:attribute name="data-tapas-{name(.)}-warning">
+                  <xsl:text>target not found</xsl:text>
+                </xsl:attribute>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:when>
+          <xsl:when test="$onNet = 'true'  and  contains( $myself,'#')">
+            <!-- points to a web document fragment; XML? -->
+            <!-- for now, current attr will have to do -->
+          </xsl:when>
+          <xsl:when test="$onNet = 'true'">
+            <!-- points to a complete web document -->
+            <!-- current attr will do -->
+          </xsl:when>
+          <xsl:when test="contains( $myself,'#')">
+            <!-- points to a document fragment; XML? -->
+            <!-- generate a local pointer, depending on later-->
+            <!-- routines to suck in the data -->
+            <xsl:call-template name="maybe-flatten">
+              <xsl:with-param name="me" select="$myself"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:when test="contains( $myself,'/')">
+            <!-- path to a local file -->
+            <xsl:call-template name="maybe-flatten">
+              <xsl:with-param name="me" select="$myself"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <!-- just a local file -->
+            <xsl:call-template name="maybe-flatten">
+              <xsl:with-param name="me" select="$myself"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>    
   </xsl:template>
   
   <!-- *************************** -->
   <!-- data processing subroutines -->
   <!-- *************************** -->
-  
-  <xsl:template name="process-first-URI">
-    <xsl:param name="URIs"/>
-    <xsl:choose>
-      <xsl:when test="contains($URIs,' ')">
-        <xsl:call-template name="process-first-URI">
-          <xsl:with-param name="URIs" select="substring-before($URIs,' ')"/>
-        </xsl:call-template>
-        <xsl:call-template name="process-first-URI">
-          <xsl:with-param name="URIs" select="substring-after($URIs,' ')"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:choose>
-          <xsl:when test="
-            starts-with($URIs,'http://')
-            or starts-with($URIs,'https://')
-            or starts-with($URIs,'mailto:/')
-            or starts-with($URIs,'ftp://')
-            ">
-            <!-- what other protocols should we be ignoring? -->
-            <xsl:value-of select="$URIs"/>
-          </xsl:when>
-          <xsl:when test=" starts-with($URIs,'file:/')">
-            <!-- for file:, just treat it like an absolute filepath -->
-            <!-- by stripping off the initial "file:" bit -->
-            <xsl:call-template name="remove-path-component">
-              <xsl:with-param name="me" select="substring-after($URIs,':')"/>
-            </xsl:call-template>
-          </xsl:when>
-          <xsl:otherwise>
-            <!-- recursively remove the first path component, so we end -->
-            <!-- up with whatever is after ultimate slash -->
-            <xsl:call-template name="remove-path-component">
-              <xsl:with-param name="me" select="$URIs"/>
-            </xsl:call-template>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>&#x20;</xsl:text>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  
-  <xsl:template name="hash-first-URI">
-    <xsl:param name="me"/>
-    <xsl:param name="URIs"/>
-    <xsl:param name="depth" select="0"/>
-    <xsl:param name="out" select="'string'"/>
-    <xsl:choose>
-      <xsl:when test="contains($URIs,' ')">
-        <xsl:call-template name="hash-first-URI">
-          <xsl:with-param name="depth" select="$depth"/>
-          <xsl:with-param name="out" select="$out"/>
-          <xsl:with-param name="URIs" select="substring-before($URIs,' ')"/>
-          <xsl:with-param name="me" select="$me"/>
-        </xsl:call-template>
-        <xsl:call-template name="hash-first-URI">
-          <xsl:with-param name="depth" select="$depth+1"/>
-          <xsl:with-param name="out" select="$out"/>
-          <xsl:with-param name="URIs" select="substring-after($URIs,' ')"/>
-          <xsl:with-param name="me" select="$me"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <!-- convert any non-NCName characters into allowed ones -->
-        <xsl:variable name="one"   select="translate($URIs, $URIc1,'......')"/>
-        <xsl:variable name="two"   select="translate( $one, $URIc2, '______')"/>
-        <xsl:variable name="three" select="translate( $two, $URIc3, '------')"/>
-        <xsl:variable name="four">
-          <!-- if starts with an illegal name start char, prepend one -->
-          <xsl:choose>
-            <xsl:when test="contains( '._-', substring( $three, 1, 1) )">
-              <xsl:value-of select="concat( 'Ћ', $three )"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="$three"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
-        <xsl:choose>
-          <xsl:when test="$out = 'string'">
-            <xsl:value-of select="concat( $four, ' ')"/>    
-          </xsl:when>
-          <xsl:when test="$out = 'attr'">
-            <xsl:attribute name="data-tapas-hashed-{$me}-{$depth+1}">
-              <xsl:value-of select="$four"/>
-            </xsl:attribute>
-            <xsl:attribute name="data-tapas-{$me}-{$depth+1}">
-              <xsl:value-of select="$URIs"/>
-            </xsl:attribute>
-          </xsl:when>
-        </xsl:choose>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
   
   <xsl:template name="remove-path-component">
     <xsl:param name="me"/>
@@ -802,4 +782,167 @@
     </xsl:choose>
   </xsl:template>
 
+<xsl:template name="maybe-flatten">
+    <xsl:param name="me"/>
+    <xsl:variable name="flattened">
+      <xsl:call-template name="remove-path-component">
+        <xsl:with-param name="me" select="$me"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:variable name="newpath">
+      <xsl:variable name="last4" select="substring($flattened,string-length($flattened)-3)"/>
+      <xsl:variable name="last5" select="substring($flattened,string-length($flattened)-4)"/>
+      <xsl:choose>
+        <xsl:when test="
+             $last4 = '.jpg'
+          or $last4 = '.JPG'
+          or $last4 = '.jp2'
+          or $last4 = '.JP2'
+          or $last5 = '.jpeg'
+          or $last5 = '.JPEG'
+          or $last4 = '.gif'
+          or $last4 = '.GIF'
+          or $last4 = '.png'
+          or $last4 = '.PNG'
+          or $last4 = '.tif'
+          or $last4 = '.TIF'
+          or $last5 = '.tiff'
+          or $last5 = '.TIFF'
+          "><xsl:value-of select="$flattened"/></xsl:when>
+        <xsl:otherwise>
+          <xsl:text>../support/</xsl:text>
+          <xsl:value-of select="$flattened"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:message>DEBUG: <xsl:value-of select="$newpath"/> != <xsl:value-of select="$me"/>?</xsl:message>
+    <xsl:if test="$newpath != $me">
+      <xsl:attribute name="data-tapas-flattened-{name(.)}">
+        <xsl:value-of select="$newpath"/>
+      </xsl:attribute>
+    </xsl:if>
+  </xsl:template>
+  
 </xsl:stylesheet>
+
+<!--
+      <xsl:variable name="me_sans_path">
+      <xsl:variable name="processed-URIs">
+        <xsl:call-template name="process-first-URI">
+          <xsl:with-param name="URIs" select="$me"/>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:value-of select="normalize-space($processed-URIs)"/>
+    </xsl:variable>
+    <!- - Original w/o paths: - ->
+    <xsl:attribute name="data-tapas-pathless-{name(.)}">
+      <xsl:value-of select="$me_sans_path"/>
+    </xsl:attribute>
+    <xsl:attribute name="data-tapas-hashed-{local-name(.)}">
+      <xsl:variable name="hashed-URIs">
+        <xsl:call-template name="hash-first-URI">
+          <xsl:with-param name="URIs" select="$me"/>
+          <xsl:with-param name="me" select="local-name(.)"/>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:value-of select="normalize-space($hashed-URIs)"/>
+    </xsl:attribute>
+    <xsl:if test="contains( $me_sans_path, ' ')">
+      <xsl:call-template name="hash-first-URI">
+        <xsl:with-param name="out" select="'attr'"/>
+        <xsl:with-param name="URIs" select="$me"/>
+        <xsl:with-param name="me" select="local-name(.)"/>
+      </xsl:call-template>
+    </xsl:if>
+
+  <xsl:template name="process-first-URI">
+    <xsl:param name="URIs"/>
+    <xsl:choose>
+      <xsl:when test="contains($URIs,' ')">
+        <xsl:call-template name="process-first-URI">
+          <xsl:with-param name="URIs" select="substring-before($URIs,' ')"/>
+        </xsl:call-template>
+        <xsl:call-template name="process-first-URI">
+          <xsl:with-param name="URIs" select="substring-after($URIs,' ')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="
+            starts-with($URIs,'http://')
+            or starts-with($URIs,'https://')
+            or starts-with($URIs,'mailto:/')
+            or starts-with($URIs,'ftp://')
+            <!- - what other protocols should we be ignoring? - ->
+            <xsl:value-of select="$URIs"/>
+          </xsl:when>
+          <xsl:when test=" starts-with($URIs,'file:/')">
+            <!- - for file:, just treat it like an absolute filepath - ->
+            <!- - by stripping off the initial "file:" bit - ->
+            <xsl:call-template name="remove-path-component">
+              <xsl:with-param name="me" select="substring-after($URIs,':')"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <!- - recursively remove the first path component, so we end - ->
+            <!- - up with whatever is after ultimate slash - ->
+            <xsl:call-template name="remove-path-component">
+              <xsl:with-param name="me" select="$URIs"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>&#x20;</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  
+  <xsl:template name="hash-first-URI">
+    <xsl:param name="me"/>
+    <xsl:param name="URIs"/>
+    <xsl:param name="depth" select="0"/>
+    <xsl:param name="out" select="'string'"/>
+    <xsl:choose>
+      <xsl:when test="contains($URIs,' ')">
+        <xsl:call-template name="hash-first-URI">
+          <xsl:with-param name="depth" select="$depth"/>
+          <xsl:with-param name="out" select="$out"/>
+          <xsl:with-param name="URIs" select="substring-before($URIs,' ')"/>
+          <xsl:with-param name="me" select="$me"/>
+        </xsl:call-template>
+        <xsl:call-template name="hash-first-URI">
+          <xsl:with-param name="depth" select="$depth+1"/>
+          <xsl:with-param name="out" select="$out"/>
+          <xsl:with-param name="URIs" select="substring-after($URIs,' ')"/>
+          <xsl:with-param name="me" select="$me"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <!- - convert any non-NCName characters into allowed ones - ->
+        <xsl:variable name="one"   select="translate($URIs, $URIc1,'......')"/>
+        <xsl:variable name="two"   select="translate( $one, $URIc2, '______')"/>
+        <xsl:variable name="three" select="translate( $two, $URIc3, '&#x2D;&#x2D;&#x2D;&#x2D;&#x2D;&#x2D;')"/>
+        <xsl:variable name="four">
+          <!- - if starts with an illegal name start char, prepend one - ->
+          <xsl:if test="contains( '._-', substring( $three, 1, 1) )">
+            <xsl:text>Ћ</xsl:text>
+          </xsl:if>
+          <xsl:value-of select="$three"/>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="$out = 'string'">
+            <xsl:value-of select="concat( $four, ' ')"/>    
+          </xsl:when>
+          <xsl:when test="$out = 'attr'">
+            <xsl:attribute name="data-tapas-hashed-{$me}-{$depth+1}">
+              <xsl:value-of select="$four"/>
+            </xsl:attribute>
+            <xsl:attribute name="data-tapas-{$me}-{$depth+1}">
+              <xsl:value-of select="$URIs"/>
+            </xsl:attribute>
+          </xsl:when>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  
+-->
