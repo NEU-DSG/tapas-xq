@@ -300,6 +300,7 @@ function tapas_file_xsl_check($xml_filename,$validation_filename) {
 function tapas_file_check($xmlurl,$xmlfilename) {
   //CHECK TO MAKE SURE FILENAME DOES NOT CONFLICT WITH DRUPAL'S FILE REVISION NAMING CONVENTIONS
   if(preg_match('/_[0-9]*\.xml/',$xmlurl,$matches)){
+    drupal_set_message(print_r($xmlurl, true), "info");
     $the_error='Filenames with a _[#].[file-extension] (an underscore followed by a number before the file extension), are reserved for file revisions. Please rename your file by adding a letter after the underscore or replacing the underscore with a dash.';
     return $the_error;
   }
@@ -533,11 +534,11 @@ function make_transform($xsl,$xml,$extension=NULL){
   //get project directory name 
   $xmlpath = pathinfo($xml);
   $xslpath = pathinfo($xsl);
-  $newdirname = ltrim($xmlpath['dirname'],".");
+  $newdirname = end(explode("files", $xmlpath['dirname']));
   $xmlfilename=$xmlpath['basename'];
   $xslfilename=$xslpath['basename'];
   //create transform filename
-  $files = DRUPAL_ROOT;
+  $files = drupal_realpath("public://");
   $filename = $xmlfilename . "-" . $xslfilename;
   $dirtosave = $files . $newdirname."/";
   $finalfile = $dirtosave . $filename . ".".$extension;
@@ -547,7 +548,8 @@ function make_transform($xsl,$xml,$extension=NULL){
   $xslDoc->substituteEntities = TRUE;
   $xslDoc->load($xsl);
   $xmlDoc = new DOMDocument();
-  $xmlDoc->load($xml);
+  $xml_realpath = drupal_realpath("public://").end(explode("files", $xml));
+  $xmlDoc->load($xml_realpath);
   $proc = new XSLTProcessor();
   $proc->importStylesheet($xslDoc);
   $doc = new DOMDocument();
