@@ -300,7 +300,6 @@ function tapas_file_xsl_check($xml_filename,$validation_filename) {
 function tapas_file_check($xmlurl,$xmlfilename) {
   //CHECK TO MAKE SURE FILENAME DOES NOT CONFLICT WITH DRUPAL'S FILE REVISION NAMING CONVENTIONS
   if(preg_match('/_[0-9]*\.xml/',$xmlurl,$matches)){
-    drupal_set_message(print_r($xmlurl, true), "info");
     $the_error='Filenames with a _[#].[file-extension] (an underscore followed by a number before the file extension), are reserved for file revisions. Please rename your file by adding a letter after the underscore or replacing the underscore with a dash.';
     return $the_error;
   }
