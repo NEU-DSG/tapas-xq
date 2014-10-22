@@ -8,18 +8,21 @@
  */
 class TapasHydraConnector { 
   private $base_url;
-  private $username;
-  private $user_api_key;
+  private $email;
+  private $api_token;
+  private $default_opts;
 
   function __construct(){
     $this->base_url     = variable_get("tapas_hydra_base_url");
-    $this->username     = variable_get("tapas_hydra_username");
-    $this->user_api_key = variable_get("tapas_hydra_api_key");
+    $this->email        = variable_get("tapas_hydra_email");
+    $this->api_token    = variable_get("tapas_hydra_api_token");
+    $this->default_opts = array("email" => $this->email, 
+                                "token" => $this->api_token);
   }
 
   function inspect_connection_info(){
     echo "Tapas Hydra base url is: ".$this->base_url."\n";
-    echo "Username to use is: ".$this->username."\n";
+    echo "email to use is: ".$this->email."\n";
     echo "API key not echoed \n";
   }
 
@@ -32,17 +35,21 @@ class TapasHydraConnector {
     $connection = $this->base_url."files/validate_tei.json";
 
     $result = $this->post_request($connection, $fpath);
+    return $result;
   }
 
-  private function post_request($connection, $fpath, $data = null){
-    $file = $this->create_curl_file_field($fpath);
+  private function post_request($connection, $fpath, $data = array()){
+    $file         = $this->create_curl_file_field($fpath);
+    $content_type = (new Finfo(FILEINFO_MIME))->file($fpath);
+    $data         = array_merge($this->default_opts, $data);
+    $data["file"] = $file;
+
+    $curl = curl_init($connection);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+    return curl_exec($curl);
   }
 
   private function create_curl_file_field($fpath){
-    $file_name = pathinfo($fpath);
-    $file_name = $file_name["basename"];
-
-    $file_mime = new Finfo(FILEINFO_MIME);
-    $file_mime = $file_mime->finfo($fpath);
+    return "@".$fpath.";filename=".pathinfo($fpath)['basename'];
   }
 }
