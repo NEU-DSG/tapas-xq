@@ -12,5 +12,5 @@ project = "TAPAS"
 
 files[] = tapas_transform.install
 files[] = tapas_transform.module
-
+files[] = tapas_transform.hydra_connector.inc
 
