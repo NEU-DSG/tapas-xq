@@ -1,5 +1,4 @@
 <?php 
-
 /**
  * @file 
  * Implements an encapsulating class for connections to the tapas_hydra 
@@ -27,15 +26,12 @@ class TapasHydraConnector {
   }
 
   static function validate_tei($fpath){
-    $connector = new TapasHydraConnector();
-    $connector->_validate_tei($fpath); 
+    return (new TapasHydraConnector())->_validate_tei($fpath);
   }
 
   function _validate_tei($fpath){
     $connection = $this->base_url."files/validate_tei.json";
-
-    $result = $this->post_request($connection, $fpath);
-    return $result;
+    return $this->post_request($connection, $fpath);
   }
 
   private function post_request($connection, $fpath, $data = array()){
@@ -44,9 +40,15 @@ class TapasHydraConnector {
     $data         = array_merge($this->default_opts, $data);
     $data["file"] = $file;
 
+    $curl_options = array(CURLOPT_RETURNTRANSFER => 1, 
+                          CURLOPT_POSTFIELDS => $data);
+
     $curl = curl_init($connection);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-    return curl_exec($curl);
+    curl_setopt_array($curl, $curl_options);
+
+    $response = json_decode(curl_exec($curl));
+    $response->status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    return $response;
   }
 
   private function create_curl_file_field($fpath){
