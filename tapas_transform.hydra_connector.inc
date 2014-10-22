@@ -35,10 +35,8 @@ class TapasHydraConnector {
   }
 
   private function post_request($connection, $fpath, $data = array()){
-    $file         = $this->create_curl_file_field($fpath);
-    $content_type = (new Finfo(FILEINFO_MIME))->file($fpath);
     $data         = array_merge($this->default_opts, $data);
-    $data["file"] = $file;
+    $data["file"] = $this->create_curl_file_field($fpath);
 
     $curl_options = array(CURLOPT_RETURNTRANSFER => 1, 
                           CURLOPT_POSTFIELDS => $data);
@@ -46,9 +44,19 @@ class TapasHydraConnector {
     $curl = curl_init($connection);
     curl_setopt_array($curl, $curl_options);
 
-    $response = json_decode(curl_exec($curl));
-    $response->status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    return $response;
+    $response = curl_exec($curl);
+
+    # If the response is false, we assume a curl error was thrown
+    if ($response == false){
+      $error_body  = "cURL attempt in TapasHydraConnector threw ".
+                     "following error: ".curl_error($curl);
+      watchdog("tapas_transform", $error_body, array(), 0);
+      return $response;
+    } else {  
+      $response = json_decode($response);
+      $response->status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+      return $response;
+    }
   }
 
   private function create_curl_file_field($fpath){
