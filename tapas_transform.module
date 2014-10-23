@@ -38,7 +38,7 @@ function tapas_transform_form_alter(&$form, &$form_state, $form_id) {
         $message="Batch process ".$_SESSION['batch_remove']." still in process.";
         drupal_set_message($message, 'error');
       }
-//      drupal_goto($_SERVER['HTTP_REFERER']);
+      // drupal_goto($_SERVER['HTTP_REFERER']);
     }
     $_SESSION['batch_remove']='process started';
   }
@@ -241,11 +241,10 @@ function tapas_transform_node_submit($node){
       $has_new = $node->field_is_new['und'][0]['value'];
     }else{
       $has_new=0;
-    }
-    if($has_new==0){
       $node->revision = 0;
       $node->revision_operation = 0;
     }
+
     //ANOTHER ANNOYING SIDE EFFECT OF MULTISTEP...MULTIPLE EMAILS DUE TO NODE_SAVE's
     $node->field_email_yet['und'][0]['value'] = 0;
     //LOAD THE NEW FILE TO CHECK FOR ERRORS BEFORE NODE SAVE
@@ -254,17 +253,17 @@ function tapas_transform_node_submit($node){
     $xmlurl = str_replace("public://", "." . base_path() . conf_path() . "/files/", $file->uri);
     $the_url = request_uri();
     //CHECK FOR ERRORS AND KILL EVERYTHING IF THEY ARE FOUND.. IF BULK UPLOAD HASN'T ALREADY - session set in rules_batch_create_tei_content_from_bulk_upload
-if(!isset($_SESSION['file_to_check'][$xmlfilename])){
-    $has_error=tapas_file_check($xmlurl,$xmlfilename);
-    if($has_error){
-      drupal_set_message('The TEI file <em><strong>'.$xmlfilename.'</strong></em> did not validate.<br/>'.$has_error.'<br/>Please verify that your TEI file is proper XML and conforms to TEI Guidelines.<br/><br/><br/>', 'error');
-      file_delete($file, $force = FALSE);
-      header('Location: '.$the_url);
-      die();
+    if(!isset($_SESSION['file_to_check'][$xmlfilename])){
+      $has_error=tapas_file_check($xmlurl,$xmlfilename);
+      if($has_error){
+        drupal_set_message('The TEI file <em><strong>'.$xmlfilename.'</strong></em> did not validate.<br/>'.$has_error.'<br/>Please verify that your TEI file is proper XML and conforms to TEI Guidelines.<br/><br/><br/>', 'error');
+        file_delete($file, $force = FALSE);
+        header('Location: '.$the_url);
+        die();
+      }
+    } else {
+      unset($_SESSION['file_to_check'][$xmlfilename]);
     }
-}else{
-unset($_SESSION['file_to_check'][$xmlfilename]);
-}
     //NO ERRORS SAVE THE NODE AND RUN TRANSFORM
     node_save($node);
     $node->revision = 0;
@@ -273,12 +272,12 @@ unset($_SESSION['file_to_check'][$xmlfilename]);
     tapas_transform($node);
   }
   if ($node->type == 'collection') {
-//For some strange reason, if a new collection had all page elements unchecked, the system set the elements back to default. set this session variable and then rules_the_new_empty_field_collection_page_elements_rule. Sorry I did not have time to track this down further...
+    //For some strange reason, if a new collection had all page elements unchecked, the system set the elements back to default. set this session variable and then rules_the_new_empty_field_collection_page_elements_rule. Sorry I did not have time to track this down further...
     unset($_SESSION['empty_field_collection_page_elements_fix']);
     if (empty($node->field_collection_page_elements['und'])) {
       $_SESSION['empty_field_collection_page_elements_fix']=1;
     }
-//This is here to prevent multiple emails due to multistep module
+    //This is here to prevent multiple emails due to multistep module
     $node->field_email_yet['und'][0]['value'] = 0;
   }
 }
@@ -325,57 +324,54 @@ function tapas_file_check($xmlurl, $xmlfilename) {
 * Hook function copied from upload_replace module - http://drupal.org/project/upload_replace. Since using context to do file revisions, easier to maintain code here.
 */
 function tapas_transform_file_update($new_file) {
-  if (!$new_file->fid) {
-    //Nothing to do if no fileid
+  // Nothing to do if no fileid
+  if (!$new_file->fid) { return; }
+
+  if(preg_match('/_[0-9]*\.xml/',$new_file->uri,$matches) && isset($_SESSION['batch_remove'])){
     return;
-  }
-if(preg_match('/_[0-9]*\.xml/',$new_file->uri,$matches) && isset($_SESSION['batch_remove'])){
-return;
-}else{
-  $file_is_new=0;
-  if(strpos($new_file->uri,'Create TEI Content Record')){
-    $file_is_new=1;
-  }
-  $desired_destination = preg_replace('/_[0-9]+\.(.*)$/', '.$1', $new_file->uri);
-  context_delete('file_updating', 'desired_destination');
-  context_set('file_updating', 'desired_destination', $desired_destination);
-  $db_path = db_select('file_managed', 'f')
-    ->fields('f', array('uri', ))
-    ->condition('fid', $new_file->fid)
-    ->execute()
-    ->fetchField();
-  if ($db_path != $new_file->uri) {
-    //this happens when a reversion is being reverted
-    $next_good_filepath = file_destination($desired_destination, FILE_EXISTS_RENAME);
-    db_update('file_managed')
-      ->fields(array('uri' => $next_good_filepath))
-      ->condition('fid', $new_file->fid)
-      ->execute();
-    $new_file->uri = $desired_destination;
   }else{
-    //If the filename has be modified by adding a _0 value, or
-    //on certain situations the filepath will not match the filepath in the db, such as
-    //when reverting a revision.  When reverting a revision change the filename as well
-    if (!strpos($new_file->uri, $new_file->uri)) {
-      //the filename is not in the filepath, so drupal must have added a "_0" before the extension
-      //find the file that is blocking this file from keeping the correct path
-      $result = db_select('file_managed', 'f')
-        ->fields('f')
-        ->condition('uri', $desired_destination)
+    $file_is_new=0;
+    if(strpos($new_file->uri,'Create TEI Content Record')){
+      $file_is_new=1;
+    }
+    $desired_destination = preg_replace('/_[0-9]+\.(.*)$/', '.$1', $new_file->uri);
+    context_delete('file_updating', 'desired_destination');
+    context_set('file_updating', 'desired_destination', $desired_destination);
+    $db_path = db_select('file_managed', 'f')
+      ->fields('f', array('uri', ))
+      ->condition('fid', $new_file->fid)
+      ->execute()
+      ->fetchField();
+    if ($db_path != $new_file->uri) {
+      //this happens when a reversion is being reverted
+      $next_good_filepath = file_destination($desired_destination, FILE_EXISTS_RENAME);
+      db_update('file_managed')
+        ->fields(array('uri' => $next_good_filepath))
+        ->condition('fid', $new_file->fid)
         ->execute();
-      //@todo only one result is handled, should allow for multiple results
-      $is_blocked = false;
+      $new_file->uri = $desired_destination;
+    }else{
+      //If the filename has be modified by adding a _0 value, or
+      //on certain situations the filepath will not match the filepath in the db, such as
+      //when reverting a revision.  When reverting a revision change the filename as well
+      if (!strpos($new_file->uri, $new_file->uri)) {
+        //the filename is not in the filepath, so drupal must have added a "_0" before the extension
+        //find the file that is blocking this file from keeping the correct path
+        $result = db_select('file_managed', 'f')
+          ->fields('f')
+          ->condition('uri', $desired_destination)
+          ->execute();
+        //@todo only one result is handled, should allow for multiple results
+        $is_blocked = false;
       
-      foreach ($result as $file) {
-        $is_blocked = TRUE;
-        $blocking_file = $file;
-        $tmp_destination = file_directory_temp()."/test_-".$blocking_file->fid."_-".$blocking_file->filename."";
-        context_delete('we_r_done', 'fid', $blocking_file->fid);
-      }
-      $old_destination = $db_path;
-      if ($old_destination == $desired_destination){
-        return;
-      }
+        foreach ($result as $file) {
+          $is_blocked = TRUE;
+          $blocking_file = $file;
+          $tmp_destination = file_directory_temp()."/test_-".$blocking_file->fid."_-".$blocking_file->filename."";
+          context_delete('we_r_done', 'fid', $blocking_file->fid);
+        }
+        $old_destination = $db_path;
+        if ($old_destination == $desired_destination){ return ; }
       //Swap the files
       if ($is_blocked) {
         //move the blocking file to a temporary location
