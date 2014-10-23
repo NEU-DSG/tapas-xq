@@ -282,20 +282,6 @@ unset($_SESSION['file_to_check'][$xmlfilename]);
     $node->field_email_yet['und'][0]['value'] = 0;
   }
 }
-function tapas_file_xsl_check($xml_filename,$validation_filename) {
-    $xslDoc = new DOMDocument();
-    $xslDoc->resolveExternals = TRUE;
-    $xslDoc->substituteEntities = TRUE;
-    $xslDoc->load($validation_filename);
-    $xmlDoc = new DOMDocument();
-    $xmlDoc->load($xml_filename);
-    $proc = new XSLTProcessor();
-    $proc->importStylesheet($xslDoc);
-    $doc = new DOMDocument();
-    unset($the_error);
-    $the_error=$proc->transformToXML($xmlDoc);
-    return $the_error;
-}
 
 function tapas_file_check($xmlurl, $xmlfilename) {
   $xmlurl = drupal_realpath("public://").end(explode("files", $xmlurl));
