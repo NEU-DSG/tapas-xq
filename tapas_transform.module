@@ -296,9 +296,49 @@ function tapas_file_xsl_check($xml_filename,$validation_filename) {
     $the_error=$proc->transformToXML($xmlDoc);
     return $the_error;
 }
+
+function tapas_file_check($xmlurl, $xmlfilename) {
+  $xmlurl = drupal_realpath("public://").end(explode("files", $xmlurl));
+
+  if(preg_match('/_[0-9]*\.xml/', $xmlfilename, $matches)){
+    return 'Filenames with a _[#].[file-extension] (an underscore followed by a number before the file extension), are reserved for file revisions. Please rename your file by adding a letter after the underscore or replacing the underscore with a dash.';
+  }
+
+  // Private function for rendering validation error elements
+  $draw_xml_errs = function($type, $errors) { 
+    $accum = "<ul>\n";
+    foreach ($errors as $error) {
+      $content = $error->content;
+      $accum.= "<ul><b>$type :</b> $content </ul>\n";
+    }
+    return $accum."</ul>\n";
+  };
+
+  $results = TapasHydraConnector::validate_tei($xmlurl);
+
+  // If validation_results is set to false, connection to tapas_rails 
+  // failed.  Return a generic error message 
+  if (! $results) {
+    return "Something went wrong.  Please contact an administrator.";
+  } elseif ($results->status_code == 422){
+    // 422 status indicates the files failed to validate as TEI 
+    // Halt upload and render the errors 
+    return $draw_xml_errs("Fatal error", $results->errors);
+  } elseif ($results->status_code == 200 && !empty($results->errors)) {
+    // Status 200 with some errors indicates warnings were raised, 
+    // but nothing that should halt file upload.  Display errors as an alert 
+    // and allow the upload to proceed
+    $header = "The uploaded item validated but has the following warnings:\n"; 
+    $msg    = $header.$draw_xml_errs("Warning", $results->errors);
+    drupal_set_message($msg, "warning");
+  } 
+}
+
 //TEST FILE FOR ERRORS. run from tapas_transform_node_submit() or tei bulk upload from rule rules_batch_create_tei_content_from_bulk_upload
-function tapas_file_check($xmlurl,$xmlfilename) {
+function _tapas_file_check($xmlurl,$xmlfilename) {
   //CHECK TO MAKE SURE FILENAME DOES NOT CONFLICT WITH DRUPAL'S FILE REVISION NAMING CONVENTIONS
+  drupal_set_message("xmlurl is $xmlurl", "info");
+  drupal_set_message("xmlfilename is $xmlfilename", "info");
   if(preg_match('/_[0-9]*\.xml/',$xmlurl,$matches)){
     $the_error='Filenames with a _[#].[file-extension] (an underscore followed by a number before the file extension), are reserved for file revisions. Please rename your file by adding a letter after the underscore or replacing the underscore with a dash.';
     return $the_error;
@@ -310,7 +350,7 @@ function tapas_file_check($xmlurl,$xmlfilename) {
   $xml_TEST->load($xmlurl);
   $well_formed_rng='./'.drupal_get_path('module', 'tapas_transform').'/validation/well-formed.rng';
   if($xml_TEST->relaxNGValidate($well_formed_rng)){
-  //THE FILE PASSED TEST ONE
+    //THE FILE PASSED TEST ONE
     //NOW BLEND THE FILE WITH A SCHEMATRON1.5 BLEND of http://xml.ascc.net/schematron/1.5/skeleton1-5.xsl and SYD's isTEI.sch CALLED isTEI.xsl. THIS SHOULD BE PRE-GENERATED SO WE DONT HAVE TO GENERATE IT EVERY TIME!
     $xml_filename=str_replace('./sites', DRUPAL_ROOT.'/sites', $xmlurl);
     $validation_filename=DRUPAL_ROOT.'/'.drupal_get_path('module', 'tapas_transform').'/validation/isTEI.xsl';
@@ -319,8 +359,8 @@ function tapas_file_check($xmlurl,$xmlfilename) {
     if($the_error!=''){
       //CHECK FOR WARNINGS
       if(strpos($the_error,'fatal') !== false || strpos($has_error,'error') !== false){
-        //FILE FAILED TEST TWO
-//        drupal_set_message("There is a validation error on step isTEI for file ".$xmlfilename, error);
+        // FILE FAILED TEST TWO
+        // drupal_set_message("There is a validation error on step isTEI for file ".$xmlfilename, error);
         return $the_error;
       }else{
         $has_error='The TEI file <em><strong>'.$xmlfilename.'</strong></em> validated but contains the following warnings:<br/>'.$the_error.'<br/>which occur on validation step isTEI. Please verify that your TEI file is proper XML and conforms to TEI Guidelines.<br/><br/><br/>';
@@ -334,24 +374,24 @@ function tapas_file_check($xmlurl,$xmlfilename) {
         $validation_filename=DRUPAL_ROOT.'/'.drupal_get_path('module', 'tapas_transform').$check_num;
         $the_error=tapas_file_xsl_check($xml_filename,$validation_filename);
         //IF THERE IS AN ERROR, RETURN IT.
-/*
-if(strpos($validation_filename,'tapasCheck09') !== false){
-echo $validation_filename;
-exit(print_r($the_error));
-}
-*/
+        /*
+        if(strpos($validation_filename,'tapasCheck09') !== false){
+        echo $validation_filename;
+        exit(print_r($the_error));
+        }
+        */
         if($the_error!=''){
           //CHECK FOR WARNINGS
           if(strpos($the_error,'fatal') !== false || strpos($has_error,'error') !== false){
             //FILE FAILED TEST $numofchecks
-//            drupal_set_message("There is a validation error on step ".$numofchecks." for file ".$xmlfilename, error);
+            // drupal_set_message("There is a validation error on step ".$numofchecks." for file ".$xmlfilename, error);
             return $the_error;
           }else{
             $has_error='The TEI file <em><strong>'.$xmlfilename.'</strong></em> validated but contains the following warnings:<br/>'.$the_error.'<br/>which occur on validation step '.$numofchecks.'. Please verify that your TEI file is proper XML and conforms to TEI Guidelines.<br/><br/><br/>';
             drupal_set_message($has_error,warning);
           }
         }else{
-//          drupal_set_message("Validation passed step ".$numofchecks." for file ".$xmlfilename);
+          // drupal_set_message("Validation passed step ".$numofchecks." for file ".$xmlfilename);
         }
       }
     }
@@ -369,7 +409,7 @@ function libxml_display_error($error) {
   switch ($error->level) { 
     case LIBXML_ERR_WARNING: 
       //removed warnings at Syd's request
-      //      $return .= "<b>Warning $error->code</b>: "; 
+      //$return .= "<b>Warning $error->code</b>: "; 
       return;
       break; 
   case LIBXML_ERR_ERROR: 
