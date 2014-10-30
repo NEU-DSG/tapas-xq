@@ -264,7 +264,7 @@ function tapas_transform_node_submit($node){
     $node->revision = 0;
     $node->revision_operation = 0;
     tapas_file_revisions($node);
-    tapas_transform($node);
+    tapas_transform($node, $response);
   }
   if ($node->type == 'collection') {
     //For some strange reason, if a new collection had all page elements unchecked, the system set the elements back to default. set this session variable and then rules_the_new_empty_field_collection_page_elements_rule. Sorry I did not have time to track this down further...
@@ -465,7 +465,7 @@ function make_transform($xsl,$xml,$extension=NULL){
 }
 
 //Main Transform function
-function tapas_transform($node) {
+function tapas_transform($node, $response) {
   $xmlfile= field_get_items('node', $node, 'field_tei_xml');
   if($xmlfile){
     //get drupal paths
@@ -513,7 +513,7 @@ function tapas_transform($node) {
       $node->field_email_yet['und'][0]['value'] = 1;
     }
     if($node->field_extract_metadata['und'][0]['value']==1){
-      tapas_set_metadata($node, $finalfile);
+      tapas_set_metadata($node, $response);
     }
     //NOW TAKE THE FILE GENERATED FROM tfc.xsl AND GENERATE THE FINAL FILE WITH MULTIPLE XSL PASSES!
     $xmlfinalfilename[0]= $filetosave['filename'];
@@ -546,266 +546,173 @@ function tapas_reset_metadata($node){
   $node->field_dc_contributor = NULL;
 }
 
-function tapas_set_metadata($node, $finalfile) {
-  $xml = simplexml_load_file($finalfile);
+function tapas_set_metadata($node, $response) {
   tapas_reset_metadata($node);
 
-  //Set Title
-  $title = $xml->xpath("tapas_metadata/dc_title");
-  $title = (string) $title[0];
-  if ($title){
-    if (strlen ($title)>255){
-      $title = substr($title,0,252).'...';
-    }
-    $node->field_dc_title['und'][0]['value'] = $title;
-  } else {
-    $node->field_dc_title['und'][0]['value'] = "Please give your TEI file a valid title and reupload the file.";
-  }
+  $metadata = $response->metadata;
+
+  // Set Title
+  $node->field_dc_title['und'][0]['value'] = $metadata->title;
 
   //Set Rights
-  $rights = $xml->xpath("tapas_metadata/dc_rights");
-  if(isset($rights[0])){
-    $rights = (string) $rights[0];
-  }else{
-    $rights = (string) $rights;
-    if($rights=='Array'){
-      $rights='';
-    }
-  }
-  if ($rights){
-    $node->field_dc_rights['und'][0]['value'] = $rights;
-  }
+  $rights = $metadata->rights ?: "";
+  $node->field_dc_rights['und'][0]['value'] = $rights;
 
   //Set Source
-  $source = $xml->xpath("tapas_metadata/dc_source");
-  $source = (string) $source[0];
-  if ($source){
-    $node->field_dc_source_full_text['und'][0]['value'] = $source;
+  if ($metadata->source){
+    $node->field_dc_source_full_text['und'][0]['value'] = $metadata->source;
   }
 
   //Set Language
-  $language = $xml->xpath("tapas_metadata/dc_language");
-  if(isset($language[0])){
-    $language = (string) $language[0];
-    $language = substr($language,0,3);
-    if(!preg_match('/[a-z][a-z][a-z]/', $language)){
-      $language = substr($language,0,2);
-    }
-    $node->field_dc_language_text_field['und'][0]['value'] = $language;
+  if ($metadata->language){
+    $node->field_dc_language_text_field['und'][0]['value'] = $metadata->language;
   }
 
-  //Set Publish Date
-  $date = $xml->xpath("tapas_metadata/dc_date");
-  if(isset($date[0])){
-    $date = (string) $date[0];
-    $months = array(01=>'January',02=>'February',03=>'March',04=>'April',05=>'May',06=>'June',07=>'July',08=>'August',09=>'September',10=>'October',11=>'November',12=>'December',);
-    foreach ($months as $key => $themonth) {
-      $check_month = strpos($date,$themonth);
-      //echo $check_month;
-      if($check_month !== false){
-        //echo $check_month;
-        //echo $month;
-        //echo $key;
-        $date=str_replace($themonth,$key.'-',$date);
-        $date=str_replace(", ","-",$date);
-      }
-    }
-    //exit($date);
-    $date=preg_replace("/[^0-9-]/", "", $date);
-    $date=explode("-",$date);
-    if (preg_match('/[0-9][0-9][0-9][0-9]/', $date[0])){
-      $year=$date[0];
-      if(isset($date[1])){
-        $month=$date[1];
-      }
-      if(isset($date[2])){
-        $day=$date[2];
-      }
-    } elseif(preg_match('/[0-9][0-9][0-9][0-9]/', $date[2])){
-      $year=$date[2];
-      if(isset($date[0])){
-        $month=$date[0];
-      }
-      if(isset($date[1])){
-        $day=$date[1];
-      }
-    } elseif(preg_match('/[0-9][0-9][0-9][0-9]/', $date[1])){
-      $year=$date[1];
-      if(isset($date[0])){
-        $month=$date[0];
-      }
-    }
-    //echo "1".$month;
-    if(isset($year)){
-      if(!isset($month)){
-        $month="01";
-      }
-      if(!isset($day)){
-        $day="01";
-      }
-    }
-    //echo "2".$month;
-    $month = sprintf("%02s", $month);
-    $day = sprintf("%02s", $day);
-    //echo "3".$month;
-    $date=$year."-".$month."-".$day;
-    //exit($date);
-
-    //IMPORTANT. NEED TO CHECK FOR VALID datetime FORMAT HERE. OTHERWISE BAD MYSQL ERROR
-    if(preg_match('/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/', $date)){
-      $date=$date." 00:00:00";
-      $node->field_dc_date['und'][0]['value'] = $date;
-    }else{
-      //exit(print_r($node->field_tei_xml['filename']));
-      drupal_set_message(t('The publication date in your TEI file <strong>'.$node->field_tei_xml['und'][0]['filename'].'</strong> could not be properly extracted or converted - yyyy-mm-dd needed. Received '.$date.'<br/>'), warning);
-    }
+  if ($metadata->date){
+    $node->field_dc_date['und'][0]['value'] = $metadata->date;
   }
 
   //Set Contributors
-  $contributor = $xml->xpath("tapas_metadata/dc_contributor");
-  if(isset($contributor)){
-    $i=0;
-    foreach($contributor as $value){
-      $node->field_dc_contributor['und'][$i]['value'] = $value;
-      $i++;
-    }
+  $contributors = $metadata->contributors ?: [];
+  foreach($contributors as $i=>$contributor){
+    $node->field_dc_contributor['und'][$i]['value'] = $contributor;
   }
 
   //Set Author/Creator
   //NOTE: I am sure there is a more efficient way to accomplish this (multiple functions at the least)...and this may not even cover every way someone enters an author name. sigh.
-  $creator_full = $xml->xpath("tapas_metadata/dc_creator");
-  if(isset($creator_full)){
-    $i=0;
-    $creator = '';
-    foreach($creator_full as $value){
-      $creator = (string) $value[$i];
-      if($creator!=''){
-        $creator_first_name='';
-        $creator_last_name='';
-        $creator_middle_name='';
-        $creator_generational='';
-        $creator_title='';
-        if(strpos($creator,' and ')){
-          $creator_parse=$creator;
-          $creator_parse=explode(" and ",$creator_parse);
-          $j=0;
-          foreach($creator_parse as $creator){
-            if(strpos($creator,',')){
-              $creator=explode(", ",$creator);
-              $creator_last_name = array_shift($creator);
-              $creator = $creator[0];
-              $creator=explode(" ",$creator);
-              $creator_first_name=array_shift($creator);
-              if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-                $creator_title=array_shift($creator);
-                $creator_first_name=array_shift($creator);
-              }
-              foreach($creator as $value){
-                if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-                  $creator_generational=$value;
-                }else{
-                  $creator_middle_name=$creator_middle_name.$value." ";
-                }
-              }
-            }else{
-              $creator=explode(" ",$creator);
-              $name_count=count($creator);
-              if($name_count!=2){
-                $creator_last_name = array_pop($creator);
-                $creator_first_name=array_shift($creator);
-                if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-                  $creator_title=array_shift($creator);
-                  $creator_first_name=array_shift($creator);
-                }
-                foreach($creator as $value){
-                  if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-                    $creator_generational=$value;
-                  }else{
-                    $creator_middle_name=$creator_middle_name.$value." ";
-                  }
-                }
-              }else{
-                $creator_first_name=$creator[0];
-                $creator_last_name=$creator[1];
-              }
-            }
-            if(isset($creator_title) && $creator_title!=''){
-              $node->field_author['und'][$j]['title'] = $creator_title;
-            }
-            if(isset($creator_first_name) && $creator_first_name!=''){
-              $node->field_author['und'][$j]['given'] = $creator_first_name;
-            }
-            if(isset($creator_last_name) && $creator_last_name!=''){
-              $node->field_author['und'][$j]['family'] = $creator_last_name;
-            }
-            if(isset($creator_middle_name) && $creator_middle_name!=''){
-              $node->field_author['und'][$j]['middle'] = $creator_middle_name;
-            }
-            if(isset($creator_generational) && $creator_generational!=''){
-              $node->field_author['und'][$j]['generational'] = $creator_generational;
-            }
-            $j++;
-          }
-        }else{
-          if(strpos($creator,',')){
-            $creator=explode(", ",$creator);
-            $creator_last_name = array_shift($creator);
-            $creator = $creator[0];
-            $creator=explode(" ",$creator);
-            $creator_first_name=array_shift($creator);
-            if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-              $creator_title=array_shift($creator);
-              $creator_first_name=array_shift($creator);
-            }
-            foreach($creator as $value){
-              if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-                $creator_generational=$value;
-              }else{
-                $creator_middle_name=$creator_middle_name.$value." ";
-              }
-            }
-          }else{
-            $creator=explode(" ",$creator);
-            $name_count=count($creator);
-            if($name_count!=2){
-              $creator_last_name = array_pop($creator);
-              $creator_first_name=array_shift($creator);
-              if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-                $creator_title=array_shift($creator);
-                $creator_first_name=array_shift($creator);
-              }
-              foreach($creator as $value){
-                if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-                  $creator_generational=$value;
-                }else{
-                  $creator_middle_name=$creator_middle_name.$value." ";
-                }
-              }
-            }else{
-              $creator_first_name=$creator[0];
-              $creator_last_name=$creator[1];
-            }
-          }
-          if(isset($creator_title) && $creator_title!=''){
-            $node->field_author['und'][$i]['title'] = $creator_title;
-          }
-          if(isset($creator_first_name) && $creator_first_name!=''){
-            $node->field_author['und'][$i]['given'] = $creator_first_name;
-          }
-          if(isset($creator_last_name) && $creator_last_name!=''){
-            $node->field_author['und'][$i]['family'] = $creator_last_name;
-          }
-          if(isset($creator_middle_name) && $creator_middle_name!=''){
-            $node->field_author['und'][$i]['middle'] = $creator_middle_name;
-          }
-          if(isset($creator_generational) && $creator_generational!=''){
-            $node->field_author['und'][$i]['generational'] = $creator_generational;
-          }
-        }
-      }
-      $i++;
-    }
-  }
+  // $creator_full = $xml->xpath("tapas_metadata/dc_creator");
+  // if(isset($creator_full)){
+  //   $i=0;
+  //   $creator = '';
+  //   foreach($creator_full as $value){
+  //     $creator = (string) $value[$i];
+  //     if($creator!=''){
+  //       $creator_first_name='';
+  //       $creator_last_name='';
+  //       $creator_middle_name='';
+  //       $creator_generational='';
+  //       $creator_title='';
+  //       if(strpos($creator,' and ')){
+  //         $creator_parse=$creator;
+  //         $creator_parse=explode(" and ",$creator_parse);
+  //         $j=0;
+  //         foreach($creator_parse as $creator){
+  //           if(strpos($creator,',')){
+  //             $creator=explode(", ",$creator);
+  //             $creator_last_name = array_shift($creator);
+  //             $creator = $creator[0];
+  //             $creator=explode(" ",$creator);
+  //             $creator_first_name=array_shift($creator);
+  //             if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
+  //               $creator_title=array_shift($creator);
+  //               $creator_first_name=array_shift($creator);
+  //             }
+  //             foreach($creator as $value){
+  //               if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
+  //                 $creator_generational=$value;
+  //               }else{
+  //                 $creator_middle_name=$creator_middle_name.$value." ";
+  //               }
+  //             }
+  //           }else{
+  //             $creator=explode(" ",$creator);
+  //             $name_count=count($creator);
+  //             if($name_count!=2){
+  //               $creator_last_name = array_pop($creator);
+  //               $creator_first_name=array_shift($creator);
+  //               if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
+  //                 $creator_title=array_shift($creator);
+  //                 $creator_first_name=array_shift($creator);
+  //               }
+  //               foreach($creator as $value){
+  //                 if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
+  //                   $creator_generational=$value;
+  //                 }else{
+  //                   $creator_middle_name=$creator_middle_name.$value." ";
+  //                 }
+  //               }
+  //             }else{
+  //               $creator_first_name=$creator[0];
+  //               $creator_last_name=$creator[1];
+  //             }
+  //           }
+  //           if(isset($creator_title) && $creator_title!=''){
+  //             $node->field_author['und'][$j]['title'] = $creator_title;
+  //           }
+  //           if(isset($creator_first_name) && $creator_first_name!=''){
+  //             $node->field_author['und'][$j]['given'] = $creator_first_name;
+  //           }
+  //           if(isset($creator_last_name) && $creator_last_name!=''){
+  //             $node->field_author['und'][$j]['family'] = $creator_last_name;
+  //           }
+  //           if(isset($creator_middle_name) && $creator_middle_name!=''){
+  //             $node->field_author['und'][$j]['middle'] = $creator_middle_name;
+  //           }
+  //           if(isset($creator_generational) && $creator_generational!=''){
+  //             $node->field_author['und'][$j]['generational'] = $creator_generational;
+  //           }
+  //           $j++;
+  //         }
+  //       }else{
+  //         if(strpos($creator,',')){
+  //           $creator=explode(", ",$creator);
+  //           $creator_last_name = array_shift($creator);
+  //           $creator = $creator[0];
+  //           $creator=explode(" ",$creator);
+  //           $creator_first_name=array_shift($creator);
+  //           if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
+  //             $creator_title=array_shift($creator);
+  //             $creator_first_name=array_shift($creator);
+  //           }
+  //           foreach($creator as $value){
+  //             if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
+  //               $creator_generational=$value;
+  //             }else{
+  //               $creator_middle_name=$creator_middle_name.$value." ";
+  //             }
+  //           }
+  //         }else{
+  //           $creator=explode(" ",$creator);
+  //           $name_count=count($creator);
+  //           if($name_count!=2){
+  //             $creator_last_name = array_pop($creator);
+  //             $creator_first_name=array_shift($creator);
+  //             if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
+  //               $creator_title=array_shift($creator);
+  //               $creator_first_name=array_shift($creator);
+  //             }
+  //             foreach($creator as $value){
+  //               if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
+  //                 $creator_generational=$value;
+  //               }else{
+  //                 $creator_middle_name=$creator_middle_name.$value." ";
+  //               }
+  //             }
+  //           }else{
+  //             $creator_first_name=$creator[0];
+  //             $creator_last_name=$creator[1];
+  //           }
+  //         }
+  //         if(isset($creator_title) && $creator_title!=''){
+  //           $node->field_author['und'][$i]['title'] = $creator_title;
+  //         }
+  //         if(isset($creator_first_name) && $creator_first_name!=''){
+  //           $node->field_author['und'][$i]['given'] = $creator_first_name;
+  //         }
+  //         if(isset($creator_last_name) && $creator_last_name!=''){
+  //           $node->field_author['und'][$i]['family'] = $creator_last_name;
+  //         }
+  //         if(isset($creator_middle_name) && $creator_middle_name!=''){
+  //           $node->field_author['und'][$i]['middle'] = $creator_middle_name;
+  //         }
+  //         if(isset($creator_generational) && $creator_generational!=''){
+  //           $node->field_author['und'][$i]['generational'] = $creator_generational;
+  //         }
+  //       }
+  //     }
+  //     $i++;
+  //   }
+  // }
 }
 
 function tapas_file_revisions($node) {
