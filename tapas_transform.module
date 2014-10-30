@@ -46,186 +46,186 @@ function tapas_transform_form_alter(&$form, &$form_state, $form_id) {
     switch($form['#multistep']['current']):
 
       //BEGIN PROJECT CONTENT TYPE MULTISTEP RULES
-      case 'group_set_title':
-        unset($form['field_page_elements']);
-        unset($form['field_project_logo_upload']);
-        unset($form['field_email_yet']);
-      break;
-      case 'group_project_creation':
-        unset($form['field_email_yet']);
-      break;
-      case 'group_new_collection_created':
-        unset($form['field_page_elements']);
-        unset($form['field_project_logo_upload']);
-        unset($form['field_email_yet']);
-        $project_url = $form['#node']->field_url['und'][0]['value'];
-        $is_old = $form['#node']->field_email_yet['und'][0]['value'];
-        if($is_old==1){
-          drupal_goto($path = $project_url);
-        }
-      break;
-      case 'group_redirect_to_collection':
-        unset($form['field_page_elements']);
-        unset($form['field_project_logo_upload']);
-        $project_title = $form['#node']->title;
-        $project_url = $form['#node']->field_url['und'][0]['value'];
-        $is_old = $form['#node']->field_email_yet['und'][0]['value'];
-        if($is_old==0){
+    case 'group_set_title':
+    unset($form['field_page_elements']);
+    unset($form['field_project_logo_upload']);
+    unset($form['field_email_yet']);
+    break;
+    case 'group_project_creation':
+    unset($form['field_email_yet']);
+    break;
+    case 'group_new_collection_created':
+    unset($form['field_page_elements']);
+    unset($form['field_project_logo_upload']);
+    unset($form['field_email_yet']);
+    $project_url = $form['#node']->field_url['und'][0]['value'];
+    $is_old = $form['#node']->field_email_yet['und'][0]['value'];
+    if($is_old==1){
+      drupal_goto($path = $project_url);
+    }
+    break;
+    case 'group_redirect_to_collection':
+    unset($form['field_page_elements']);
+    unset($form['field_project_logo_upload']);
+    $project_title = $form['#node']->title;
+    $project_url = $form['#node']->field_url['und'][0]['value'];
+    $is_old = $form['#node']->field_email_yet['und'][0]['value'];
+    if($is_old==0){
           //hook into drupal
-          require_once './includes/bootstrap.inc';
-          drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
-          $node = menu_get_object();
-          $node->field_email_yet['und'][0]['value']=1;
-          $node->revision = 0;
-          $node->revision_operation = 0;
-          node_save($node);
-          $destination = $project_url . "/" . $project_title . "collection/edit";
-          _multistep_update_status($node->nid, 'submitted');
-          $_SESSION['redirect_new_collection_to_project_ugh']=$project_url;
-          drupal_goto($path = $destination);
-        }else{
-          drupal_goto($path = $project_url);
-        }
-      break;
+      require_once './includes/bootstrap.inc';
+      drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+      $node = menu_get_object();
+      $node->field_email_yet['und'][0]['value']=1;
+      $node->revision = 0;
+      $node->revision_operation = 0;
+      node_save($node);
+      $destination = $project_url . "/" . $project_title . "collection/edit";
+      _multistep_update_status($node->nid, 'submitted');
+      $_SESSION['redirect_new_collection_to_project_ugh']=$project_url;
+      drupal_goto($path = $destination);
+    }else{
+      drupal_goto($path = $project_url);
+    }
+    break;
       //END PROJECT CONTENT TYPE MULTISTEP RULES
 
       //BEGIN COLLECTION CONTENT TYPE MULTISTEP RULES
-      case 'group_edit_collection_properties':
-        unset($form['field_email_yet']);
-      break;
-      case 'group_finalize_collection':
-        unset($form['field_title']);
-        unset($form['field_collection_url']);
-        unset($form['og_group_ref']);
-        unset($form['group_content_access']);
-        unset($form['field_collection_page_elements']);
-        unset($form['field_project_logo_upload']);
-        unset($form['field_collection_term_main']);
-        unset($form['field_collection_term']);
-        unset($form['field_site_collection_vocab_term']);
-        unset($form['field_projects_vocab']);
-        $node = menu_get_object();$the_url = request_uri();
-        $the_url1 = explode('/',$the_url);
-        $project_url=$the_url1[1];
-        $collection_url=$the_url1[1]."/".$the_url1[2];
-        if(isset($_SESSION['redirect_new_collection_to_project_ugh'])){
-          $node->status=1;
-          _multistep_update_status($node->nid, 'submitted');
-          $the_url=$project_url;
-        }else{
-          _multistep_update_status($node->nid, 'submitted');
-          $the_url=$collection_url;
-        }
-        drupal_goto($path = $the_url);
-      break;
+    case 'group_edit_collection_properties':
+    unset($form['field_email_yet']);
+    break;
+    case 'group_finalize_collection':
+    unset($form['field_title']);
+    unset($form['field_collection_url']);
+    unset($form['og_group_ref']);
+    unset($form['group_content_access']);
+    unset($form['field_collection_page_elements']);
+    unset($form['field_project_logo_upload']);
+    unset($form['field_collection_term_main']);
+    unset($form['field_collection_term']);
+    unset($form['field_site_collection_vocab_term']);
+    unset($form['field_projects_vocab']);
+    $node = menu_get_object();$the_url = request_uri();
+    $the_url1 = explode('/',$the_url);
+    $project_url=$the_url1[1];
+    $collection_url=$the_url1[1]."/".$the_url1[2];
+    if(isset($_SESSION['redirect_new_collection_to_project_ugh'])){
+      $node->status=1;
+      _multistep_update_status($node->nid, 'submitted');
+      $the_url=$project_url;
+    }else{
+      _multistep_update_status($node->nid, 'submitted');
+      $the_url=$collection_url;
+    }
+    drupal_goto($path = $the_url);
+    break;
       //END COLLECTION CONTENT TYPE MULTISTEP RULES
 
       //BEGIN TEI CONTENT TYPE MULTISTEP RULES
-      case 'group_upload_tei':
-        if(isset($_SESSION['batch_remove'])){
-          drupal_set_message('<h3>It appears you have a TEI Bulk Upload in progress. Please wait until it is complete before editing or creating other TEI content.</h3><br/><br/><br/>', 'error');
-          if($_SESSION['batch_remove']=='process started'){
-            unset($_SESSION['batch_remove']);
+    case 'group_upload_tei':
+    if(isset($_SESSION['batch_remove'])){
+      drupal_set_message('<h3>It appears you have a TEI Bulk Upload in progress. Please wait until it is complete before editing or creating other TEI content.</h3><br/><br/><br/>', 'error');
+      if($_SESSION['batch_remove']=='process started'){
+        unset($_SESSION['batch_remove']);
             //drupal_set_message('batch unset');
-          }else{
-            $message="Batch process ".$_SESSION['batch_remove']." still in process.";
-            drupal_set_message($message, 'error');
-          }
+      }else{
+        $message="Batch process ".$_SESSION['batch_remove']." still in process.";
+        drupal_set_message($message, 'error');
+      }
           //drupal_goto($_SERVER['HTTP_REFERER']);
-        }
-        unset($form['field_is_new']);
-        unset($form['field_email_yet']);
-        unset($form['field-rights-certification']);
-        unset($form['field-rights-granted-cc']);
-        unset($form['field_dc_coverage_temporal']);
-        unset($form['field_title']);
-        unset($form['field_dc_contributor']);
-        unset($form['field_dc_coverage_spatial_taxono']);
-        unset($form['field_dc_coverage_spatial']);
-        unset($form['field_dc_coveragetemporal_partia']);
-        unset($form['field_has_corporate_author']);
-        unset($form['field_author_corporate_dc_creato']);
-        unset($form['field__author_last_name_dc_creat']);
-        unset($form['field_author_first_name_dc_creat']);
-        unset($form['field_dc_creator']);
-        unset($form['field_dc_date']);
-        unset($form['field_dc_description']);
-        unset($form['field_dc_format']);
-        unset($form['field_dc_identifier']);
-        unset($form['field_dc_language']);
-        unset($form['field_dc_publisher']);
-        unset($form['field_dc_relation']);
-        unset($form['field_dc_rights']);
-        unset($form['field_dc_source']);
-        unset($form['field_dc_subject_lcsh']);
-        unset($form['field_dc_subject']);
-        unset($form['field_dc_title']);
-        unset($form['field_dc_alternative']);
-        unset($form['field_dc_type']);
-        unset($form['field_location']);
-        unset($form['field_geodata']);
-      break;
-      case 'group_enter_metadata':
-        if(isset($_SESSION['batch_remove'])){
-          drupal_set_message('<h3>It appears you have a TEI Bulk Upload in progress. Please wait until it is complete before editing or creating other TEI content.</h3><br/><br/><br/>', 'error');
-          if($_SESSION['batch_remove']=='process started'){
-            unset($_SESSION['batch_remove']);
+    }
+    unset($form['field_is_new']);
+    unset($form['field_email_yet']);
+    unset($form['field-rights-certification']);
+    unset($form['field-rights-granted-cc']);
+    unset($form['field_dc_coverage_temporal']);
+    unset($form['field_title']);
+    unset($form['field_dc_contributor']);
+    unset($form['field_dc_coverage_spatial_taxono']);
+    unset($form['field_dc_coverage_spatial']);
+    unset($form['field_dc_coveragetemporal_partia']);
+    unset($form['field_has_corporate_author']);
+    unset($form['field_author_corporate_dc_creato']);
+    unset($form['field__author_last_name_dc_creat']);
+    unset($form['field_author_first_name_dc_creat']);
+    unset($form['field_dc_creator']);
+    unset($form['field_dc_date']);
+    unset($form['field_dc_description']);
+    unset($form['field_dc_format']);
+    unset($form['field_dc_identifier']);
+    unset($form['field_dc_language']);
+    unset($form['field_dc_publisher']);
+    unset($form['field_dc_relation']);
+    unset($form['field_dc_rights']);
+    unset($form['field_dc_source']);
+    unset($form['field_dc_subject_lcsh']);
+    unset($form['field_dc_subject']);
+    unset($form['field_dc_title']);
+    unset($form['field_dc_alternative']);
+    unset($form['field_dc_type']);
+    unset($form['field_location']);
+    unset($form['field_geodata']);
+    break;
+    case 'group_enter_metadata':
+    if(isset($_SESSION['batch_remove'])){
+      drupal_set_message('<h3>It appears you have a TEI Bulk Upload in progress. Please wait until it is complete before editing or creating other TEI content.</h3><br/><br/><br/>', 'error');
+      if($_SESSION['batch_remove']=='process started'){
+        unset($_SESSION['batch_remove']);
             //drupal_set_message('batch unset');
-          }else{
-            $message="Batch process ".$_SESSION['batch_remove']." still in process.";
-            drupal_set_message($message, 'error');
-          }
+      }else{
+        $message="Batch process ".$_SESSION['batch_remove']." still in process.";
+        drupal_set_message($message, 'error');
+      }
           //drupal_goto($_SERVER['HTTP_REFERER']);
-        }
-        unset($form['field_tei_xml']);
-        unset($form['field_collection_term']);
-        unset($form['og_group_ref']);
-        $form['#node']->field_extract_metadata['und'][0]['value']=0;
-        unset($form['field_is_new']);
-        unset($form['field_email_yet']);
-      break;
-      case 'group_finalize_tei':
-        if(isset($_SESSION['batch_remove'])){
-          drupal_set_message('<h3>It appears you have a TEI Bulk Upload in progress. Please wait until it is complete before editing or creating other TEI content.</h3><br/><br/><br/>', 'error');
-          if($_SESSION['batch_remove']=='process started'){
-            unset($_SESSION['batch_remove']);
+    }
+    unset($form['field_tei_xml']);
+    unset($form['field_collection_term']);
+    unset($form['og_group_ref']);
+    $form['#node']->field_extract_metadata['und'][0]['value']=0;
+    unset($form['field_is_new']);
+    unset($form['field_email_yet']);
+    break;
+    case 'group_finalize_tei':
+    if(isset($_SESSION['batch_remove'])){
+      drupal_set_message('<h3>It appears you have a TEI Bulk Upload in progress. Please wait until it is complete before editing or creating other TEI content.</h3><br/><br/><br/>', 'error');
+      if($_SESSION['batch_remove']=='process started'){
+        unset($_SESSION['batch_remove']);
             //drupal_set_message('batch unset');
-          }else{
-            $message="Batch process ".$_SESSION['batch_remove']." still in process.";
-            drupal_set_message($message, 'error');
-          }
+      }else{
+        $message="Batch process ".$_SESSION['batch_remove']." still in process.";
+        drupal_set_message($message, 'error');
+      }
           //drupal_goto($_SERVER['HTTP_REFERER']);
-        }
-        unset($form['field_tei_xml']);
-        unset($form['field_collection_term']);
-        unset($form['og_group_ref']);
-        unset($form['field_dc_date']);
-        unset($form['field-rights-certification']);
-        unset($form['field-rights-granted-cc']);
-        require_once './includes/bootstrap.inc';
-        drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
-        $node = menu_get_object();
-        $nid = $node->nid;
-        $is_new_value = $form['#node']->field_is_new['und'][0]['value'];
-        if($is_new_value==0){
-          $node->field_is_new['und'][0]['value']=1;
-          $node->revision = 0;
-          $node->revision_operation = 0;
-          $collection_status=node_load($node->field_collection_node_reference['und'][0]['target_id']);
-          $node->status = $collection_status->status;
-          $node->field_extract_metadata['und'][0]['value']=0;
-          node_save($node);
-        }
-        _multistep_update_status($nid, 'submitted');
-        drupal_goto($path = 'node/'.$nid);
-      break;
-      default:
-        unset($form['field_tei_xml']);
-        unset($form['field_collection_term']);
-        unset($form['og_group_ref']);
-        unset($form['field_dc_date']);
-        unset($form['field-rights-certification']);
-        unset($form['field-rights-granted-cc']);
+    }
+    unset($form['field_tei_xml']);
+    unset($form['field_collection_term']);
+    unset($form['og_group_ref']);
+    unset($form['field_dc_date']);
+    unset($form['field-rights-certification']);
+    unset($form['field-rights-granted-cc']);
+    require_once './includes/bootstrap.inc';
+    drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+    $node = menu_get_object();
+    $nid = $node->nid;
+    $is_new_value = $form['#node']->field_is_new['und'][0]['value'];
+    if($is_new_value==0){
+      $node->field_is_new['und'][0]['value']=1;
+      $node->revision = 0;
+      $node->revision_operation = 0;
+      $collection_status=node_load($node->field_collection_node_reference['und'][0]['target_id']);
+      $node->status = $collection_status->status;
+      $node->field_extract_metadata['und'][0]['value']=0;
+      node_save($node);
+    }
+    _multistep_update_status($nid, 'submitted');
+    drupal_goto($path = 'node/'.$nid);
+    break;
+    default:
+    unset($form['field_tei_xml']);
+    unset($form['field_collection_term']);
+    unset($form['og_group_ref']);
+    unset($form['field_dc_date']);
+    unset($form['field-rights-certification']);
+    unset($form['field-rights-granted-cc']);
       //END TEI CONTENT TYPE MULTISTEP RULES
     endswitch;
   }
@@ -237,28 +237,23 @@ function tapas_transform_form_alter(&$form, &$form_state, $form_id) {
 */
 function tapas_transform_node_submit($node){
   if ($node->type == 'tei_content') {
-    if(isset($node->field_is_new)){
-      $has_new = $node->field_is_new['und'][0]['value'];
-    }else{
-      $has_new=0;
-      $node->revision = 0;
-      $node->revision_operation = 0;
-    }
 
     //ANOTHER ANNOYING SIDE EFFECT OF MULTISTEP...MULTIPLE EMAILS DUE TO NODE_SAVE's
     $node->field_email_yet['und'][0]['value'] = 0;
     //LOAD THE NEW FILE TO CHECK FOR ERRORS BEFORE NODE SAVE
     $file=file_load($node->field_tei_xml['und'][0]['fid']);
     $xmlfilename= $file->filename;
-    $xmlurl = str_replace("public://", "." . base_path() . conf_path() . "/files/", $file->uri);
-    $the_url = request_uri();
+
+    //Make Step 1 API call
+    $response = TapasHydraConnector::validate_tei(drupal_realpath($file->uri));
+
     //CHECK FOR ERRORS AND KILL EVERYTHING IF THEY ARE FOUND.. IF BULK UPLOAD HASN'T ALREADY - session set in rules_batch_create_tei_content_from_bulk_upload
     if(!isset($_SESSION['file_to_check'][$xmlfilename])){
-      $has_error=tapas_file_check($xmlurl,$xmlfilename);
+      $has_error=tapas_file_check($xmlfilename, $response);
       if($has_error){
         drupal_set_message('The TEI file <em><strong>'.$xmlfilename.'</strong></em> did not validate.<br/>'.$has_error.'<br/>Please verify that your TEI file is proper XML and conforms to TEI Guidelines.<br/><br/><br/>', 'error');
         file_delete($file, $force = FALSE);
-        header('Location: '.$the_url);
+        header('Location: '.request_uri());
         die();
       }
     } else {
@@ -282,9 +277,7 @@ function tapas_transform_node_submit($node){
   }
 }
 
-function tapas_file_check($xmlurl, $xmlfilename) {
-  $xmlurl = drupal_realpath("public://").end(explode("files", $xmlurl));
-
+function tapas_file_check($xmlfilename, $response) {
   if(preg_match('/_[0-9]*\.xml/', $xmlfilename, $matches)){
     return 'Filenames with a _[#].[file-extension] (an underscore followed by a number before the file extension), are reserved for file revisions. Please rename your file by adding a letter after the underscore or replacing the underscore with a dash.';
   }
@@ -299,22 +292,20 @@ function tapas_file_check($xmlurl, $xmlfilename) {
     return $accum."</ul>\n";
   };
 
-  $results = TapasHydraConnector::validate_tei($xmlurl);
-
   // If validation_results is set to false, connection to tapas_rails 
   // failed.  Return a generic error message 
-  if (! $results) {
+  if (! $response) {
     return "Something went wrong.  Please contact an administrator.";
-  } elseif ($results->status_code == 422){
+  } elseif ($response->status_code == 422){
     // 422 status indicates the files failed to validate as TEI 
     // Halt upload and render the errors 
-    return $draw_xml_errs("Fatal error", $results->errors);
-  } elseif ($results->status_code == 200 && !empty($results->errors)) {
+    return $draw_xml_errs("Fatal error", $response->errors);
+  } elseif ($response->status_code == 200 && !empty($response->errors)) {
     // Status 200 with some errors indicates warnings were raised, 
     // but nothing that should halt file upload.  Display errors as an alert 
     // and allow the upload to proceed
     $header = "The uploaded item validated but has the following warnings:\n"; 
-    $msg    = $header.$draw_xml_errs("Warning", $results->errors);
+    $msg    = $header.$draw_xml_errs("Warning", $response->errors);
     drupal_set_message($msg, "warning");
   } 
 }
@@ -338,17 +329,17 @@ function tapas_transform_file_update($new_file) {
     context_delete('file_updating', 'desired_destination');
     context_set('file_updating', 'desired_destination', $desired_destination);
     $db_path = db_select('file_managed', 'f')
-      ->fields('f', array('uri', ))
-      ->condition('fid', $new_file->fid)
-      ->execute()
-      ->fetchField();
+    ->fields('f', array('uri', ))
+    ->condition('fid', $new_file->fid)
+    ->execute()
+    ->fetchField();
     if ($db_path != $new_file->uri) {
       //this happens when a reversion is being reverted
       $next_good_filepath = file_destination($desired_destination, FILE_EXISTS_RENAME);
       db_update('file_managed')
-        ->fields(array('uri' => $next_good_filepath))
-        ->condition('fid', $new_file->fid)
-        ->execute();
+      ->fields(array('uri' => $next_good_filepath))
+      ->condition('fid', $new_file->fid)
+      ->execute();
       $new_file->uri = $desired_destination;
     }else{
       //If the filename has be modified by adding a _0 value, or
@@ -358,12 +349,12 @@ function tapas_transform_file_update($new_file) {
         //the filename is not in the filepath, so drupal must have added a "_0" before the extension
         //find the file that is blocking this file from keeping the correct path
         $result = db_select('file_managed', 'f')
-          ->fields('f')
-          ->condition('uri', $desired_destination)
-          ->execute();
+        ->fields('f')
+        ->condition('uri', $desired_destination)
+        ->execute();
         //@todo only one result is handled, should allow for multiple results
         $is_blocked = false;
-      
+
         foreach ($result as $file) {
           $is_blocked = TRUE;
           $blocking_file = $file;
@@ -373,31 +364,31 @@ function tapas_transform_file_update($new_file) {
         $old_destination = $db_path;
         if ($old_destination == $desired_destination){ return ; }
       //Swap the files
-      if ($is_blocked) {
+        if ($is_blocked) {
         //move the blocking file to a temporary location
-        if (!file_unmanaged_move($desired_destination, $tmp_destination)) {
-          drupal_set_message(t('The file %old could not be moved to %new', array('%old' => $desired_destination, '%new' => $tmp_destination)), 'error');
-          return;
-        }
+          if (!file_unmanaged_move($desired_destination, $tmp_destination)) {
+            drupal_set_message(t('The file %old could not be moved to %new', array('%old' => $desired_destination, '%new' => $tmp_destination)), 'error');
+            return;
+          }
         //DRUPAL 7 no longer changes the source filepath during move
         //move blocking file was successful, update the DB
-        db_update('file_managed')
+          db_update('file_managed')
           ->fields(array('uri' => $tmp_destination))
           ->condition('fid', $blocking_file->fid)
           ->execute();
-      }
-//NEW FILE IS _0 here. OLD FILE IS IN TMP DIR
-      //move the newfile to the prefered location
-      if (!file_unmanaged_move($old_destination, $desired_destination)) {
-        drupal_set_message(t('The file %old could not be moved to %new', array('%old' => $old_destination, '%new' => $desired_destination)), 'error');
-        return;
-      }
+        }
+        //NEW FILE IS _0 here. OLD FILE IS IN TMP DIR
+        //move the newfile to the prefered location
+        if (!file_unmanaged_move($old_destination, $desired_destination)) {
+          drupal_set_message(t('The file %old could not be moved to %new', array('%old' => $old_destination, '%new' => $desired_destination)), 'error');
+          return;
+        }
       //move newfile was successful, update the DB
-      db_update('file_managed')
+        db_update('file_managed')
         ->fields(array('uri' => $desired_destination))
         ->condition('fid', $new_file->fid)
         ->execute();
-//NEW FILE IS IN PLACE. OLD FILE IS IN TMP DIR WITHOUT A _0
+      //NEW FILE IS IN PLACE. OLD FILE IS IN TMP DIR WITHOUT A _0
       $new_file->uri = $desired_destination;//set the newfile's path to the correct path
       if ($is_blocked) {
         //move the older file from temp to the new _0 location
@@ -405,12 +396,12 @@ function tapas_transform_file_update($new_file) {
           drupal_set_message(t('The file %old could not be moved to %new', array('%old' => $tmp_destination, '%new' => $old_destination)), 'error');
           return;
         }
-//NEW AND OLD FILES ARE NOW IN PLACE. DB UPDATE FOR OLD FILE NEEDED
+        //NEW AND OLD FILES ARE NOW IN PLACE. DB UPDATE FOR OLD FILE NEEDED
         //move blocking file was successful, update the DB with the actual location after file copy, so we use tmp_destination as it was updated during the move
         db_update('file_managed')
-          ->fields(array('uri' => $old_destination))
-          ->condition('fid', $blocking_file->fid)
-          ->execute();
+        ->fields(array('uri' => $old_destination))
+        ->condition('fid', $blocking_file->fid)
+        ->execute();
       }
     }
     //THIS IS ADDED TO upload_replace AND USED TO MANAGE FILE REVISIONS VIA tapas_file_revisons() BELOW
@@ -437,40 +428,40 @@ function tapas_transform_file_update($new_file) {
 
 function make_transform($xsl,$xml,$extension=NULL){
   if($extension===NULL){
-	  $extension='xml';
-  }
+   $extension='xml';
+ }
   //get project directory name 
-  $xmlpath = pathinfo($xml);
-  $xslpath = pathinfo($xsl);
-  $newdirname = end(explode("files", $xmlpath['dirname']));
-  $xmlfilename=$xmlpath['basename'];
-  $xslfilename=$xslpath['basename'];
+ $xmlpath = pathinfo($xml);
+ $xslpath = pathinfo($xsl);
+ $newdirname = end(explode("files", $xmlpath['dirname']));
+ $xmlfilename=$xmlpath['basename'];
+ $xslfilename=$xslpath['basename'];
   //create transform filename
-  $files = drupal_realpath("public://");
-  $filename = $xmlfilename . "-" . $xslfilename;
-  $dirtosave = $files . $newdirname."/";
-  $finalfile = $dirtosave . $filename . ".".$extension;
+ $files = drupal_realpath("public://");
+ $filename = $xmlfilename . "-" . $xslfilename;
+ $dirtosave = $files . $newdirname."/";
+ $finalfile = $dirtosave . $filename . ".".$extension;
   //Make the transform and save to the tmp directory
-  $xslDoc = new DOMDocument();
-  $xslDoc->resolveExternals = TRUE;
-  $xslDoc->substituteEntities = TRUE;
-  $xslDoc->load($xsl);
-  $xmlDoc = new DOMDocument();
-  $xml_realpath = drupal_realpath("public://").end(explode("files", $xml));
-  $xmlDoc->load($xml_realpath);
-  $proc = new XSLTProcessor();
-  $proc->importStylesheet($xslDoc);
-  $doc = new DOMDocument();
-  $doc->loadXML($proc->transformToXML($xmlDoc));
+ $xslDoc = new DOMDocument();
+ $xslDoc->resolveExternals = TRUE;
+ $xslDoc->substituteEntities = TRUE;
+ $xslDoc->load($xsl);
+ $xmlDoc = new DOMDocument();
+ $xml_realpath = drupal_realpath("public://").end(explode("files", $xml));
+ $xmlDoc->load($xml_realpath);
+ $proc = new XSLTProcessor();
+ $proc->importStylesheet($xslDoc);
+ $doc = new DOMDocument();
+ $doc->loadXML($proc->transformToXML($xmlDoc));
   //save the file
-  $finalfile_tmp=file_directory_temp(). "/" . $filename .'.'. $extension;
-  $doc->save($finalfile_tmp);
-  rename($finalfile_tmp, $finalfile);
-  $values_to_send=array(
-    "finalfile" => str_replace(DRUPAL_ROOT,'.',$finalfile),
-    "filename" => $filename,
+ $finalfile_tmp=file_directory_temp(). "/" . $filename .'.'. $extension;
+ $doc->save($finalfile_tmp);
+ rename($finalfile_tmp, $finalfile);
+ $values_to_send=array(
+  "finalfile" => str_replace(DRUPAL_ROOT,'.',$finalfile),
+  "filename" => $filename,
   );
-  return $values_to_send;
+ return $values_to_send;
 }
 
 //Main Transform function
@@ -490,7 +481,7 @@ function tapas_transform($node) {
     $node->field_tei_xml_link['und'][0]['title'] = $xmlfilename;
 
     //create transforms
-//NOTE THAT AN OLDER VERSION OF THIS MODULE STORED TRANSFORMS IN '/sites/default/files/transforms/[tapas|teibp]/[filename]'. AS THE PATH NEEDS HARDCODING IN THE .xsl FILES, FILES UPLOADED PRIOR TO 3/2014 USE THIS PATH FOR CSS AND JS FILES
+    //NOTE THAT AN OLDER VERSION OF THIS MODULE STORED TRANSFORMS IN '/sites/default/files/transforms/[tapas|teibp]/[filename]'. AS THE PATH NEEDS HARDCODING IN THE .xsl FILES, FILES UPLOADED PRIOR TO 3/2014 USE THIS PATH FOR CSS AND JS FILES
 
     $tapas_xsl_url=drupal_get_path('module', 'tapas_transform').'/transforms/';
     $tapas_xslfilename1=$tapas_xsl_url."teibp/teibp.xsl";
@@ -499,7 +490,7 @@ function tapas_transform($node) {
     $node->field_transform_address_link['und'][0]['url'] = $filetosave['finalfile'];
     $node->field_transform_address_link['und'][0]['title'] = $filetosave['filename'] . '.xml';
 
-//NOTE THAT THIS HAS BEEN REPLACED BY 'tfc.xsl'. THIS IS STILL HERE AS A PLACEHOLDER WHILE AWAITING MORE TRANSFORMATIONS(perhaps?). IT IS BEING GENERATED AS A PLACEHOLDER IN THE READING VIEW (/[project-url]/[node-title]/[node-nid]) as well
+    //NOTE THAT THIS HAS BEEN REPLACED BY 'tfc.xsl'. THIS IS STILL HERE AS A PLACEHOLDER WHILE AWAITING MORE TRANSFORMATIONS(perhaps?). IT IS BEING GENERATED AS A PLACEHOLDER IN THE READING VIEW (/[project-url]/[node-title]/[node-nid]) as well
     $tapas_xslfilename2=$tapas_xsl_url."tapas/teiHeader2dc1.xsl";
     $filetosave=make_transform($tapas_xslfilename2,$xmlurl);
     //Save the final path address to drupal field 
@@ -525,27 +516,23 @@ function tapas_transform($node) {
       tapas_set_metadata($node, $finalfile);
     }
     //NOW TAKE THE FILE GENERATED FROM tfc.xsl AND GENERATE THE FINAL FILE WITH MULTIPLE XSL PASSES!
-      $xmlfinalfilename[0]= $filetosave['filename'];
-      $xmlfinalurl[0]= $filetosave['finalfile'];
-      $xmlfinalurl[0] = str_replace("public://", "", $xmlfinalurl[0]);
+    $xmlfinalfilename[0]= $filetosave['filename'];
+    $xmlfinalurl[0]= $filetosave['finalfile'];
+    $xmlfinalurl[0] = str_replace("public://", "", $xmlfinalurl[0]);
       // $base and $files already in address
       //SYD - YOU CAN CHANGE THIS LINE TO ADD AS MANY h[x].xsl FILES AS YOU NEED!
-      for ($numoftransforms=1; $numoftransforms<=5; $numoftransforms++) {
-        $uselastxmlfile=$numoftransforms - 1;
-        $tapas_xslfilename[$numoftransforms]=$tapas_xsl_url."tapas/h".$numoftransforms.".xsl";
-        $filetosave1[$numoftransforms]=make_transform($tapas_xslfilename[$numoftransforms],$xmlfinalurl[$uselastxmlfile],'xhtml');
-        $xmlfinalfilename[$numoftransforms]= $filetosave1[$numoftransforms]['filename'];
-        $xmlfinalurl[$numoftransforms]= $filetosave1[$numoftransforms]['finalfile'];
-	// drupal_set_message('pass '.$numoftransforms." filename: ".$xmlfinalfilename[$numoftransforms]." url: ".$xmlfinalurl[$numoftransforms]);
-      }
-      $node->field_tei_custom_transform_addre['und'][0]['url'] = end($xmlfinalurl);
-      $node->field_tei_custom_transform_addre['und'][0]['title'] = end($xmlfinalfilename). '.xhtml';
-      //drupal_set_message('finalurl: '.$node->field_tei_custom_transform_addre['und'][0]['url']);
-      //drupal_set_message('finalfilename: '.$node->field_tei_custom_transform_addre['und'][0]['title']);
-      //SAVE THE NODE. FINALLY DONE
-      $node->revision = 0;
-      $node->revision_operation = 0;
-      node_save($node);
+    for ($numoftransforms=1; $numoftransforms<=5; $numoftransforms++) {
+      $uselastxmlfile=$numoftransforms - 1;
+      $tapas_xslfilename[$numoftransforms]=$tapas_xsl_url."tapas/h".$numoftransforms.".xsl";
+      $filetosave1[$numoftransforms]=make_transform($tapas_xslfilename[$numoftransforms],$xmlfinalurl[$uselastxmlfile],'xhtml');
+      $xmlfinalfilename[$numoftransforms]= $filetosave1[$numoftransforms]['filename'];
+      $xmlfinalurl[$numoftransforms]= $filetosave1[$numoftransforms]['finalfile'];
+    }
+    $node->field_tei_custom_transform_addre['und'][0]['url'] = end($xmlfinalurl);
+    $node->field_tei_custom_transform_addre['und'][0]['title'] = end($xmlfinalfilename). '.xhtml';
+    $node->revision = 0;
+    $node->revision_operation = 0;
+    node_save($node);
   }
 }
 
@@ -666,7 +653,7 @@ function tapas_set_metadata($node, $finalfile) {
 
     //IMPORTANT. NEED TO CHECK FOR VALID datetime FORMAT HERE. OTHERWISE BAD MYSQL ERROR
     if(preg_match('/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/', $date)){
-		  $date=$date." 00:00:00";
+      $date=$date." 00:00:00";
       $node->field_dc_date['und'][0]['value'] = $date;
     }else{
       //exit(print_r($node->field_tei_xml['filename']));
@@ -926,7 +913,7 @@ function tapas_transform_action_info() {
       'configurable' => FALSE,
       'vbo_configurable' => FALSE,
       'triggers' => array('any'),
-    ),
+      ),
     'tapas_transform_run_transform' => array(
       'type' => 'node',
       'label' => t('TAPAS - Update transform files only'),
@@ -934,8 +921,8 @@ function tapas_transform_action_info() {
       'configurable' => FALSE,
       'vbo_configurable' => FALSE,
       'triggers' => array('any'),
-    ),
-  );
+      ),
+    );
 }
 
 function tapas_transform_run_check_and_transform(&$node, $context) {
