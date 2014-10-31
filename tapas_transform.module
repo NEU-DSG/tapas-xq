@@ -578,141 +578,20 @@ function tapas_set_metadata($node, $response) {
     $node->field_dc_contributor['und'][$i]['value'] = $contributor;
   }
 
-  //Set Author/Creator
-  //NOTE: I am sure there is a more efficient way to accomplish this (multiple functions at the least)...and this may not even cover every way someone enters an author name. sigh.
-  // $creator_full = $xml->xpath("tapas_metadata/dc_creator");
-  // if(isset($creator_full)){
-  //   $i=0;
-  //   $creator = '';
-  //   foreach($creator_full as $value){
-  //     $creator = (string) $value[$i];
-  //     if($creator!=''){
-  //       $creator_first_name='';
-  //       $creator_last_name='';
-  //       $creator_middle_name='';
-  //       $creator_generational='';
-  //       $creator_title='';
-  //       if(strpos($creator,' and ')){
-  //         $creator_parse=$creator;
-  //         $creator_parse=explode(" and ",$creator_parse);
-  //         $j=0;
-  //         foreach($creator_parse as $creator){
-  //           if(strpos($creator,',')){
-  //             $creator=explode(", ",$creator);
-  //             $creator_last_name = array_shift($creator);
-  //             $creator = $creator[0];
-  //             $creator=explode(" ",$creator);
-  //             $creator_first_name=array_shift($creator);
-  //             if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-  //               $creator_title=array_shift($creator);
-  //               $creator_first_name=array_shift($creator);
-  //             }
-  //             foreach($creator as $value){
-  //               if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-  //                 $creator_generational=$value;
-  //               }else{
-  //                 $creator_middle_name=$creator_middle_name.$value." ";
-  //               }
-  //             }
-  //           }else{
-  //             $creator=explode(" ",$creator);
-  //             $name_count=count($creator);
-  //             if($name_count!=2){
-  //               $creator_last_name = array_pop($creator);
-  //               $creator_first_name=array_shift($creator);
-  //               if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-  //                 $creator_title=array_shift($creator);
-  //                 $creator_first_name=array_shift($creator);
-  //               }
-  //               foreach($creator as $value){
-  //                 if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-  //                   $creator_generational=$value;
-  //                 }else{
-  //                   $creator_middle_name=$creator_middle_name.$value." ";
-  //                 }
-  //               }
-  //             }else{
-  //               $creator_first_name=$creator[0];
-  //               $creator_last_name=$creator[1];
-  //             }
-  //           }
-  //           if(isset($creator_title) && $creator_title!=''){
-  //             $node->field_author['und'][$j]['title'] = $creator_title;
-  //           }
-  //           if(isset($creator_first_name) && $creator_first_name!=''){
-  //             $node->field_author['und'][$j]['given'] = $creator_first_name;
-  //           }
-  //           if(isset($creator_last_name) && $creator_last_name!=''){
-  //             $node->field_author['und'][$j]['family'] = $creator_last_name;
-  //           }
-  //           if(isset($creator_middle_name) && $creator_middle_name!=''){
-  //             $node->field_author['und'][$j]['middle'] = $creator_middle_name;
-  //           }
-  //           if(isset($creator_generational) && $creator_generational!=''){
-  //             $node->field_author['und'][$j]['generational'] = $creator_generational;
-  //           }
-  //           $j++;
-  //         }
-  //       }else{
-  //         if(strpos($creator,',')){
-  //           $creator=explode(", ",$creator);
-  //           $creator_last_name = array_shift($creator);
-  //           $creator = $creator[0];
-  //           $creator=explode(" ",$creator);
-  //           $creator_first_name=array_shift($creator);
-  //           if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-  //             $creator_title=array_shift($creator);
-  //             $creator_first_name=array_shift($creator);
-  //           }
-  //           foreach($creator as $value){
-  //             if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-  //               $creator_generational=$value;
-  //             }else{
-  //               $creator_middle_name=$creator_middle_name.$value." ";
-  //             }
-  //           }
-  //         }else{
-  //           $creator=explode(" ",$creator);
-  //           $name_count=count($creator);
-  //           if($name_count!=2){
-  //             $creator_last_name = array_pop($creator);
-  //             $creator_first_name=array_shift($creator);
-  //             if($creator_first_name=='Mr.'||$creator_first_name=='Mrs.'||$creator_first_name=='Miss'||$creator_first_name=='Ms.'||$creator_first_name=='Dr.'||$creator_first_name=='Prof.'||$creator_first_name=='Sir'||$creator_first_name=='Lord'||$creator_first_name=='Lady'||$creator_first_name=='The Honorable'){
-  //               $creator_title=array_shift($creator);
-  //               $creator_first_name=array_shift($creator);
-  //             }
-  //             foreach($creator as $value){
-  //               if($value=='Jr.' || $value=='Sr.' || $value=='I' || $value=='II' || $value=='III' || $value=='IV' || $value=='V' || $value=='VI' || $value=='VII' || $value=='VIII' || $value=='IX' || $value=='X'){
-  //                 $creator_generational=$value;
-  //               }else{
-  //                 $creator_middle_name=$creator_middle_name.$value." ";
-  //               }
-  //             }
-  //           }else{
-  //             $creator_first_name=$creator[0];
-  //             $creator_last_name=$creator[1];
-  //           }
-  //         }
-  //         if(isset($creator_title) && $creator_title!=''){
-  //           $node->field_author['und'][$i]['title'] = $creator_title;
-  //         }
-  //         if(isset($creator_first_name) && $creator_first_name!=''){
-  //           $node->field_author['und'][$i]['given'] = $creator_first_name;
-  //         }
-  //         if(isset($creator_last_name) && $creator_last_name!=''){
-  //           $node->field_author['und'][$i]['family'] = $creator_last_name;
-  //         }
-  //         if(isset($creator_middle_name) && $creator_middle_name!=''){
-  //           $node->field_author['und'][$i]['middle'] = $creator_middle_name;
-  //         }
-  //         if(isset($creator_generational) && $creator_generational!=''){
-  //           $node->field_author['und'][$i]['generational'] = $creator_generational;
-  //         }
-  //       }
-  //     }
-  //     $i++;
-  //   }
-  // }
+  //Set Creator
+  if ($metadata->creator){
+    $creator = $metadata->creator;
+
+    $creator_assignment = function($attr, $location) use (& $node){
+      $attr ? ($node->field_author['und'][0][$location] = $attr) : null ;
+    };
+
+    $creator_assignment($creator->title, 'title');
+    $creator_assignment($creator->given, 'given');
+    $creator_assignment($creator->middle, 'middle');
+    $creator_assignment($creator->family, 'family');
+    $creator_assignment($creator->generational, 'generational');
+  }
 }
 
 function tapas_file_revisions($node) {
