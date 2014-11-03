@@ -482,7 +482,7 @@ function tapas_transform($node, $response) {
 
     //create transforms
     //NOTE THAT AN OLDER VERSION OF THIS MODULE STORED TRANSFORMS IN '/sites/default/files/transforms/[tapas|teibp]/[filename]'. AS THE PATH NEEDS HARDCODING IN THE .xsl FILES, FILES UPLOADED PRIOR TO 3/2014 USE THIS PATH FOR CSS AND JS FILES
-
+    
     $tapas_xsl_url=drupal_get_path('module', 'tapas_transform').'/transforms/';
     $tapas_xslfilename1=$tapas_xsl_url."teibp/teibp.xsl";
     $filetosave=make_transform($tapas_xslfilename1,$xmlurl);
@@ -583,7 +583,7 @@ function tapas_set_metadata($node, $response) {
     $creator = $metadata->creator;
 
     $creator_assignment = function($attr, $location) use (& $node){
-      $attr ? ($node->field_author['und'][0][$location] = $attr) : null ;
+      if($attr) { $node->field_author['und'][0][$location] = $attr ; }
     };
 
     $creator_assignment($creator->title, 'title');
