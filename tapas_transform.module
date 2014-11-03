@@ -249,9 +249,8 @@ function tapas_transform_node_submit($node){
 
     //CHECK FOR ERRORS AND KILL EVERYTHING IF THEY ARE FOUND.. IF BULK UPLOAD HASN'T ALREADY - session set in rules_batch_create_tei_content_from_bulk_upload
     if(!isset($_SESSION['file_to_check'][$xmlfilename])){
-      $has_error=tapas_file_check($xmlfilename, $response);
-      if($has_error){
-        drupal_set_message('The TEI file <em><strong>'.$xmlfilename.'</strong></em> did not validate.<br/>'.$has_error.'<br/>Please verify that your TEI file is proper XML and conforms to TEI Guidelines.<br/><br/><br/>', 'error');
+      if($error=tapas_file_check($xmlfilename, $response)){
+        drupal_set_message($error, 'error');
         file_delete($file, $force = FALSE);
         header('Location: '.request_uri());
         die();
@@ -299,7 +298,10 @@ function tapas_file_check($xmlfilename, $response) {
   } elseif ($response->status_code == 422){
     // 422 status indicates the files failed to validate as TEI 
     // Halt upload and render the errors 
-    return $draw_xml_errs("Fatal error", $response->errors);
+    $header = "Your TEI did not validate for the following reasons:\n";
+    $errors = $draw_xml_errs("Fatal error", $response->errors);
+    $footer = "Please verify that your file is valid XML and conforms to the TEI specification.\n";
+    return $header.$errors.$footer;
   } elseif ($response->status_code == 200 && !empty($response->errors)) {
     // Status 200 with some errors indicates warnings were raised, 
     // but nothing that should halt file upload.  Display errors as an alert 
