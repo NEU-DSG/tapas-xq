@@ -482,20 +482,13 @@ function tapas_transform($node, $response) {
 
     //create transforms
     //NOTE THAT AN OLDER VERSION OF THIS MODULE STORED TRANSFORMS IN '/sites/default/files/transforms/[tapas|teibp]/[filename]'. AS THE PATH NEEDS HARDCODING IN THE .xsl FILES, FILES UPLOADED PRIOR TO 3/2014 USE THIS PATH FOR CSS AND JS FILES
-    
+
     $tapas_xsl_url=drupal_get_path('module', 'tapas_transform').'/transforms/';
     $tapas_xslfilename1=$tapas_xsl_url."teibp/teibp.xsl";
     $filetosave=make_transform($tapas_xslfilename1,$xmlurl);
     //Save the final path address to drupal field 
     $node->field_transform_address_link['und'][0]['url'] = $filetosave['finalfile'];
     $node->field_transform_address_link['und'][0]['title'] = $filetosave['filename'] . '.xml';
-
-    //NOTE THAT THIS HAS BEEN REPLACED BY 'tfc.xsl'. THIS IS STILL HERE AS A PLACEHOLDER WHILE AWAITING MORE TRANSFORMATIONS(perhaps?). IT IS BEING GENERATED AS A PLACEHOLDER IN THE READING VIEW (/[project-url]/[node-title]/[node-nid]) as well
-    $tapas_xslfilename2=$tapas_xsl_url."tapas/teiHeader2dc1.xsl";
-    $filetosave=make_transform($tapas_xslfilename2,$xmlurl);
-    //Save the final path address to drupal field 
-    $node->field_tei_transform_address_link['und'][0]['url'] = $filetosave['finalfile'];
-    $node->field_tei_transform_address_link['und'][0]['title'] = $filetosave['filename'] . '.xml';
 
     $tapas_xslfilename3=$tapas_xsl_url."tapas/tfc.xsl";
     $filetosave=make_transform($tapas_xslfilename3,$xmlurl);
