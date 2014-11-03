@@ -263,7 +263,7 @@ function tapas_transform_node_submit($node){
     $node->revision = 0;
     $node->revision_operation = 0;
     tapas_file_revisions($node);
-    tapas_transform($node, $response);
+    tapas_extract_file_metadata($node, $response);
   }
   if ($node->type == 'collection') {
     //For some strange reason, if a new collection had all page elements unchecked, the system set the elements back to default. set this session variable and then rules_the_new_empty_field_collection_page_elements_rule. Sorry I did not have time to track this down further...
@@ -273,6 +273,15 @@ function tapas_transform_node_submit($node){
     }
     //This is here to prevent multiple emails due to multistep module
     $node->field_email_yet['und'][0]['value'] = 0;
+  }
+}
+
+// Get tfc metadata from the uploaded TEI file - invoked 
+// from node submit and optionally during user-triggered 
+// metadata regeneration
+function tapas_extract_file_metadata($node, $response){
+  if ($node->field_extract_metadata['und'][0]['value'] == 1){
+    tapas_set_metadata($node, $response);
   }
 }
 
@@ -467,7 +476,7 @@ function make_transform($xsl,$xml,$extension=NULL){
 }
 
 //Main Transform function
-function tapas_transform($node, $response) {
+function tapas_transform($node) {
   $xmlfile= field_get_items('node', $node, 'field_tei_xml');
   if($xmlfile){
     //get drupal paths
@@ -507,9 +516,7 @@ function tapas_transform($node, $response) {
     if($is_new!=1){
       $node->field_email_yet['und'][0]['value'] = 1;
     }
-    if($node->field_extract_metadata['und'][0]['value']==1){
-      tapas_set_metadata($node, $response);
-    }
+    
     //NOW TAKE THE FILE GENERATED FROM tfc.xsl AND GENERATE THE FINAL FILE WITH MULTIPLE XSL PASSES!
     $xmlfinalfilename[0]= $filetosave['filename'];
     $xmlfinalurl[0]= $filetosave['finalfile'];
