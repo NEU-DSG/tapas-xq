@@ -235,45 +235,56 @@ function tapas_transform_form_alter(&$form, &$form_state, $form_id) {
 /**
 * Implementation of hook_node_submit().
 */
-function tapas_transform_node_submit($node){
+function tapas_transform_node_submit($node, $form, &$form_state){
   if ($node->type == 'tei_content') {
-
-    //ANOTHER ANNOYING SIDE EFFECT OF MULTISTEP...MULTIPLE EMAILS DUE TO NODE_SAVE's
-    $node->field_email_yet['und'][0]['value'] = 0;
-    //LOAD THE NEW FILE TO CHECK FOR ERRORS BEFORE NODE SAVE
-    $file=file_load($node->field_tei_xml['und'][0]['fid']);
-    $xmlfilename= $file->filename;
-
-    //Make Step 1 API call
-    $response = TapasHydraConnector::validate_tei(drupal_realpath($file->uri));
-
-    //CHECK FOR ERRORS AND KILL EVERYTHING IF THEY ARE FOUND.. IF BULK UPLOAD HASN'T ALREADY - session set in rules_batch_create_tei_content_from_bulk_upload
-    if(!isset($_SESSION['file_to_check'][$xmlfilename])){
-      if($error=tapas_file_check($xmlfilename, $response)){
-        drupal_set_message($error, 'error');
-        file_delete($file, $force = FALSE);
-        header('Location: '.request_uri());
-        die();
-      }
-    } else {
-      unset($_SESSION['file_to_check'][$xmlfilename]);
-    }
-    //NO ERRORS SAVE THE NODE AND RUN TRANSFORM
-    node_save($node);
-    $node->revision = 0;
-    $node->revision_operation = 0;
-    tapas_file_revisions($node);
-    tapas_extract_file_metadata($node, $response);
+    tapas_handle_tei_content_submit($node, $form, $form_state);
   }
   if ($node->type == 'collection') {
-    //For some strange reason, if a new collection had all page elements unchecked, the system set the elements back to default. set this session variable and then rules_the_new_empty_field_collection_page_elements_rule. Sorry I did not have time to track this down further...
-    unset($_SESSION['empty_field_collection_page_elements_fix']);
-    if (empty($node->field_collection_page_elements['und'])) {
-      $_SESSION['empty_field_collection_page_elements_fix']=1;
-    }
-    //This is here to prevent multiple emails due to multistep module
-    $node->field_email_yet['und'][0]['value'] = 0;
+    tapas_handle_collection_submit($node, $form, $form_state);
   }
+}
+
+function tapas_handle_tei_content_submit($node, $form, &$form_state){
+  switch ($form["#multistep"]["current"]) {
+    // TEI file is being uploaded
+    case 'group_upload_tei':
+      $node->field_email_yet['und'][0]['value'] = 0;
+      $file  = file_load($node->field_tei_xml['und'][0]['fid']);
+      $fname = $file->filename;
+
+      $response = TapasHydraConnector::validate_tei(drupal_realpath($file->uri));
+
+      if(!isset($_SESSION['file_to_check'][$fname])){
+        if($error = tapas_file_check($fname, $response)){
+          drupal_set_message($error, "error");
+          file_delete($file, $force = FALSE);
+          header('Location: '.request_uri());
+          die();
+        }
+      } else {
+        unset($_SESSION['file_to_check'][$fname]);
+      }
+
+      // If the TEI file validates extract metadata and proceed to step 2.
+      $node->revision = 0;
+      $node->revision_operation = 0;
+      tapas_file_revisions($node);
+      tapas_extract_file_metadata($node, $response);
+    // TEI file has been finalized, all metadata attached, now 
+    // we must trigger transform creation
+    case 'group_enter_metadata':
+      tapas_transform($node);
+  }
+}
+
+function tapas_handle_collection_submit($node, $form, &$form_state){
+  //For some strange reason, if a new collection had all page elements unchecked, the system set the elements back to default. set this session variable and then rules_the_new_empty_field_collection_page_elements_rule. Sorry I did not have time to track this down further...
+  unset($_SESSION['empty_field_collection_page_elements_fix']);
+  if (empty($node->field_collection_page_elements['und'])) {
+    $_SESSION['empty_field_collection_page_elements_fix']=1;
+  }
+  //This is here to prevent multiple emails due to multistep module
+  $node->field_email_yet['und'][0]['value'] = 0;
 }
 
 // Get tfc metadata from the uploaded TEI file - invoked 
@@ -516,7 +527,7 @@ function tapas_transform($node) {
     if($is_new!=1){
       $node->field_email_yet['und'][0]['value'] = 1;
     }
-    
+
     //NOW TAKE THE FILE GENERATED FROM tfc.xsl AND GENERATE THE FINAL FILE WITH MULTIPLE XSL PASSES!
     $xmlfinalfilename[0]= $filetosave['filename'];
     $xmlfinalurl[0]= $filetosave['finalfile'];
@@ -555,6 +566,9 @@ function tapas_set_metadata($node, $response) {
 
   // Set Title
   $node->field_dc_title['und'][0]['value'] = $metadata->title;
+
+  // Set display title 
+  $display_title = str_replace(" ", "_", strtolower($metadata->title));
 
   //Set Rights
   $rights = $metadata->rights ?: "";
