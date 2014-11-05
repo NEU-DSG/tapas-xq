@@ -29,9 +29,44 @@ class TapasHydraConnector {
     return (new TapasHydraConnector())->_validate_tei($fpath);
   }
 
+  // Grab the file associated with this node and save it to Hydra
+  // Returns a JSON hash of URI's for the three transforms that 
+  // are actually useful for TAPAS.
+  static function save_file_to_hydra($node, $depositing_user){
+    return (new TapasHydraConnector())->_save_file_to_hydra($node, $depositing_user);
+  }
+
   function _validate_tei($fpath){
     $connection = $this->base_url."files/validate_tei.json";
     return $this->post_request($connection, $fpath);
+  }
+
+  function _save_file_to_hydra($node, $depositing_user){
+    $filepath = drupal_realpath($node->field_tei_xml['und'][0]['uri']);
+
+    if(!$filepath){
+      $e = "Attempted to get the file uri of node $node->nid - no uri found";
+      return $this->watchdog_and_error($e, 2);
+    }
+
+    $data   = ["depositor" => $depositing_user->mail];
+    if ($data["depositor"] == null){
+      $e = "Attempted to deposit as a user with no email address.  UID was ".
+           "$depositing_user->uid";
+      return $this->watchdog_and_error($e, 2);
+    }
+
+    $collection_id = $node->field_collection_node_reference['und'][0]['target_id'];
+    if ($collection_id == null) {
+      $e = "Attempted to upload a file that belongs to no collection, see node ".
+           "$node->nid";
+      return $this->watchdog_and_error($e, 2);
+    }
+
+    $data[] = ["collection" => $collection_id];
+
+    $connection = $this->base_url."files";
+    return $this->post_request($connection, $filepath, $data);
   }
 
   private function post_request($connection, $fpath, $data = array()){
@@ -50,8 +85,7 @@ class TapasHydraConnector {
     if ($response == false){
       $error_body  = "cURL attempt in TapasHydraConnector threw ".
                      "following error: ".curl_error($curl);
-      watchdog("tapas_transform", $error_body, array(), 0);
-      return $response;
+      return watchdog_and_error($error_body, 2);
     } else {  
       $response = json_decode($response);
       $response->status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -61,5 +95,10 @@ class TapasHydraConnector {
 
   private function create_curl_file_field($fpath){
     return "@".$fpath.";filename=".pathinfo($fpath)['basename'];
+  }
+
+  private function watchdog_and_error($message, $error_level){
+    watchdog("tapas_transform", $message, array(), $error_level);
+    return false;
   }
 }
