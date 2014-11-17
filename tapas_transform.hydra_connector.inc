@@ -50,15 +50,17 @@ class TapasHydraConnector {
       $e = "Somehow attempted to upload file with no node id?  " + 
            "Non-node associated with file currently existing at $filepath";
       return $this->watchdog_and_error($e, 2);
+    } else { 
+      $data["node_id"] = $node->nid;
     }
-    $data["node_id"] = $node->nid;
 
     # Get depositor's email address.
-    $data["depositor"]   = $depositing_user->mail;
-    if ($data["depositor"] == null){
+    if (! $depositing_user->mail){
       $e = "Attempted to deposit as a user with no email address.  UID was ".
            "$depositing_user->uid";
       return $this->watchdog_and_error($e, 2);
+    } else {
+      $data["depositor"]   = $depositing_user->mail;
     }
 
     # Get collection nid.
@@ -67,8 +69,9 @@ class TapasHydraConnector {
       $e = "Attempted to upload a file that belongs to no collection, see node ".
            "$node->nid";
       return $this->watchdog_and_error($e, 2);
+    } else { 
+      $data["collection_id"] = $collection_id;
     }
-    $data["collection_id"] = $collection_id;
 
     $connection = $this->base_url."files";
     $response   = $this->post_request($connection, $filepath, $data);
@@ -78,7 +81,8 @@ class TapasHydraConnector {
            "Check repository status.";
       watchdog("tapas_transform", $m, array(), 2);
     } elseif ($response->status_code == 422){
-      $m = "Invalid TEI file creation attempted.  Errors were $response->errors";
+      $errors = implode(" ; ", $response->errors);
+      $m = "Invalid TEI file creation attempted.  Errors were: $errors";
       watchdog("tapas_transform", $m, array(), 2);
     }
   }
