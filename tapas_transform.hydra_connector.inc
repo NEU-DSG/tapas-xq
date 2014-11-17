@@ -29,9 +29,6 @@ class TapasHydraConnector {
     return (new TapasHydraConnector())->_validate_tei($fpath);
   }
 
-  // Grab the file associated with this node and save it to Hydra
-  // Returns a JSON hash of URI's for the three transforms that 
-  // are actually useful for TAPAS.
   static function save_file_to_hydra($node, $depositing_user){
     return (new TapasHydraConnector())->_save_file_to_hydra($node, $depositing_user);
   }
@@ -43,30 +40,47 @@ class TapasHydraConnector {
 
   function _save_file_to_hydra($node, $depositing_user){
     $filepath = drupal_realpath($node->field_tei_xml['und'][0]['uri']);
-
     if(!$filepath){
       $e = "Attempted to get the file uri of node $node->nid - no uri found";
       return $this->watchdog_and_error($e, 2);
     }
 
-    $data   = ["depositor" => $depositing_user->mail];
+    # Get item node id
+    if ($node->nid == null){
+      $e = "Somehow attempted to upload file with no node id?  " + 
+           "Non-node associated with file currently existing at $filepath";
+      return $this->watchdog_and_error($e, 2);
+    }
+    $data["node_id"] = $node->nid;
+
+    # Get depositor's email address.
+    $data["depositor"]   = $depositing_user->mail;
     if ($data["depositor"] == null){
       $e = "Attempted to deposit as a user with no email address.  UID was ".
            "$depositing_user->uid";
       return $this->watchdog_and_error($e, 2);
     }
 
+    # Get collection nid.
     $collection_id = $node->field_collection_node_reference['und'][0]['target_id'];
     if ($collection_id == null) {
       $e = "Attempted to upload a file that belongs to no collection, see node ".
            "$node->nid";
       return $this->watchdog_and_error($e, 2);
     }
-
-    $data[] = ["collection" => $collection_id];
+    $data["collection_id"] = $collection_id;
 
     $connection = $this->base_url."files";
-    return $this->post_request($connection, $filepath, $data);
+    $response   = $this->post_request($connection, $filepath, $data);
+
+    if(!$response || ($response->status_code == 500)){
+      $m = "Server failed to respond or responded with a 500 error " + 
+           "Check repository status.";
+      watchdog("tapas_transform", $m, array(), 2);
+    } elseif ($response->status_code == 422){
+      $m = "Invalid TEI file creation attempted.  Errors were $response->errors";
+      watchdog("tapas_transform", $m, array(), 2);
+    }
   }
 
   private function post_request($connection, $fpath, $data = array()){

@@ -489,27 +489,12 @@ function make_transform($xsl,$xml,$extension=NULL){
  return $values_to_send;
 }
 
-function tapas_transform($node){
-  $current_user = $GLOBALS['user'];
-  $response = TapasHydraConnector::save_file_to_hydra($node, $current_user);
-
-  // If response is false/null/somehow the number 0, 
-  // or if the server responds with a 500, file upload 
-  // has totally barfed.  Return a generic panic message.
-  if (!$response || ($response->status_code == 500)) {
-    $m = "Something has gone wrong - contact an administrator.";
-    drupal_set_message($m, 'error');
-  } elseif ($response->status_code == 422){
-    drupal_set_message("File failed to validate.", "error");
-  } elseif ($response->status_code == 202){
-    $m = "Your files have been accepted by the repository server ".
-         "and are being processed.  Check back soon!";
-    drupal_set_message($m, "alert");
-  }
-}
-
 //Main Transform function
-function _tapas_transform($node) {
+function tapas_transform($node) {
+  // Quietly kick off hydra indexing
+  $current_user = $GLOBALS['user'];
+  TapasHydraConnector::save_file_to_hydra($node, $current_user);
+
   $xmlfile= field_get_items('node', $node, 'field_tei_xml');
   if($xmlfile){
     //get drupal paths
