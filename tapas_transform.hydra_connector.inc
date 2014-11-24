@@ -42,13 +42,13 @@ class TapasHydraConnector {
 
     if($node->title) { $data["title"] = $node->title; }
 
-    $desc = $node->body['und'][0]['safe_value'];
-    if ($desc) { $data["description"] = $desc; } 
-
-    $members = $this->group_membership($node);
-    foreach ($members as $i => $member) {
-      $data["members[".$i."]"] = $member;
-    }
+    # This is coerced into looking like an array because Rails expects 
+    # a multi-valued object for the [:members] field.  However, at the time
+    # that hook_node_submit is invoked (e.g. at project creation, when this create_group
+    # method is invoked) no user->project relationships beyond that defined by $node->uid exist/
+    # can exist/are accessible.  Note that $node->uid indicates the onwer/administrator 
+    # of the project.
+    $data["members["."0"."]"] = $node->uid;
 
     $connection = $this->base_url."communities.json";
 
@@ -57,7 +57,17 @@ class TapasHydraConnector {
   }
 
   function _create_collection($node) { 
+    $data = [];
 
+    $data["nid"] = $node->nid;
+    $data["project"] = $node->og_group_ref['und'][0]['target_id'];
+
+    if($node->title) { $data["title"] = $node->title; }
+    
+    $connection = $this->base_url."collections.json";
+
+    $response = $this->post_request($connection, null, $data);
+    $this->handle_response_quietly($response);
   }
 
   // Slightly less clean code for saving/generating files
