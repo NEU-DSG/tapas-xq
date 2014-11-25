@@ -503,7 +503,7 @@ function make_transform($xsl,$xml,$extension=NULL){
 //Main Transform function
 function tapas_transform($node) {
   // Quietly kick off hydra indexing
-  TapasHydraConnector::save_file_to_hydra($node, $GLOBALS['user']);
+  TapasHydraConnector::create_file($node, $GLOBALS['user']);
 
   $xmlfile= field_get_items('node', $node, 'field_tei_xml');
   if($xmlfile){

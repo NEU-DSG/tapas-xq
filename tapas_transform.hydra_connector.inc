@@ -27,18 +27,27 @@ class TapasHydraConnector {
 
   // CRUD functions for collections/communities (groups)
 
-  static function create_collection($node) {
-    (new TapasHydraConnector())->_create_collection($node);
+  static function create_collection($node, $depositor) {
+    (new TapasHydraConnector())->_create_collection($node, $depositor);
   }
 
-  static function create_group($node) { 
-    (new TapasHydraConnector())->_create_group($node);
+  static function create_group($node, $depositor) { 
+    (new TapasHydraConnector())->_create_group($node, $depositor);
   }
 
-  function _create_group($node) {
+  static function validate_tei($fpath){
+    return (new TapasHydraConnector())->_validate_tei($fpath);
+  }
+
+  static function create_file($node, $depositor){
+    return (new TapasHydraConnector())->_create_file($node, $depositor);
+  }
+
+  function _create_group($node, $depositor) {
     $data = [];
 
     $data["nid"] = $node->nid;
+    $data["depositor"] = $depositor->uid;
 
     if($node->title) { $data["title"] = $node->title; }
 
@@ -56,10 +65,11 @@ class TapasHydraConnector {
     $this->handle_response_quietly($response);
   }
 
-  function _create_collection($node) { 
+  function _create_collection($node, $depositor) { 
     $data = [];
 
     $data["nid"] = $node->nid;
+    $data["depositor"] = $depositor->uid;
     $data["project"] = $node->og_group_ref['und'][0]['target_id'];
 
     if($node->title) { $data["title"] = $node->title; }
@@ -69,22 +79,13 @@ class TapasHydraConnector {
     $response = $this->post_request($connection, null, $data);
     $this->handle_response_quietly($response);
   }
-
-  // Slightly less clean code for saving/generating files
-  static function validate_tei($fpath){
-    return (new TapasHydraConnector())->_validate_tei($fpath);
-  }
-
-  static function save_file_to_hydra($node, $depositor){
-    return (new TapasHydraConnector())->_save_file_to_hydra($node, $depositor);
-  }
-
+  
   function _validate_tei($fpath){
     $connection = $this->base_url."files/validate_tei.json";
     return $this->post_request($connection, $fpath);
   }
 
-  function _save_file_to_hydra($node, $depositor){
+  function _create_file($node, $depositor){
     $filepath = drupal_realpath($node->field_tei_xml['und'][0]['uri']);
     if(!$filepath){
       $e = "Attempted to get the file uri of node $node->nid - no uri found";
@@ -102,7 +103,7 @@ class TapasHydraConnector {
 
     # Get depositor's email address.
     if (! $depositor->uid){
-      $e = "Something went wrong when accessing file depositor's uid."
+      $e = "Something went wrong when accessing file depositor's uid.";
       return $this->watchdog_and_error($e, 2);
     } else {
       $data["depositor"]   = $depositor->uid;
