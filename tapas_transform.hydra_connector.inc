@@ -75,8 +75,8 @@ class TapasHydraConnector {
     return (new TapasHydraConnector())->_validate_tei($fpath);
   }
 
-  static function save_file_to_hydra($node, $depositing_user){
-    return (new TapasHydraConnector())->_save_file_to_hydra($node, $depositing_user);
+  static function save_file_to_hydra($node, $depositor){
+    return (new TapasHydraConnector())->_save_file_to_hydra($node, $depositor);
   }
 
   function _validate_tei($fpath){
@@ -84,7 +84,7 @@ class TapasHydraConnector {
     return $this->post_request($connection, $fpath);
   }
 
-  function _save_file_to_hydra($node, $depositing_user){
+  function _save_file_to_hydra($node, $depositor){
     $filepath = drupal_realpath($node->field_tei_xml['und'][0]['uri']);
     if(!$filepath){
       $e = "Attempted to get the file uri of node $node->nid - no uri found";
@@ -97,16 +97,15 @@ class TapasHydraConnector {
            "Non-node associated with file currently existing at $filepath";
       return $this->watchdog_and_error($e, 2);
     } else { 
-      $data["node_id"] = $node->nid;
+      $data["nid"] = $node->nid;
     }
 
     # Get depositor's email address.
-    if (! $depositing_user->mail){
-      $e = "Attempted to deposit as a user with no email address.  UID was ".
-           "$depositing_user->uid";
+    if (! $depositor->uid){
+      $e = "Something went wrong when accessing file depositor's uid."
       return $this->watchdog_and_error($e, 2);
     } else {
-      $data["depositor"]   = $depositing_user->mail;
+      $data["depositor"]   = $depositor->uid;
     }
 
     # Get collection nid.
@@ -116,7 +115,7 @@ class TapasHydraConnector {
            "$node->nid";
       return $this->watchdog_and_error($e, 2);
     } else { 
-      $data["collection_id"] = $collection_id;
+      $data["collection"] = $collection_id;
     }
 
     $connection = $this->base_url."files";
