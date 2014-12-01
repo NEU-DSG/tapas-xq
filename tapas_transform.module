@@ -19,6 +19,24 @@ function tapas_transform_recursiveDelete($str) {
   }
 }
 
+# If we are inserting a user-to-project membership, update the repository
+# (and by extension eXist) to see the user as a project member.
+function tapas_transform_og_membership_insert($og_membership) {
+  request_membership_update($og_membership);
+}
+
+# Same as above but with deleting relationships
+function tapas_transform_og_membership_delete($og_membership) {
+  request_membership_update($og_membership);
+}
+
+function request_membership_update($og_membership){
+  if ($og_Membership->entity_type == 'user') {
+    $args["membership_changed"] = true;
+    TapasHydraConnector::update_project(node_load($og_membership->gid), $args);
+  }
+}
+
 function tapas_transform_form_cancel($form, &$form_state) {
   $the_url = request_uri();
   drupal_goto($the_url);
@@ -246,10 +264,8 @@ function tapas_transform_node_submit($node, $form, &$form_state){
 
 function tapas_transform_node_insert($node){
   if ($node->type == 'collection') {
-    $nid = $node->nid;
     TapasHydraConnector::create_collection($node, $GLOBALS['user']);
   } elseif ($node->type == 'group') {
-    $nid = $node->nid;
     TapasHydraConnector::create_group($node, $GLOBALS['user']);
   }
 }

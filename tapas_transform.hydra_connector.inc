@@ -35,6 +35,10 @@ class TapasHydraConnector {
     (new TapasHydraConnector())->_create_group($node, $depositor);
   }
 
+  static function update_group($node, $args) { 
+    return (new TapasHydraConnector())->_update_group($node, $args);
+  }
+
   static function validate_tei($fpath){
     return (new TapasHydraConnector())->_validate_tei($fpath);
   }
@@ -61,7 +65,21 @@ class TapasHydraConnector {
 
     $connection = $this->base_url."communities.json";
 
-    $response = $this->post_request($connection, null, $data);
+    $response = $this->post_request($connection, $data);
+    $this->handle_response_quietly($response);
+  }
+
+  function _update_group($node, $args) {
+    # Recompute group membership conditionally
+    if ($args["membership_changed"]) {
+      $members = $this->group_membership($node);
+      foreach($members as $i => $member) {
+        $data["members["."$i"."]"] = $member;
+      }
+    }
+
+    $connection = $this->base_url."communities/nid/$node->nid";
+    $response = $this->put_request($connection, $data);
     $this->handle_response_quietly($response);
   }
 
@@ -76,13 +94,13 @@ class TapasHydraConnector {
     
     $connection = $this->base_url."collections.json";
 
-    $response = $this->post_request($connection, null, $data);
+    $response = $this->post_request($connection, $data);
     $this->handle_response_quietly($response);
   }
   
   function _validate_tei($fpath){
     $connection = $this->base_url."files/validate_tei.json";
-    return $this->post_request($connection, $fpath);
+    return $this->post_request($connection, ["file" => $fpath]);
   }
 
   function _create_file($node, $depositor){
@@ -90,6 +108,8 @@ class TapasHydraConnector {
     if(!$filepath){
       $e = "Attempted to get the file uri of node $node->nid - no uri found";
       return $this->watchdog_and_error($e, 2);
+    } else {
+      $data["file"] = $filepath;
     }
 
     # Get item node id
@@ -120,7 +140,7 @@ class TapasHydraConnector {
     }
 
     $connection = $this->base_url."files";
-    $response   = $this->post_request($connection, $filepath, $data);
+    $response   = $this->post_request($connection, $data);
     $this->handle_response_quietly($response);
   }
 
@@ -141,24 +161,45 @@ class TapasHydraConnector {
     }
   }
 
-  private function post_request($connection, $fpath, $data = array()){
+  private function put_request($connection, $data = array()) {
     $data = array_merge($this->default_opts, $data);
-    if ($fpath) { $data["file"] = $this->create_curl_file_field($fpath); }
+
+    # If a file must be sent, prepare make it cURL transfer ready at this step
+    if ($data['file']) {
+      $data['file'] = $this->create_curl_file_field($data['file']);
+    }
+
+    $curl_options = array(CURLOPT_RETURNTRANSFER => 1,
+      CURLOPT_CUSTOMREQUEST => "PUT",
+      CURLOPT_POSTFIELDS => $data);
+
+    return $this->http_request($connection, $curl_options);
+  }
+
+  private function post_request($connection, $data = array()){
+    $data = array_merge($this->default_opts, $data);
+
+    if ($data['file']) {
+      $data['file'] = $this->create_curl_file_field($data['file']);
+    }
 
     $curl_options = array(CURLOPT_RETURNTRANSFER => 1, 
                           CURLOPT_POSTFIELDS => $data);
 
+    return $this->http_request($connection, $curl_options);
+  }
+
+  private function http_request($connection, $curl_opts) {
     $curl = curl_init($connection);
-    curl_setopt_array($curl, $curl_options);
+    curl_setopt_array($curl, $curl_opts);
 
     $response = curl_exec($curl);
 
-    # If the response is false, we assume a curl error was thrown
-    if ($response == false){
-      $error_body  = "cURL attempt in TapasHydraConnector threw ".
-                     "following error: ".curl_error($curl);
+    if ($response == false) {
+      $error_body = "cURL attempt in TapasHydraConnector threw ".
+                    "the following error: ".curl_error($curl);
       return $this->watchdog_and_error($error_body, 2);
-    } else {  
+    } else { 
       $response = json_decode($response);
       $response->status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
       return $response;
