@@ -19,6 +19,13 @@ function tapas_transform_recursiveDelete($str) {
   }
 }
 
+function request_membership_update($og_membership){
+  if ($og_membership->entity_type == 'user') {
+    $args["membership_changed"] = true;
+    TapasHydraConnector::update_group(node_load($og_membership->gid), $args);
+  }
+}
+
 # If we are inserting a user-to-project membership, update the repository
 # (and by extension eXist) to see the user as a project member.
 function tapas_transform_og_membership_insert($og_membership) {
@@ -28,13 +35,6 @@ function tapas_transform_og_membership_insert($og_membership) {
 # Same as above but with deleting relationships
 function tapas_transform_og_membership_delete($og_membership) {
   request_membership_update($og_membership);
-}
-
-function request_membership_update($og_membership){
-  if ($og_Membership->entity_type == 'user') {
-    $args["membership_changed"] = true;
-    TapasHydraConnector::update_project(node_load($og_membership->gid), $args);
-  }
 }
 
 function tapas_transform_form_cancel($form, &$form_state) {
