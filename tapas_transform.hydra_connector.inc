@@ -165,7 +165,7 @@ class TapasHydraConnector {
     $data = array_merge($this->default_opts, $data);
 
     # If a file must be sent, prepare make it cURL transfer ready at this step
-    if ($data['file']) {
+    if (isset($data['file'])) {
       $data['file'] = $this->create_curl_file_field($data['file']);
     }
 
