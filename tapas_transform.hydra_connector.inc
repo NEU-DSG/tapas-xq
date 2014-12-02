@@ -27,12 +27,12 @@ class TapasHydraConnector {
 
   // CRUD functions for collections/communities (groups)
 
-  static function create_collection($node, $depositor) {
-    (new TapasHydraConnector())->_create_collection($node, $depositor);
+  static function create_collection($node) {
+    (new TapasHydraConnector())->_create_collection($node);
   }
 
-  static function create_group($node, $depositor) { 
-    (new TapasHydraConnector())->_create_group($node, $depositor);
+  static function create_group($node) { 
+    (new TapasHydraConnector())->_create_group($node);
   }
 
   static function update_group($node, $args) { 
@@ -43,15 +43,15 @@ class TapasHydraConnector {
     return (new TapasHydraConnector())->_validate_tei($fpath);
   }
 
-  static function create_file($node, $depositor){
-    return (new TapasHydraConnector())->_create_file($node, $depositor);
+  static function create_file($node){
+    return (new TapasHydraConnector())->_create_file($node);
   }
 
-  function _create_group($node, $depositor) {
+  function _create_group($node) {
     $data = [];
 
     $data["nid"] = $node->nid;
-    $data["depositor"] = $depositor->uid;
+    $data["depositor"] = $node->uid;
 
     if($node->title) { $data["title"] = $node->title; }
 
@@ -83,11 +83,11 @@ class TapasHydraConnector {
     $this->handle_response_quietly($response);
   }
 
-  function _create_collection($node, $depositor) { 
+  function _create_collection($node) { 
     $data = [];
 
     $data["nid"] = $node->nid;
-    $data["depositor"] = $depositor->uid;
+    $data["depositor"] = $node->uid;
     $data["project"] = $node->og_group_ref['und'][0]['target_id'];
 
     if($node->title) { $data["title"] = $node->title; }
@@ -103,7 +103,7 @@ class TapasHydraConnector {
     return $this->post_request($connection, ["file" => $fpath]);
   }
 
-  function _create_file($node, $depositor){
+  function _create_file($node){
     $filepath = drupal_realpath($node->field_tei_xml['und'][0]['uri']);
     if(!$filepath){
       $e = "Attempted to get the file uri of node $node->nid - no uri found";
@@ -121,12 +121,12 @@ class TapasHydraConnector {
       $data["nid"] = $node->nid;
     }
 
-    # Get depositor's email address.
-    if (! $depositor->uid){
-      $e = "Something went wrong when accessing file depositor's uid.";
+    # Get depositor's uid
+    if (! $node->uid){
+      $e = "Something went wrong when accessing node uid.";
       return $this->watchdog_and_error($e, 2);
     } else {
-      $data["depositor"]   = $depositor->uid;
+      $data["depositor"]   = $node->uid;
     }
 
     # Get collection nid.

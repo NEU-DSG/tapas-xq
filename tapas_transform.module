@@ -264,9 +264,9 @@ function tapas_transform_node_submit($node, $form, &$form_state){
 
 function tapas_transform_node_insert($node){
   if ($node->type == 'collection') {
-    TapasHydraConnector::create_collection($node, $GLOBALS['user']);
+    TapasHydraConnector::create_collection($node);
   } elseif ($node->type == 'group') {
-    TapasHydraConnector::create_group($node, $GLOBALS['user']);
+    TapasHydraConnector::create_group($node);
   }
 }
 
@@ -519,7 +519,7 @@ function make_transform($xsl,$xml,$extension=NULL){
 //Main Transform function
 function tapas_transform($node) {
   // Quietly kick off hydra indexing
-  TapasHydraConnector::create_file($node, $GLOBALS['user']);
+  TapasHydraConnector::create_file($node);
 
   $xmlfile= field_get_items('node', $node, 'field_tei_xml');
   if($xmlfile){
