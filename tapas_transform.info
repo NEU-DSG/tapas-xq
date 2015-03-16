@@ -10,7 +10,9 @@ version = "7.x-0.1"
 core = "7.x"
 project = "TAPAS"
 
+dependencies[] = og
+
 files[] = tapas_transform.install
 files[] = tapas_transform.module
-
+files[] = tapas_transform.hydra_connector.inc
 
