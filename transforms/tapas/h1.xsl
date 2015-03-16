@@ -291,9 +291,22 @@
   <xsl:template match="tei:list">
     <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
       <xsl:call-template name="addID"/>
-      <xsl:call-template name="addRend"/>
-      <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
       <xsl:apply-templates select="@*"/>
+      <!-- special-case to handle P5 used to use rend= for type= of <list> -->
+      <xsl:variable name="rend" select="normalize-space( @rend )"/>
+      <xsl:choose>
+        <xsl:when test="not(@type) and
+          (    $rend = 'bulleted'
+            or $rend = 'ordered'
+            or $rend = 'simple'
+            or $rend = 'gloss'
+          )">
+          <xsl:attribute name="type"><xsl:value-of select="$rend"/></xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="addRend"/>
+        </xsl:otherwise>
+      </xsl:choose>
       <xsl:attribute name="data-tapas-list-type">
         <xsl:variable name="labels" select="count( tei:label )"/>
         <xsl:variable name="items"  select="count( tei:item  )"/>
