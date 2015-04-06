@@ -1,0 +1,11 @@
+<project default="xar" name="tapas">
+    <xmlproperty file="expath-pkg.xml"/>
+    <property name="project.version" value="${package(version)}"/>
+    <property name="project.app" value="tapas"/>
+    <property name="build.dir" value="build"/>
+    <property name="legacy.dir" value="legacy"/>
+    <target name="xar">
+        <mkdir dir="${build.dir}"/>
+        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/** ${legacy.dir}/**"/>
+    </target>
+</project>

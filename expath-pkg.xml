@@ -1,0 +1,4 @@
+<package xmlns="http://expath.org/ns/pkg" name="http://www.tapasproject.org/apps/tapas-eXist-app" abbrev="tapas" version="0.1" spec="1.0">
+    <title>TAPAS</title>
+    <dependency package="http://exist-db.org/apps/shared"/>
+</package>

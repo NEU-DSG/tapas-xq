@@ -1,0 +1,14 @@
+<meta xmlns="http://exist-db.org/xquery/repo">
+    <description>An application dedicated to TAPAS-specific functions.</description>
+    <author>Syd Bauman</author>
+    <author>Ashley M. Clark</author>
+    <website>http://www.tapasproject.org</website>
+    <status>alpha</status>
+    <license>GNU-LGPL</license>
+    <copyright>true</copyright>
+    <type>application</type>
+    <target>tapas</target>
+    <prepare>pre-install.xql</prepare>
+    <finish/>
+    <deployed>2015-04-06T16:15:00.75Z</deployed>
+</meta>
