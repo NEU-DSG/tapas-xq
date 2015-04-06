@@ -6,21 +6,24 @@ An EXPath application to manage TAPAS's interests inside eXist-db, including gen
 ## Installation
 It's assumed you have eXist-db up and running somewhere. If not, see the [eXist Quick Start](http://exist-db.org/exist/apps/doc/quickstart.xml) guide and follow the instructions there.
 
-You'll want to be logged in on the machine where you've installed eXist ([plattr](https://github.com/NEU-DSG/plattr) users should SSH into their Vagrant box).
+You'll want to be logged in on the machine where you've installed eXist. [Plattr](https://github.com/NEU-DSG/plattr) users should SSH into their Vagrant box.
 
 ### Get a copy
 Clone down this repository using your git client of choice, then run [Apache Ant](https://ant.apache.org/manual/running.html) from within your local repo. By default, Ant will build a zipped archive from files within the repository, and store the new package in the (git-ignored) `build` directory.
 
 In the terminal:
-1. `git clone <URL>`
+
+1. `git clone https://github.com/NEU-DSG/tapas-xq.git`
+
 2. `cd tapas-xq`
+
 3. `ant`
 
 <!-- Once there is a stable release, include instructions for downloading the pre-built package from GitHub! -->
 
 ### Deploy the app
 #### With eXist's Package Manager
-In your browser, navigate to eXist's Dashboard interface. The default URL is http://localhost:8080/exist, but those using plattr should try http://localhost:8848/exist instead.
+In your browser, navigate to eXist's Dashboard interface. The default URL is <http://localhost:8080/exist>, but those using Plattr should try <http://localhost:8848/exist> instead.
 
 Log in as the admin user. (Plattr users: the default password is "dsgT@pas".) Click on the icon labeled "Package Manager" and then again on the cylinder in the top-left corner. 
 
