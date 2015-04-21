@@ -33,6 +33,7 @@ Either drag-and-drop the `.xar` file into the new window, or click on the button
 <!-- #### With the Java Admin Client (I think?) -->
 <!-- #### By auto-deploying -->
 <!-- #### With XQuery -->
+<!-- http://exist-db.org/exist/apps/doc/repo.xml -->
 
 ## Hungry for more TAPAS?
 [TAPAS website](http://www.tapasproject.org/)
