@@ -4,7 +4,8 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema" 
   xmlns:tei="http://www.tei-c.org/ns/1.0"
   xmlns="http://www.tei-c.org/ns/1.0"
-  exclude-result-prefixes="xs tei"
+  exclude-result-prefixes="xs tei tapas"
+  xpath-default-namespace="http://www.tei-c.org/ns/1.0"
   version="2.0">
   
   <!-- Read in a random TEI (P5) file, and write out a TAPAS-friendly copy -->
@@ -43,17 +44,17 @@
   
   <!-- handle <TEI> element (note: <teiCorpus> may have been uppermost element, -->
   <!-- if so it would have been copied by identity) -->
-  <xsl:template match="tei:TEI">
+  <xsl:template match="TEI">
     <xsl:call-template name="insert-PIs"/>
     <!-- insert TAPAS metadata before <text>; this fails miserably if there -->
     <!-- is no <text>; or if there are nodes between multiple <text>s (which -->
     <!-- would be invalid TEI, only 1 <text> is allowed) -->
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
-      <xsl:apply-templates select="node()[following-sibling::tei:text]"/>
+      <xsl:apply-templates select="node()[following-sibling::text]"/>
       <xsl:call-template name="tapasHeader"/>
-      <xsl:apply-templates select="tei:text"/>
-      <xsl:apply-templates select="node()[preceding-sibling::tei:text]"/>
+      <xsl:apply-templates select="text"/>
+      <xsl:apply-templates select="node()[preceding-sibling::text]"/>
     </xsl:copy>
   </xsl:template>
   
@@ -110,46 +111,47 @@
   </xsl:template>
   
   <xsl:template name="insert-PIs">
-    <xsl:processing-instruction name="xml-stylesheet">
-      <!-- HEY SYD: Is "tapasBoot.xslt" actually a real stylesheet? I couldn't find it in the legacy Drupal code anywhere. (Though I suppose it could be represented in the database.) ~Ashley -->
-      <xsl:text>type="text/xsl" href="tapasBoot.xslt"</xsl:text>
-    </xsl:processing-instruction>
+    <!-- if we had any PIs to insert, we would put them here. -->
   </xsl:template>
+  
   
   <!-- ************************** -->
   <!-- data manipulation routines -->
   <!-- ************************** -->
   
-  <!-- Move janus tags to type= of <persName> when used inside <person>. -->
-  <!-- As current written this drops the type= of the <persName>. OK for -->
-  <!-- for now, as there are none. But we should fix that someday, likely -->
-  <!-- by using subtype= or data-tapas-type=. -->
-  
-  <!-- HEY SYD: Wouldn't other interesting attributes be lost with the original
-    persName? What necessitates the removal of choice? -->
-  <xsl:template match="tei:person/tei:persName[tei:choice]">
-    <!--<xsl:apply-templates select="tei:choice/*" mode="makemeapersname"/>-->
-    <xsl:for-each select="tei:choice/(tei:abbr|tei:expan|tei:sic|tei:corr|tei:orig|tei:reg)">
-      <xsl:call-template name="makeMeAPersName">
-        <xsl:with-param name="type" select="ancestor::tei:persName/@type"/>
-      </xsl:call-template>
-    </xsl:for-each>
+  <!-- Move janus tags to type= of <persName> when used inside <person>, so -->
+  <!-- that we only have one way of handling editorial intervention inside  -->
+  <!-- <persName> in the personography. -->
+  <xsl:template match="person/persName[choice]">
+    <xsl:apply-templates select="choice/*" mode="makemeapersname"/>
   </xsl:template>
-  
-  <!--<xsl:template match="tei:abbr|tei:expan|tei:sic|tei:corr|tei:orig|tei:reg"
-    mode="makemeapersname">
-    <persName type="{local-name(.)}"><xsl:apply-templates/></persName>
-  </xsl:template>-->
-  <xsl:template name="makeMeAPersName">
-    <xsl:param name="type"/>
-    <persName type="{local-name(.)}">
-      <xsl:if test="$type">
-        <xsl:attribute name="data-tapas-type" select="$type"/>
-      </xsl:if>
-      <xsl:apply-templates/>
+  <!-- for each of the janus elements (and friends), generate a separate -->
+  <!-- output <persName>, using the GI of the janus (or friend) element as -->
+  <!-- an attribute so later processes can differentiate. Also copy over -->
+  <!-- all the attributes from those elements that are not making it into -->
+  <!-- the output, namely the <persName> matched by the template above and -->
+  <!-- its child <choice> (and then those from the matched janus element or -->
+  <!-- friend, too). -->
+  <xsl:template match="*" mode="makemeapersname">
+    <persName data-tapas-type="{local-name(.)}">
+      <xsl:apply-templates select="parent::choice/parent::persName/@*"/>
+      <xsl:apply-templates select="parent::choice/@*" mode="inherit">
+        <xsl:with-param name="relation" select="'child'"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="@*" mode="inherit">
+        <xsl:with-param name="relation" select="'grandchild'"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="node()"/>
     </persName>
   </xsl:template>
+  <!-- do the work of copying an attribute to a new one with a long name that -->
+  <!-- gives its provenance. -->
+  <xsl:template match="@*" mode="inherit">
+    <xsl:param name="relation"/>
+    <xsl:attribute name="data-tapas-{$relation}-{local-name(..)}-{local-name(.)}" select="."/>
+  </xsl:template>
   
+
   <!-- ************************ -->
   <!-- data processing routines -->
   <!-- ************************ -->
@@ -205,7 +207,7 @@
             <!-- points to an existing internal XML element -->
             <!-- current attr will do unless we're an @facs -->
             <!-- that points to a <surface> -->
-            <xsl:if test="local-name()='facs'  and  id( $bare-name )[self::tei:surface]">
+            <xsl:if test="local-name()='facs'  and  id( $bare-name )[self::surface]">
               <xsl:message>DEBUG: do right by facs!</xsl:message>
             </xsl:if>
           </xsl:when>
