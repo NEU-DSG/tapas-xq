@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-module namespace xslHdlr="http:/localhost:8983/exist/apps/xslhdlr";
+module namespace xslHdlr="http://tapasproject.org/exist/apps/xslhdlr";
 
 declare namespace json="http://www.json.org";
 declare namespace rest="http://exquery.org/ns/restxq";
