@@ -1,11 +1,14 @@
 xquery version "3.0";
 
-declare namespace transform="http://exist-db.org/xquery/transform";
 declare namespace request="http://exist-db.org/xquery/request";
 declare namespace response="http://exist-db.org/xquery/response";
-declare namespace util="http://exist-db.org/xquery/util";
-declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
+declare namespace transform="http://exist-db.org/xquery/transform";
 declare namespace xmldb="http://exist-db.org/xquery/xmldb";
+declare namespace compress="http://exist-db.org/xquery/compression";
+
+declare %private function local:create-zip-entry($filename, $filecontents) {
+  <entry name="{$filename}.xml" type="xml" method="deflate">{ $filecontents }</entry>
+};
 
 (: if (request:get-remote-host() eq LocalDrupal) then...? :)
 if (request:get-method() eq "POST") then
@@ -18,13 +21,24 @@ if (request:get-method() eq "POST") then
     (:let $loc := xmldb:store("/db/apps/tapas-xq","test.xml",$tfc):)
     (: need to grab any changed metadata fields from Drupal's request :)
     let $mods := transform:transform($origTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
+    let $tfcZipEntry := local:create-zip-entry("tfcTEST", $tfc)
+    let $modsZipEntry := local:create-zip-entry("modsTEST", $mods)
     return
     (
       response:set-status-code(201),
       (:response:set-header("Location", $loc),:)
-      response:set-header("Content-Type", "multipart/form-data"),
-      $tfc, $mods(:,
-      <test>{ xmldb:collection-available("/db/apps/tapas-xq") }</test>:)
+      response:set-header("Content-Type", "application/zip"),
+      response:stream-binary(
+        compress:zip(
+          (: The entries representing files to be zipped must be wrapped in a 
+            sequence. :)
+          ( $tfcZipEntry, $modsZipEntry ),
+          (: Current directory hierarchy does not need to be respected. :)
+          false()
+        ),
+        'application/zip',
+        'TEST.zip'
+      )
     )
   else ()
 else ()
