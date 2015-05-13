@@ -41,4 +41,10 @@ if (request:get-method() eq "POST") then
       )
     )
   else ()
-else ()
+(: Return an error for any unsupported HTTP methods. :)
+else (
+  (
+    response:set-status-code(405),
+    <error>{request:get-method()} method not supported.</error>
+  )
+)
