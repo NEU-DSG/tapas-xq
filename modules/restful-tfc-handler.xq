@@ -12,15 +12,27 @@ declare %private function local:create-zip-entry($filename, $filecontents) {
 
 (: if (request:get-remote-host() eq LocalDrupal) then...? :)
 if (request:get-method() eq "POST") then
-  if (request:get-header("Content-Type") eq "application/xml") then
-    let $origTEI := request:get-data()
-    let $tfc := transform:transform($origTEI, doc("../resources/tfc-generator.xsl"), ())
+    if (matches(request:get-header("Content-Type"), "multipart/form-data")) then
+    let $urlencodedTEI := request:get-parameter("file","no file")
+    let $isPublic := request:get-parameter("public","false")
+    (:return (
+      response:set-status-code(415),
+      response:set-header("Content-Type","application/xml"),
+      <error>The media type "{request:get-header("Content-Type")}" is not supported.</error>
+    )
+    :)
+    let $projID := request:get-parameter("proj",()),
+      $collID := request:get-parameter("coll",()),
+      $docID := request:get-parameter("doc",())
+    
+    let $xmlTEI := util:parse($urlencodedTEI)
+    let $tfc := transform:transform($xmlTEI, doc("../resources/tfc-generator.xsl"), ())
     (: need to store the tfc for eXist use (where?); 
       need permissions to store the tfc; 
       need a file name for the tfc :)
     (:let $loc := xmldb:store("/db/apps/tapas-xq","test.xml",$tfc):)
     (: need to grab any changed metadata fields from Drupal's request :)
-    let $mods := transform:transform($origTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
+    let $mods := transform:transform($xmlTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
     let $tfcZipEntry := local:create-zip-entry("tfcTEST", $tfc)
     let $modsZipEntry := local:create-zip-entry("modsTEST", $mods)
     return
@@ -39,12 +51,23 @@ if (request:get-method() eq "POST") then
         'application/zip',
         'TEST.zip'
       )
+      (:for $i in request:get-parameter-names()
+        return <param name="{$i}">{request:get-parameter($i,"")}</param>:)
     )
-  else ()
+  (: Only XML is accepted for this XQuery. :)
+  else (
+    (
+      response:set-status-code(415),
+      response:set-header("Content-Type","application/xml"),
+      <error>The media type "{request:get-header("Content-Type")}" is not supported.</error>
+    )
+  )
 (: Return an error for any unsupported HTTP methods. :)
 else (
   (
     response:set-status-code(405),
-    <error>{request:get-method()} method not supported.</error>
+    response:set-header("Allow", "POST"),
+    response:set-header("Content-Type","application/xml"),
+    <error>{request:get-method()} method is not supported.</error>
   )
 )
