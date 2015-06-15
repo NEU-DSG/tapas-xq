@@ -4,6 +4,7 @@ declare namespace request="http://exist-db.org/xquery/request";
 declare namespace response="http://exist-db.org/xquery/response";
 declare namespace transform="http://exist-db.org/xquery/transform";
 declare namespace xmldb="http://exist-db.org/xquery/xmldb";
+declare namespace util="http://exist-db.org/xquery/util";
 declare namespace compress="http://exist-db.org/xquery/compression";
 
 declare %private function local:create-zip-entry($filename, $filecontents) {
@@ -12,9 +13,26 @@ declare %private function local:create-zip-entry($filename, $filecontents) {
 
 (: if (request:get-remote-host() eq LocalDrupal) then...? :)
 if (request:get-method() eq "POST") then
-  if (request:get-header("Content-Type") eq "application/xml") then
-    let $origTEI := request:get-data()
-    let $tfc := transform:transform($origTEI, doc("../resources/tfc-generator.xsl"), ())
+  if (request:is-multipart-content()) then
+    (: Replace any instances of U+FEFF that might make eXist consider the XML 
+      "invalid." :)
+    let $fileData := replace(request:get-parameter('file',()),'﻿','')
+    let $origTEI := parse-xml($fileData)
+    (:return $origTEI:)
+    let $xslParams :=  
+                    <parameters>
+                      {
+                        let $reqParams := ( 'user', 'collection', 'project', 'isPublic' )
+                        for $key in $reqParams
+                          let $v := request:get-parameter($key,())
+                          return 
+                            <param name="{$key}" value="{$v}"/>
+                            (:if ($v='ERROR') then 
+                              <error>{request:get-method()} method not supported.</error>
+                            else <param name="{$key}" value="{$v}"/>:)
+                      }
+                    </parameters>
+    let $tfc := transform:transform($origTEI, doc("../resources/tfc-generator.xsl"), $xslParams)
     (: need to store the tfc for eXist use (where?); 
       need permissions to store the tfc; 
       need a file name for the tfc :)
@@ -41,7 +59,7 @@ if (request:get-method() eq "POST") then
       )
     )
   else ()
-(: Return an error for any unsupported HTTP methods. :)
+  (: Return an error for any unsupported HTTP methods. :)
 else (
   (
     response:set-status-code(405),

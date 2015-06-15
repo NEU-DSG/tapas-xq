@@ -27,6 +27,17 @@
   <xsl:variable name="URIc3" select="':;=?@~'"/>
   <xsl:variable name="tei-namespace" select="'http://www.tei-c.org/ns/1.0'"/>
   
+  <!-- ********** -->
+  <!-- parameters -->
+  <!-- ********** -->
+  
+  <!-- Note: expecting unique values (from whatever process is in charge of 
+    front-facing user management). -->
+  <xsl:param name="project" required="yes"/>
+  <xsl:param name="collection" required="yes"/>
+  <xsl:param name="user" required="yes"/>
+  <xsl:param name="isPublic" required="yes"/>
+  
   <!-- ******************** -->
   <!-- main top-level stuff -->
   <!-- ******************** -->
@@ -69,6 +80,8 @@
       <xsl:call-template name="get-rights"/>
       <xsl:call-template name="get-source"/>-->
       <!-- xsl:call-template name="get-subject"/ -->
+      <xsl:call-template name="set-owners"/>
+      <xsl:call-template name="set-access-lvl"/>
       <xsl:call-template name="get-transforms"/>
     </tapas:metadata>
   </xsl:template>
@@ -81,6 +94,23 @@
       <tapas:transform name="TAPAS_Boilerplate"/>
       <tapas:transform name="TAPAS_Boilerplate_NoJS"/>
     </tapas:transforms>
+  </xsl:template>
+  
+  <xsl:template name="set-owners">
+    <tapas:owners>
+      <tapas:project><xsl:value-of select="$project"/></tapas:project>
+      <tapas:collection><xsl:value-of select="$collection"/></tapas:collection>
+      <tapas:user><xsl:value-of select="$user"/></tapas:user>
+    </tapas:owners>
+  </xsl:template>
+  
+  <xsl:template name="set-access-lvl">
+    <tapas:access>
+      <xsl:choose>
+        <xsl:when test="$isPublic">public</xsl:when>
+        <xsl:when test="not($isPublic)">private</xsl:when>
+      </xsl:choose>
+    </tapas:access>
   </xsl:template>
   
   <xsl:template name="drupal-permissions">
