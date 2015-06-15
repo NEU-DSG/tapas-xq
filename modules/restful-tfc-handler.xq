@@ -38,7 +38,7 @@ if (request:get-method() eq "POST") then
       need a file name for the tfc :)
     (:let $loc := xmldb:store("/db/apps/tapas-xq","test.xml",$tfc):)
     (: need to grab any changed metadata fields from Drupal's request :)
-    let $mods := transform:transform($origTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
+    let $mods := transform:transform($xmlTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
     let $tfcZipEntry := local:create-zip-entry("tfcTEST", $tfc)
     let $modsZipEntry := local:create-zip-entry("modsTEST", $mods)
     return
@@ -57,12 +57,23 @@ if (request:get-method() eq "POST") then
         'application/zip',
         'TEST.zip'
       )
+      (:for $i in request:get-parameter-names()
+        return <param name="{$i}">{request:get-parameter($i,"")}</param>:)
+    )
+  (: Only XML is accepted for this XQuery. :)
+  else (
+    (
+      response:set-status-code(415),
+      response:set-header("Content-Type","application/xml"),
+      <error>The media type "{request:get-header("Content-Type")}" is not supported.</error>
     )
   else ()
   (: Return an error for any unsupported HTTP methods. :)
 else (
   (
     response:set-status-code(405),
-    <error>{request:get-method()} method not supported.</error>
+    response:set-header("Allow", "POST"),
+    response:set-header("Content-Type","application/xml"),
+    <error>{request:get-method()} method is not supported.</error>
   )
 )
