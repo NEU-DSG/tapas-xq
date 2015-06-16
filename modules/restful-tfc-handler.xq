@@ -11,20 +11,26 @@ declare %private function local:create-zip-entry($filename, $filecontents) {
   <entry name="{$filename}.xml" type="xml" method="deflate">{ $filecontents }</entry>
 };
 
+declare %private function local:get-file-content($file) {
+  typeswitch($file)
+    case xs:string return replace($file,'﻿','')
+    case xs:base64Binary return local:get-file-content(util:binary-to-string($file))
+    default return <error>Unrecognized file type.</error>
+};
+
 (: if (request:get-remote-host() eq LocalDrupal) then...? :)
 if (request:get-method() eq "POST") then
   if (request:is-multipart-content()) then
     (: Replace any instances of U+FEFF that might make eXist consider the XML 
       "invalid." :)
-    let $fileData := replace(request:get-parameter('file',()),'﻿','')
+    let $fileData := local:get-file-content(request:get-parameter('file','ERROR'))
     let $origTEI := parse-xml($fileData)
-    (:return $origTEI:)
     let $xslParams :=  
                     <parameters>
                       {
-                        let $reqParams := ( 'user', 'collection', 'project', 'isPublic' )
+                        let $reqParams := ( 'user', 'collections', 'project', 'is-public' )
                         for $key in $reqParams
-                          let $v := request:get-parameter($key,())
+                          let $v := request:get-parameter($key,'ERROR')
                           return 
                             <param name="{$key}" value="{$v}"/>
                             (:if ($v='ERROR') then 
@@ -38,7 +44,7 @@ if (request:get-method() eq "POST") then
       need a file name for the tfc :)
     (:let $loc := xmldb:store("/db/apps/tapas-xq","test.xml",$tfc):)
     (: need to grab any changed metadata fields from Drupal's request :)
-    let $mods := transform:transform($xmlTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
+    let $mods := transform:transform($origTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
     let $tfcZipEntry := local:create-zip-entry("tfcTEST", $tfc)
     let $modsZipEntry := local:create-zip-entry("modsTEST", $mods)
     return
@@ -60,15 +66,14 @@ if (request:get-method() eq "POST") then
       (:for $i in request:get-parameter-names()
         return <param name="{$i}">{request:get-parameter($i,"")}</param>:)
     )
-  (: Only XML is accepted for this XQuery. :)
+  (: Return an error for any unsupported HTTP methods. :)
   else (
     (
       response:set-status-code(415),
       response:set-header("Content-Type","application/xml"),
       <error>The media type "{request:get-header("Content-Type")}" is not supported.</error>
     )
-  else ()
-  (: Return an error for any unsupported HTTP methods. :)
+  )
 else (
   (
     response:set-status-code(405),
