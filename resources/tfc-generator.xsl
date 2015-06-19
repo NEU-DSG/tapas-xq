@@ -33,9 +33,10 @@
   
   <!-- Note: expecting unique values (from whatever process is in charge of 
     front-facing user management). -->
-  <xsl:param name="project" required="yes"/>
+  <xsl:param name="proj-id" required="yes"/>
   <xsl:param name="collections" required="yes"/>
-  <xsl:param name="user" required="yes"/>
+  <xsl:param name="doc-id" required="yes"/>
+  <xsl:param name="user-id" required="yes"/>
   <xsl:param name="is-public" required="yes"/>
   
   <!-- ******************** -->
@@ -98,9 +99,10 @@
   
   <xsl:template name="set-owners">
     <tapas:owners>
-      <tapas:project><xsl:value-of select="$project"/></tapas:project>
+      <tapas:project><xsl:value-of select="$proj-id"/></tapas:project>
+      <tapas:document><xsl:value-of select="$doc-id"/></tapas:document>
       <tapas:collection><xsl:value-of select="$collections"/></tapas:collection>
-      <tapas:user><xsl:value-of select="$user"/></tapas:user>
+      <tapas:user><xsl:value-of select="$user-id"/></tapas:user>
     </tapas:owners>
   </xsl:template>
   
