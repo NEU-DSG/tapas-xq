@@ -28,26 +28,8 @@ declare %private function local:unzip-entry-filter($path as xs:string, $data-typ
 		false()
 };
 
-(: Decompress files that passed local:unzip-entry-filter(). :)
-(:declare %private function local:unzip-entry-data($path as xs:string, $data-type as xs:string, $data as item()?, $param as item()*) {
-	if ($data-type = 'resource') then
-		let $tfc := transform:transform($origTEI, doc(), $xslParams)
-		
-		(\: Store TFC :\)
-		let $test34 := xmldb:store('/db/data',$name,$data)
-		return "hi"
-		
-	else()
-};:)
-
 declare %private function local:data-collection-exists() as xs:boolean {
-  if (xmldb:collection-available('/db/data')) then
-    true()
-  else (
-    if (empty(xmldb:create-collection('/db','data'))) then
-      false()
-    else ( true() )
-  )
+  xmldb:collection-available('/db/data')
 };
 
 declare %private function local:logout() {
@@ -57,51 +39,34 @@ declare %private function local:logout() {
 
 (:declare variable $filesUploaded := count(request:get-parameter-names()[starts-with(.,'file')]);:)
 
-(: if (request:get-remote-host() eq LocalDrupal) then...? :)
 if (request:get-method() eq "POST") then
   if (request:is-multipart-content()) then
     if (xmldb:login('/db','admin','dsgT@pas')) then
       if (local:data-collection-exists()) then
-        let $projParams := 
-            for $key in ( 'user-id', 'proj-id' )
-            let $i := request:get-parameter($key,'ERROR')
-            return 
-              <param name="{$key}" value="{$i}"/>
-        let $docData := local:get-file-content(request:get-parameter('requests',<error>ERROR</error>))
-        let $docXML := parse-xml($docData)
-        let $zipEntries :=
-            (:for $n in $docXML//request
-            return
-              let $xslParams :=  
-                              <parameters>
-                                {
-                                  for $z in $projParams
-                                  return $z
-                                }
-                                <param name="doc-id" value="{$n/doc-id}"/>
-                                <param name="is-public" value="{$n/is-public}"/>
-                                <param name="collections" value="test"/>
-                              </parameters>
-              let $origTEI := $n/filename
-              let $tfc := transform:transform($origTEI, doc("../resources/tfc-generator.xsl"), $xslParams)
-              (\: need to store the tfc for eXist use (where?); 
-                need permissions to store the tfc; 
-                need a file name for the tfc :\)
-              (\:let $loc := xmldb:store("/db/apps/tapas-xq","test.xml",$tfc):\)
-              (\: need to grab any changed metadata fields from Drupal's request :\)
-              let $mods := transform:transform($origTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
-              let $html := transform:transform($tfc, doc(""),())
-              let $tfcZipEntry := local:create-zip-entry("tfcTEST", $tfc)
-              let $modsZipEntry := local:create-zip-entry("modsTEST", $mods)
-              return :)
-                  <all>
-                    { $docXML }
-                  </all>
-                  (:<entry name="{$n}" type="collection">
-                    {$tfcZipEntry}
-                    {$modsZipEntry}
-                  </entry> :)
+        let $reqURL := local:get-file-content(request:get-parameter('request',<error>ERROR</error>))
+        let $reqXML := parse-xml($reqURL)
+        let $docURL := local:get-file-content(request:get-parameter('file',<error>ERROR</error>))
+        let $docXML := parse-xml($docURL)
+        (: xd: test that the parameters exist as part of the request :)
         
+        let $xslParams :=  
+                        <parameters>
+                          <param name="proj-id" value="{$reqXML/proj-id}"/>
+                          <param name="doc-id" value="{$reqXML/doc-id}"/>
+                          <param name="is-public" value="{$reqXML/is-public}"/>
+                          <param name="collections" value="test"/>
+                        </parameters>
+        let $origTEI := doc(concat('/db/tapas-data/PROJ-ID/DOC-ID/',$reqXML/doc-id,'.xml')) (: xd :)
+        let $tfc := transform:transform($origTEI, doc("../resources/tfc-generator.xsl"), $xslParams)
+        (: need to store the tfc for eXist use (where?); 
+          need permissions to store the tfc; 
+          need a file name for the tfc :)
+        (:let $loc := xmldb:store("/db/apps/tapas-xq","test.xml",$tfc):)
+        (: need to grab any changed metadata fields from Drupal's request :)
+        let $mods := transform:transform($origTEI, doc("../resources/TAPAS2MODSminimal.xsl"), ())
+        (:let $html := transform:transform($origTEI, doc(""),()):)
+        let $tfcZipEntry := local:create-zip-entry("tfcTEST", $tfc)
+        let $modsZipEntry := local:create-zip-entry("modsTEST", $mods)
         return
           (
             response:set-status-code(201),
@@ -111,21 +76,26 @@ if (request:get-method() eq "POST") then
               compress:zip(
                 (\: The entries representing files to be zipped must be wrapped in a 
                   sequence. :\)
-                ( $zipEntries ),
+                ( 
+                  <entry name="{$n}" type="collection">
+                    {$tfcZipEntry}
+                    {$modsZipEntry}
+                  </entry> 
+                ),
                 (\: Current directory hierarchy DOES need to be respected. :\)
                 true()
               ),
               'application/zip',
               'TEST.zip'
             ):)
-            (:for $i in request:get-parameter-names()
-              return <param name="{$i}">{request:get-parameter($i,"")}</param>:)
-              $zipEntries
+            <all>
+              { $reqXML }
+            </all>
           )
       else (
         (
           response:set-status-code(500),
-          <error>Unable to create '/db/data' collection.</error>
+          <error>No '/db/data' collection.</error>
         )
       )
     (: Return an error if login fails. :)

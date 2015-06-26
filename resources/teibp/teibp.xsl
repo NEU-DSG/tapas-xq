@@ -19,7 +19,7 @@
 				html/browser environment.</xd:p>
 		</xd:desc>
 	</xd:doc>
-	<xsl:include href="../../transforms/teibp/xml-to-string.xsl"/>
+	<xsl:include href="xml-to-string.xsl"/>
 
 	<xsl:output encoding="UTF-8" method="xml" omit-xml-declaration="yes"/>
 	
