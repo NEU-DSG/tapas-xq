@@ -101,8 +101,8 @@ if (request:get-method() eq "POST") then
     (: Return an error if login fails. :)
     else (
       (
-        response:set-status-code(403),
-        <error>Forbidden</error>
+        response:set-status-code(401),
+        <error>Provide valid credentials</error>
       )
     )
   (: Return an error if the request content type is not 'multipart'. :)

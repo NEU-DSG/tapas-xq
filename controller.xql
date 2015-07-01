@@ -16,7 +16,7 @@ declare function local:get-extension($filename as xs:string) as xs:string {
     
 if (local:get-extension($exist:resource) eq '') then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        <forward url="{concat($exist:controller, $exist:path, '.xq')}"/>
+        <forward url="{concat($exist:controller, '/modules/', $exist:resource, '.xq')}"/>
     </dispatch>
 
 else
