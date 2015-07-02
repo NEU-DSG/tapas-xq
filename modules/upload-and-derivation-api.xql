@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-module namespace tapasxq="http://tapasproject.org/tapas-xq";
+module namespace tapasxq="http://tapasproject.org/tapas-xq/exist";
 
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace response="http://exist-db.org/xquery/response";
@@ -8,13 +8,24 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 import module namespace util="http://exist-db.org/xquery/util";
 
+declare function tapasxq:get-param-xml($paramName as xs:string) {
+  let $file :=  if ($paramName) then
+                  request:get-parameter($paramName, 400)
+                else ()
+  return parse-xml( $file )
+};
+
+declare function tapasxq:get-body-xml() {
+  parse-xml( request:get-data() )
+};
+
 declare function tapasxq:get-file-content($file) {
   typeswitch($file)
     (: Replace any instances of U+FEFF that might make eXist consider the XML 
       "invalid." :)
     case xs:string return replace($file,'﻿','')
     case xs:base64Binary return tapasxq:get-file-content(util:binary-to-string($file))
-    default return <error>Unrecognized file type.</error>
+    default return 400
 };
 
 declare function tapasxq:data-collection-exists() as xs:boolean {
@@ -40,6 +51,7 @@ declare function tapasxq:test-request($method-type as xs:string, $params as item
 
 declare function tapasxq:get-error($code as xs:integer) {
   switch ($code)
+    case 400 return <p>Error: bad request</p>
     case 401 return <p>Error: authentication failed</p>
     case 405 return <p>Error: unsupported HTTP method</p>
     case 500 return <p>Error: unable to access resource</p>

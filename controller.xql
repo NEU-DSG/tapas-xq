@@ -13,13 +13,24 @@ declare function local:get-extension($filename as xs:string) as xs:string {
       then replace($name, '.*\.([^\.]*)$', '$1')
       else ''
 };
-    
-if (local:get-extension($exist:resource) eq '') then
-    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        <forward url="{concat($exist:controller, '/modules/', $exist:resource, '.xq')}"/>
-    </dispatch>
 
+declare function local:get-parent-dir() as xs:string {
+  let $path := substring-before($exist:path, $exist:resource)
+  let $parent := tokenize($path,'\/')[last()]
+  return $parent
+};
+
+if ($exist:resource = 'tei') then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/', $exist:resource, '.xq')}" method="{request:get-method()}">
+      <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>
+    </forward>
+  </dispatch>
+else if (local:get-extension($exist:resource) eq '') then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/', $exist:resource, '.xq')}" method="{request:get-method()}"/>
+  </dispatch>
 else
-    <ignore xmlns="http://exist.sourceforge.net/NS/exist">
-        <cache-control cache="yes"/>
-    </ignore>
+  <ignore xmlns="http://exist.sourceforge.net/NS/exist">
+    <cache-control cache="yes"/>
+  </ignore>
