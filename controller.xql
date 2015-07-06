@@ -20,10 +20,16 @@ declare function local:get-parent-dir() as xs:string {
   return $parent
 };
 
-if ($exist:resource = 'tei') then
+if ($exist:resource = 'tei' or $exist:resource = 'mods' or $exist:resource = 'tfe') then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-    <forward url="{concat($exist:controller, '/modules/', $exist:resource, '.xq')}" method="{request:get-method()}">
+    <forward url="{concat($exist:controller, '/modules/store-', $exist:resource, '.xq')}" method="{request:get-method()}">
       <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>
+    </forward>
+  </dispatch>
+else if (local:get-extension($exist:resource) eq '' and request:get-method() = 'DELETE') then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/delete-by-docid.xq')}" method="{request:get-method()}">
+      <add-parameter name="doc-id" value="{$exist:resource}"/>
     </forward>
   </dispatch>
 else if (local:get-extension($exist:resource) eq '') then

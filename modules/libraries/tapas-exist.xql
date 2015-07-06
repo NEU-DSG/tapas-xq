@@ -29,6 +29,7 @@ declare function tapas-exist:get-file-content($file) {
     default return 400
 };
 
+(: xd: Check the type of each parameter value. :)
 declare function tapas-exist:test-request($method-type as xs:string, $params as item()*, $success-code) as xs:integer {
   (: Test HTTP method. :)
   if (request:get-method() eq $method-type) then
