@@ -1,25 +1,19 @@
 xquery version "3.0";
 
-import module namespace tapasxq="http://tapasproject.org/tapas-xq/exist" at "upload-and-derivation-api.xql";
-import module namespace request="http://exist-db.org/xquery/request";
-import module namespace response="http://exist-db.org/xquery/response";
+import module namespace tapasxq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
+
+import module namespace transform="http://exist-db.org/xquery/transform";
 
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
 declare variable $parameters := ();
-(: 
-  map {
-    "name" := "value",
-    "name2" := "value2"
-  }
-:)
-
 (: Variables corresponding to the expected response structure. :)
+declare variable $successCode := 200;
 declare variable $contentType := "application/xml";
 
-let $statusCode := tapasxq:test-request($method, $parameters) 
-let $responseBody :=  if ( $statusCode = 201 ) then
-                        let $teiXML := tapasxq:get-request-xml('file')
+let $statusCode := tapasxq:test-request($method, $parameters, $successCode) 
+let $responseBody :=  if ( $statusCode = $successCode ) then
+                        let $teiXML := tapasxq:get-body-xml()
                         let $mods := transform:transform($teiXML, doc("../resources/TAPAS2MODSminimal.xsl"), ())
                         return $mods
                       else tapasxq:get-error($statusCode)
