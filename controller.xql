@@ -15,8 +15,8 @@ declare function local:get-extension($filename as xs:string) as xs:string {
 };
 
 declare function local:get-parent-dir() as xs:string {
-  let $path := substring-before($exist:path, $exist:resource)
-  let $parent := tokenize($path,'\/')[last()]
+  let $prepath := substring-before($exist:path, $exist:resource)
+  let $parent := replace($prepath, '.*[/\\]([^/\\]+)/?$', '$1')
   return $parent
 };
 
@@ -24,6 +24,12 @@ if ($exist:resource = 'tei' or $exist:resource = 'mods' or $exist:resource = 'tf
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/store-', $exist:resource, '.xq')}" method="{request:get-method()}">
       <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>
+    </forward>
+  </dispatch>
+else if (local:get-parent-dir() eq 'derive-reader' and local:get-extension($exist:resource) eq '') then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/derive-reader.xq')}" method="{request:get-method()}">
+      <add-parameter name="type" value="{$exist:resource}"/>
     </forward>
   </dispatch>
 else if (local:get-extension($exist:resource) eq '' and request:get-method() = 'DELETE') then
