@@ -16,12 +16,16 @@ declare variable $contentType := "application/xml";
 
 let $statusCode := txq:test-request($method, $parameters, $successCode) 
 let $responseBody :=  if ( $statusCode = $successCode ) then
-                        let $doc-id := txq:get-param-xml('doc-id')
+                        let $docID := txq:get-param('doc-id')
                         let $teiXML := txq:get-body-xml()
-                        let $isStored := xmldb:store("/db/tapas-data/{$doc-id}","{$doc-id}.xml",$teiXML)
+                        let $dataPath := concat("/db/tapas-data/",$docID)
+                        let $docDir :=  if (not(xmldb:collection-available($dataPath))) then
+                                          xmldb:create-collection("/db/tapas-data/",$docID)
+                                        else ()
+                        let $isStored := xmldb:store($dataPath,concat($docID,".xml"),$teiXML)
                         return 
                             if ( empty($isStored) ) then
                               500
                             else $isStored
-                      else $testStatus
-return txq:build-response($testStatus, $contentType, $responseBody)
+                      else $statusCode
+return txq:build-response($statusCode, $contentType, $responseBody)
