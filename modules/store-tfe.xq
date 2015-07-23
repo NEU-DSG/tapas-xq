@@ -19,18 +19,19 @@ declare variable $contentType := "application/xml";
 
 let $statusCode := txq:test-request($method, $parameters, $successCode) 
 let $responseBody :=  if ( $statusCode = $successCode ) then
+                        let $docID := txq:get-param('doc-id')
                         let $tfe := <tapas:metadata xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0">
                                       <tapas:owners>
-                                        <tapas:project>{ txq:get-param-xml('proj-id') }</tapas:project>
-                                        <tapas:document>{ txq:get-param-xml('doc-id') }</tapas:document>
-                                        <tapas:collections>{ txq:get-param-xml('collections') }</tapas:collections>
+                                        <tapas:project>{ txq:get-param('proj-id') }</tapas:project>
+                                        <tapas:document>{ $docID }</tapas:document>
+                                        <tapas:collections>{ txq:get-param('collections') }</tapas:collections>
                                       </tapas:owners>
-                                      <tapas:access>{ txq:get-param-xml('is-public') }</tapas:access>
+                                      <tapas:access>{ txq:get-param('is-public') }</tapas:access>
                                     </tapas:metadata>
-                        let $isStored := xmldb:store("/db/tapas-data/{$doc-id}","tfe.xml",$tfe)
+                        let $isStored := xmldb:store(concat("/db/tapas-data/",$docID),"tfe.xml",$tfe)
                         return 
                             if ( empty($isStored) ) then
                               500
                             else $isStored
-                      else $testStatus
-return txq:build-response($testStatus, $contentType, $responseBody)
+                      else $statusCode
+return txq:build-response($statusCode, $contentType, $responseBody)

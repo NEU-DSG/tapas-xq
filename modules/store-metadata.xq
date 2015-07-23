@@ -16,9 +16,10 @@ declare variable $contentType := "application/xml";
 
 let $statusCode := txq:test-request($method, $parameters, $successCode) 
 let $responseBody :=  if ( $statusCode = $successCode ) then
+                        let $docID := txq:get-param('doc-id')
                         let $xslParams := <parameters>
                                             <param name="proj-id" value="{$reqXML/proj-id}"/>
-                                            <param name="doc-id" value="{$reqXML/doc-id}"/>
+                                            <param name="doc-id" value="{$docID}"/>
                                             <param name="is-public" value="{$reqXML/is-public}"/>
                                             <param name="collections" value="test"/>
                                           </parameters> (: xd: Implement parameters from user input form. :)
@@ -28,5 +29,5 @@ let $responseBody :=  if ( $statusCode = $successCode ) then
                             if ( empty($isStored) ) then
                               500
                             else $isStored
-                      else $testStatus
-return txq:build-response($testStatus, $contentType, $responseBody)
+                      else $statusCode
+return txq:build-response($statusCode, $contentType, $responseBody)

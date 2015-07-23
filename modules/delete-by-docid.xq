@@ -15,5 +15,6 @@ declare variable $successCode := 200;
 declare variable $contentType := "application/xml";
 
 let $statusCode := txq:test-request($method, $parameters, $successCode) 
-let $responseBody :=  xmldb:remove("/db/tapas-data/{$doc-id}")
-return txq:build-response($testStatus, $contentType, $responseBody)
+let $docID := txq:get-param('doc-id')
+let $responseBody :=  xmldb:remove(concat("/db/tapas-data/",$docID))
+return txq:build-response($statusCode, $contentType, $responseBody)
