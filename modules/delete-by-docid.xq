@@ -14,7 +14,7 @@ declare variable $parameters := map {
 declare variable $successCode := 200;
 declare variable $contentType := "application/xml";
 
-let $statusCode := txq:test-request($method, $parameters, $successCode) 
+let $estimateCode := txq:test-request($method, $parameters, $successCode) 
 let $docID := txq:get-param('doc-id')
 let $responseBody :=  xmldb:remove(concat("/db/tapas-data/",$docID))
-return txq:build-response($statusCode, $contentType, $responseBody)
+return txq:build-response($estimateCode, $contentType, $responseBody)

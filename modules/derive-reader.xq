@@ -15,13 +15,13 @@ declare variable $parameters := map {
 declare variable $successCode := 200;
 declare variable $contentType := "application/xml";
 
-let $statusCode := txq:test-request($method, $parameters, $successCode) 
-let $responseBody :=  if ( $statusCode = $successCode ) then
+let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $teiXML := txq:get-param-xml('file')
                         let $XSLparams := <parameters>
                                             <param name="filePrefix" value="{txq:get-param('assets-base')}"/>
                                           </parameters>
                         let $xhtml := transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams) (: xd: Handle different reader XSLs :)
                         return $xhtml
-                      else tgen:get-error($statusCode)
-return txq:build-response($statusCode, $contentType, $responseBody)
+                      else tgen:get-error($estimateCode)
+return txq:build-response($estimateCode, $contentType, $responseBody)

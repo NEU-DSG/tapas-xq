@@ -14,8 +14,8 @@ declare variable $parameters := map {
 declare variable $successCode := 201;
 declare variable $contentType := "application/xml";
 
-let $statusCode := txq:test-request($method, $parameters, $successCode) 
-let $responseBody :=  if ( $statusCode = $successCode ) then
+let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $docID := txq:get-param('doc-id')
                         let $teiXML := txq:get-body-xml()
                         let $dataPath := concat("/db/tapas-data/",$docID)
@@ -27,5 +27,5 @@ let $responseBody :=  if ( $statusCode = $successCode ) then
                             if ( empty($isStored) ) then
                               500
                             else $isStored
-                      else $statusCode
-return txq:build-response($statusCode, $contentType, $responseBody)
+                      else $estimateCode
+return txq:build-response($estimateCode, $contentType, $responseBody)
