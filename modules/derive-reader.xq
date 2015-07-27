@@ -9,7 +9,7 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 declare variable $method := "POST";
 declare variable $parameters := map {
                                   "assets-base" : 'xs:string',
-                                  "file" : 'item()'
+                                  "file" : 'node()'
                                 };
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 200;
