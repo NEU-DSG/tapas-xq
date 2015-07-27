@@ -28,7 +28,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                       </tapas:owners>
                                       <tapas:access>{ txq:get-param('is-public') }</tapas:access>
                                     </tapas:metadata>
-                        let $isStored := xmldb:store(concat("/db/tapas-data/",$docID),"tfe.xml",$tfe)
+                        let $isStored := xmldb:store(concat("/db/tapas-data/",$docID),"/tfe.xml",$tfe)
                         return 
                             if ( empty($isStored) ) then
                               500

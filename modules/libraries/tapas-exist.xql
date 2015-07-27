@@ -38,6 +38,8 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
                                             function($param-name as xs:string, $param-type as xs:string) as xs:boolean {
                                               let $paramVal :=  if ( $param-type eq 'item()' ) then
                                                                   txq:get-param-xml($param-name)
+                                                                else if ( $param-type eq 'xs:boolean' ) then
+                                                                  txq:get-param($param-name) castable as xs:boolean
                                                                 else txq:get-param($param-name)
                                               let $valType :=   if ( $paramVal instance of xs:integer ) then
                                                                   400

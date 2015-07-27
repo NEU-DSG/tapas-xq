@@ -16,5 +16,12 @@ declare variable $contentType := "application/xml";
 
 let $estimateCode := txq:test-request($method, $parameters, $successCode) 
 let $docID := txq:get-param('doc-id')
-let $responseBody :=  xmldb:remove(concat("/db/tapas-data/",$docID))
+let $delDir := concat("/db/tapas-data/",$docID)
+let $responseBody :=  if ( xmldb:collection-available($delDir) ) then
+                        let $delete := xmldb:remove($delDir)
+                        return 
+                            if ( not(xmldb:collection-available($delDir)) ) then
+                              <p>Deleted document collection at {$delDir}.</p>
+                            else 500
+                      else 400
 return txq:build-response($estimateCode, $contentType, $responseBody)
