@@ -2,6 +2,7 @@ xquery version "3.0";
 
 import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
+declare namespace tapas="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
@@ -20,11 +21,15 @@ declare variable $contentType := "application/xml";
 let $estimateCode := txq:test-request($method, $parameters, $successCode) 
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $docID := txq:get-param('doc-id')
+                        let $collections := <tapas:collections>{ 
+                                              for $n in tokenize(txq:get-param('collections'),',')
+                                              return <tapas:collection>{ $n }</tapas:collection>
+                                            }</tapas:collections>
                         let $tfe := <tapas:metadata xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0">
                                       <tapas:owners>
                                         <tapas:project>{ txq:get-param('proj-id') }</tapas:project>
                                         <tapas:document>{ $docID }</tapas:document>
-                                        <tapas:collections>{ txq:get-param('collections') }</tapas:collections>
+                                        { $collections }
                                       </tapas:owners>
                                       <tapas:access>{ txq:get-param('is-public') }</tapas:access>
                                     </tapas:metadata>
