@@ -6,7 +6,7 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (: Variables corresponding to the expected request structure. :)
-declare variable $method := "POST";
+declare variable $method := "DELETE";
 declare variable $parameters := map {
                                   "doc-id" : "xs:string"
                                 };
