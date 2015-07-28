@@ -26,8 +26,8 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                         transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams)
                                       else if ( txq:get-param('type') eq 'tapas-generic' ) then
                                         transform:transform(
-                                          transform:transform($teiXML, doc("../resources/generic/tei2html_1.xsl"), $XSLparams), 
-                                          doc("../resources/generic/tei2html_2.xsl"), ())
+                                          transform:transform($teiXML, doc("../resources/tapas-generic/tei2html_1.xsl"), $XSLparams), 
+                                          doc("../resources/tapas-generic/tei2html_2.xsl"), ())
                                       else 400
                         return $xhtml
                       else tgen:get-error($estimateCode)

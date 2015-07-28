@@ -51,13 +51,13 @@
   <xsl:param name="less"       select="'styles.less'"/>
   <xsl:param name="lessJS"     select="'less.js'"/>
   <!-- set filePrefix parameter to ".." to use locally; path below is for within-TAPAS use -->
-  <xsl:param name="filePrefix" select="'/sites/all/modules/tapas_transform/transforms/tapas'"/>
-  <xsl:param name="view.diplo" select="concat($filePrefix,'/css/tapasGdiplo.css')"/>
-  <xsl:param name="view.norma" select="concat($filePrefix,'/css/tapasGnormal.css')"/>
+  <xsl:param name="filePrefix"/>
+  <xsl:param name="view.diplo" select="concat($filePrefix,'/tapas-generic/css/tapasGdiplo.css')"/>
+  <xsl:param name="view.norma" select="concat($filePrefix,'/tapas-generic/css/tapasGnormal.css')"/>
   <!-- JQuery is not being used at the moment, but we may be putting it back -->
-  <xsl:param name="jqueryJS"   select="concat($filePrefix,'/js/jquery/jquery.min.js')"/>
-  <xsl:param name="jqueryBlockUIJS" select="concat($filePrefix,'/js/jquery/plugins/jquery.blockUI.js')"/>
-  <xsl:param name="teibpJS"    select="concat($filePrefix,'/js/teibp.js')"/>
+  <xsl:param name="jqueryJS"   select="concat($filePrefix,'/tapas-generic/js/jquery/jquery.min.js')"/>
+  <xsl:param name="jqueryBlockUIJS" select="concat($filePrefix,'/tapas-generic/js/jquery/plugins/jquery.blockUI.js')"/>
+  <xsl:param name="teibpJS"    select="concat($filePrefix,'/tapas-generic/js/teibp.js')"/>
   <xsl:variable name="htmlFooter">
     <div id="footer"> This is the <a href="{$tapasHome}">TAPAS</a> generic view.</div>
   </xsl:variable>
@@ -569,10 +569,10 @@
   </xsl:template>
 
   <xsl:template name="javascript">
-    <script type="text/javascript" src="{$filePrefix}/js/jquery/jquery.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}/js/jquery-ui/ui/minified/jquery-ui.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}/js/contextualItems.js"/>
-    <link rel="stylesheet" href="{$filePrefix}/css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"/>
+    <script type="text/javascript" src="{$filePrefix}/tapas-generic/js/jquery/jquery.min.js"/>
+    <script type="text/javascript" src="{$filePrefix}/tapas-generic/js/jquery-ui/ui/minified/jquery-ui.min.js"/>
+    <script type="text/javascript" src="{$filePrefix}/tapas-generic/js/contextualItems.js"/>
+    <link rel="stylesheet" href="{$filePrefix}/tapas-generic/css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"/>
     <script type="text/javascript" src="{$teibpJS}"/>
     <script type="text/javascript">
       jQuery(document).ready(function() {
