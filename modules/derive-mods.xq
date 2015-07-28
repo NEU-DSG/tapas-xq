@@ -5,6 +5,26 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 
 import module namespace transform="http://exist-db.org/xquery/transform";
 
+(:~
+ : `POST exist/apps/tapas-xq/derive-mods` 
+ : Derive MODS production file from a TEI document.
+ : 
+ : Returns an XML-encoded file of the MODS record with status code 200. eXist 
+ : does not store any files as a result of this request.
+ : 
+ : <ul>
+ :  <lh>Request Expectations</lh>
+ :  <li>Method: POST</li>
+ :  <li>Content-Type: application/xml</li>
+ :  <li>Request body must be a TEI-encoded XML document.</li>
+ : </ul>
+ :
+ : @return XML
+ : 
+ : @author Ashley M. Clark
+ : @version 1.0
+:)
+
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
 declare variable $parameters := map {};
