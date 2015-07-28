@@ -1,12 +1,14 @@
 xquery version "3.0";
 
-(: Before installing the package, eXist will:
+(:~ Before installing the package, eXist will:
  :  * create a user for the app (if none exists);
  :  * create a 'tapas-data' directory for the app (if none exists); and
  :  * change the owner/group of 'tapas-data' (if it hasn't been done).
  : 
  : NOTE: When tapas-xq is installed on a web-accessible server, the user 
  : password should be changed afterward from the default used in $tempPass.
+ : 
+ : @author Ashley M. Clark
  :)
  
 declare variable $owner := "tapas";
@@ -42,8 +44,9 @@ declare function local:chown-dir() {
             util:log('error',concat('Could not change the owner/group of ',$dataPath,' to ',$owner,' as part of the pre-install process for tapas-xq.'))
           else 
             util:log('warn',concat('Changed the owner/group of ',$dataPath,' to ',$owner,' as part of the pre-install process for tapas-xq.'))
-    else
-      ()
+    (: There is no need to return anything if the permissions are already 
+     : correct. Nothing happens. :)
+    else ()
 };
 
 (: Create user who will own the tapas-data collection. :)

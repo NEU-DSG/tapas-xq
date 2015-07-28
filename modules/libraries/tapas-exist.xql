@@ -28,7 +28,7 @@ declare function txq:get-param($param-name as xs:string) {
 (: Get a request parameter whose value is expected to be XML. :)
 declare function txq:get-param-xml($param-name as xs:string) {
   let $value := txq:get-param($param-name)
-  return parse-xml( txq:get-file-content($value) )
+  return txq:get-file-content($value)
 };
 
 (: Get the body of the request (should only be XML). :)
@@ -40,7 +40,8 @@ declare function txq:get-body-xml() {
  : eXist consider the XML "invalid." :)
 declare function txq:get-file-content($file) {
   typeswitch($file)
-    case xs:string return replace($file,'^﻿','')
+    case node() return $file
+    case xs:string return parse-xml(replace($file,'﻿',''))
     case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
     default return 400
 };
@@ -65,7 +66,7 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
                                               (: Get the datatype of the param value. :)
                                               let $valType := functx:atomic-type($paramVal) 
                                               (: Check to make sure the datatype is correct :)
-                                              return $valType eq $param-type
+                                              return $valType eq $param-type or ($valType eq 'xs:untypedAtomic' and $param-type eq 'node()')
                                             })
   return
     (: Test HTTP method. :)
@@ -97,8 +98,7 @@ declare function txq:build-response($code as xs:integer, $content-type as xs:str
         response:set-header("Content-Type", $content-type),
         if ($isError) then
           tgen:get-error($content)
-        else $content,
-        txq:logout()
+        else $content
       )
 };
 
