@@ -7,7 +7,7 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
-declare variable $parameters := ();
+declare variable $parameters := map {};
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 200;
 declare variable $contentType := "application/xml";

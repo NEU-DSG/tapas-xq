@@ -59,7 +59,7 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
                                                                  : the param value into a boolean. :)
                                                                 else if ( $param-type eq 'xs:boolean' ) then
                                                                   if ( txq:get-param($param-name) castable as xs:boolean ) then
-                                                                    xs:boolean(txq:get-param($param-name))
+                                                                    txq:get-param($param-name) cast as xs:boolean
                                                                   else 400
                                                                 (: Otherwise, just get the param value. :)
                                                                 else txq:get-param($param-name)
@@ -71,7 +71,7 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
   return
     (: Test HTTP method. :)
     if ( request:get-method() eq $method-type ) then
-      if ( not(functx:is-value-in-sequence(false(), $requestParams)) ) then
+      if ( not(some $i in $requestParams satisfies false()) ) then
         (: xd: If the request includes the appropriate key, log in that user. :)
           (: If the current user has access to the 'tapas-data' folder, then return a success code. :)
           if ( sm:has-access(xs:anyURI('/db/tapas-data'),'rwx') ) then

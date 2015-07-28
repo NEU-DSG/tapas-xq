@@ -37,6 +37,6 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                         return 
                             if ( empty($isStored) ) then
                               500
-                            else $isStored
+                            else <p>{$isStored}</p>
                       else $estimateCode
 return txq:build-response($estimateCode, $contentType, $responseBody)
