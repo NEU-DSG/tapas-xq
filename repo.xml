@@ -1,14 +1,14 @@
 <meta xmlns="http://exist-db.org/xquery/repo">
   <description>An application dedicated to managing TAPAS's interests inside eXist-db.</description>
-    <author>Syd Bauman</author>
-    <author>Ashley M. Clark</author>
-    <website>http://www.tapasproject.org</website>
-    <status>alpha</status>
-    <license>GNU-LGPL</license>
-    <copyright>true</copyright>
-    <type>application</type>
-    <target>tapas-xq</target>
-    <prepare>pre-install.xql</prepare>
-    <finish/>
-    <deployed>2015-04-06T16:15:00.75Z</deployed>
+  <author>Syd Bauman</author>
+  <author>Ashley M. Clark</author>
+  <website>http://www.tapasproject.org</website>
+  <status>alpha</status>
+  <license>GNU-LGPL</license>
+  <copyright>true</copyright>
+  <type>application</type>
+  <target>tapas-xq</target>
+  <prepare>modules/exist-install/pre-install.xq</prepare>
+  <finish/>
+  <permissions user="admin" password="" group="tapas" mode="rwxr-xr--"/>
 </meta>
