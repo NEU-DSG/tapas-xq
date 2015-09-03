@@ -7,7 +7,7 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:import href="TAPAS2MODSminimal.xsl"/>
+  <xsl:import href="tei2mods.xsl"/>
   
   <!-- The title of the item as it appears on TAPAS. -->
   <xsl:param name="displayTitle" select="''" as="xs:string"/>
@@ -16,7 +16,7 @@
   <!-- A string with each contributor's name concatenated by a '|'. -->
   <xsl:param name="displayContributors" select="''" as="xs:string"/>
   <!-- The date corresponding to the item in the TAPAS timeline. xs:date format preferred. -->
-  <xsl:param name="timelineDate" select="''"/>
+  <xsl:param name="timelineDate" select="''" as="xs:string"/>
   
   <xsl:variable name="displayFields">
     <xsl:if test="$displayTitle">

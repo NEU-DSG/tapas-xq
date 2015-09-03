@@ -40,14 +40,14 @@
   
   <!-- Match the leading articles of work titles, and return their character counts. -->
   <xsl:function name="wwpfn:number-nonfiling">
-    <xsl:param name="title" required="yes"/>
+    <xsl:param name="title"/>
     <xsl:variable name="leadingArticlesRegex" select="'^((a|an|the|der|das|le|la|el) |).+$'"/>
     <xsl:value-of select="string-length(replace($title,$leadingArticlesRegex,'$1','i'))"/>
   </xsl:function>
   
   <!-- Apply textOnly mode to the requested node. -->
   <xsl:function name="tapasfn:text-only">
-    <xsl:param name="node" as="node()" required="yes"/>
+    <xsl:param name="node" as="node()"/>
     <xsl:variable name="textSeq">
       <xsl:apply-templates select="$node" mode="textOnly"/>
     </xsl:variable>
