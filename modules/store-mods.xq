@@ -18,8 +18,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  :  <ul>
  :    <lh>Parameters</lh>
  :    <li>doc-id: A unique identifier for the document record attached to the 
- : original TEI document and its derivatives (MODS, TFE). Currently maps to the 
- : Drupal identifier ('did').</li>
+ : original TEI document and its derivatives (MODS, TFE).</li>
  :    <ul>
  :    <lh>Optional parameters</lh>
  :      <li>title: The title of the item as it appears on TAPAS.</li>
@@ -55,32 +54,36 @@ declare variable $contentType := "application/xml";
 let $estimateCode := txq:test-request($method, $parameters, $successCode) 
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $docID := txq:get-param-xml('doc-id')
-                        let $teiXML := document(concat("/db/tapas-data/",$docID,"/",$docID,".xml"))
-                        let $title := txq:get-param('title')
-                        let $authors := txq:get-param('authors')
-                        let $contributors := txq:get-param('contributors')
-                        let $date := txq:get-param('timeline-date')
-                        let $XSLparams := <parameters>
-                                            {
-                                              if ( $title instance of xs:string ) then 
-                                                <param name="displayTitle" value="{$title}"/>
-                                              else (),
-                                              if ( $authors instance of xs:string ) then
-                                                <param name="displayAuthors" value="{$authors}"/>
-                                              else (),
-                                              if ( $contributors instance of xs:string ) then
-                                                <param name="displayContributors" value="{$contributors}"/>
-                                              else (),
-                                              if ( $date instance of xs:string ) then
-                                                <param name="timelineDate" value="{$date}"/>
-                                              else ()
-                                            }
-                                          </parameters>
-                        let $mods := transform:transform($teiXML, doc("../resources/tapas2mods.xsl"), $XSLparams)
-                        let $isStored := xmldb:store(concat("/db/tapas-data/",$docID),"/mods.xml",$mods)
-                        return 
-                            if ( empty($isStored) ) then
-                              500
-                            else $mods
+                        let $docURI := concat("/db/tapas-data/",$docID,"/",$docID,".xml")
+                        return
+                          if ( doc-available($docURI) ) then
+                            let $teiXML := doc($docURI)
+                            let $title := txq:get-param('title')
+                            let $authors := txq:get-param('authors')
+                            let $contributors := txq:get-param('contributors')
+                            let $date := txq:get-param('timeline-date')
+                            let $XSLparams := <parameters>
+                                                {
+                                                  if ( $title instance of xs:string ) then 
+                                                    <param name="displayTitle" value="{$title}"/>
+                                                  else (),
+                                                  if ( $authors instance of xs:string ) then
+                                                    <param name="displayAuthors" value="{$authors}"/>
+                                                  else (),
+                                                  if ( $contributors instance of xs:string ) then
+                                                    <param name="displayContributors" value="{$contributors}"/>
+                                                  else (),
+                                                  if ( $date instance of xs:string ) then
+                                                    <param name="timelineDate" value="{$date}"/>
+                                                  else ()
+                                                }
+                                              </parameters>
+                            let $mods := transform:transform($teiXML, doc("../resources/tapas2mods.xsl"), $XSLparams)
+                            let $isStored := xmldb:store(concat("/db/tapas-data/",$docID),"/mods.xml",$mods)
+                            return 
+                                if ( empty($isStored) ) then
+                                  500
+                                else $mods
+                          else 500
                       else tgen:get-error($estimateCode)
 return txq:build-response($estimateCode, $contentType, $responseBody)

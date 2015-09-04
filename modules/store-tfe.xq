@@ -24,8 +24,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  :  <ul>
  :    <lh>Parameters</lh>
  :    <li>doc-id: A unique identifier for the document record attached to the 
- : original TEI document and its derivatives (MODS, TFE). Currently maps to the 
- : Drupal identifier ('did').</li>
+ : original TEI document and its derivatives (MODS, TFE).</li>
  :    <li>proj-id: The unique identifier of the project which owns the work.</li>
  :    <li>collections: Comma-separated list of collection identifiers with 
  : which the work should be associated.</li>

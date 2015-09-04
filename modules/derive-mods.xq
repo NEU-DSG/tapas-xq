@@ -17,14 +17,17 @@ import module namespace transform="http://exist-db.org/xquery/transform";
  :  <li>Method: POST</li>
  :  <li>Content-Type: multipart/form-data</li>
  :  <ul>
- :    <lh>Optional parameters</lh>
- :    <li>title: The title of the item as it appears on TAPAS.</li>
- :    <li>authors: A string with each author's name concatenated by a '|'.</li>
- :    <li>contributors: A string with each contributor's name concatenated by a '|'.</li>
- :    <li>timeline-date: The date corresponding to the item in the TAPAS 
+ :    <lh>Parameters</lh>
+ :    <li>file: The TEI-encoded XML document to be transformed.</li>
+ :    <ul>
+ :      <lh>Optional parameters</lh>
+ :      <li>title: The title of the item as it appears on TAPAS.</li>
+ :      <li>authors: A string with each author's name concatenated by a '|'.</li>
+ :      <li>contributors: A string with each contributor's name concatenated by a '|'.</li>
+ :      <li>timeline-date: The date corresponding to the item in the TAPAS 
  : timeline. xs:date format preferred. 
  : (see http://www.w3schools.com/schema/schema_dtypes_date.asp)</li>
- :    <li>file: The TEI-encoded XML document to be transformed.</li>
+ :    </ul>
  :  </ul>
  : </ul>
  :
