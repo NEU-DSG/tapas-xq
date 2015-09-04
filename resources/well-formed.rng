@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0">
+  <!-- RELAX NG grammar that says *any* well-formed XML document is valid -->
+  <start>
+    <ref name="anyElement"/>
+  </start>
+  <define name="anyElement">
+    <element>
+      <anyName/>
+      <ref name="anyAttr"/>
+      <ref name="anyXML"/>
+    </element>
+  </define>
+  <define name="anyAttr">
+    <zeroOrMore>
+      <attribute>
+        <anyName/>
+      </attribute>
+    </zeroOrMore>
+  </define>
+  <define name="anyXML">
+    <zeroOrMore>
+      <choice>
+        <text/>
+        <ref name="anyElement"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+</grammar>

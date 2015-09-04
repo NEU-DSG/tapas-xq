@@ -6,7 +6,7 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `PUT exist/db/apps/tapas-xq/:doc-id/tei` 
+ : `PUT exist/db/apps/tapas-xq/:proj-id/:doc-id/tei` 
  : Store TEI in eXist.
  : 
  : Returns path to the TEI file within the database, with status code 201.

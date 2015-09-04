@@ -6,7 +6,7 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `POST exist/apps/tapas-xq/store-mods` 
+ : `POST exist/apps/tapas-xq/:proj-id/:doc-id/mods` 
  : Derive MODS production file from a TEI document and store it in the database.
  : 
  : Returns an XML-encoded file of the MODS record with status code 201.
@@ -19,6 +19,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  :    <lh>Parameters</lh>
  :    <li>doc-id: A unique identifier for the document record attached to the 
  : original TEI document and its derivatives (MODS, TFE).</li>
+ :    <li>proj-id: The unique identifier of the project which owns the work.</li>
  :    <ul>
  :    <lh>Optional parameters</lh>
  :      <li>title: The title of the item as it appears on TAPAS.</li>
