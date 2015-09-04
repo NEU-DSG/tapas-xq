@@ -20,10 +20,17 @@ declare function local:get-parent-dir() as xs:string {
   return $parent
 };
 
+declare function local:get-proj-dir() as xs:string {
+  let $prepath := substring-before($exist:path, concat('/',local:get-parent-dir()))
+  let $proj := replace($prepath, '.*[/\\]([^/\\]+)/?$', '$1')
+  return $proj
+};
+
 if ($exist:resource = 'tei' or $exist:resource = 'mods' or $exist:resource = 'tfe') then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/store-', $exist:resource, '.xq')}" method="{request:get-method()}">
       <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>
+      <add-parameter name="proj-id" value="{local:get-proj-dir()}"/>
     </forward>
   </dispatch>
 else if (local:get-parent-dir() eq 'derive-reader' and local:get-extension($exist:resource) eq '') then
@@ -33,11 +40,19 @@ else if (local:get-parent-dir() eq 'derive-reader' and local:get-extension($exis
     </forward>
   </dispatch>
 else if (local:get-extension($exist:resource) eq '' and request:get-method() = 'DELETE') then
-  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-    <forward url="{concat($exist:controller, '/modules/delete-by-docid.xq')}" method="{request:get-method()}">
-      <add-parameter name="doc-id" value="{$exist:resource}"/>
-    </forward>
-  </dispatch>
+  if ( local:get-proj-dir() eq '' ) then
+    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+      <forward url="{concat($exist:controller, '/modules/delete-by-projid.xq')}" method="{request:get-method()}">
+        <add-parameter name="proj-id" value="{$exist:resource}"/>
+      </forward>
+    </dispatch>
+  else
+    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+      <forward url="{concat($exist:controller, '/modules/delete-by-docid.xq')}" method="{request:get-method()}">
+        <add-parameter name="doc-id" value="{$exist:resource}"/>
+        <add-parameter name="proj-id" value="{local:get-proj-dir()}"/>
+      </forward>
+    </dispatch>
 else if (local:get-extension($exist:resource) eq '') then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/', $exist:resource, '.xq')}" method="{request:get-method()}"/>

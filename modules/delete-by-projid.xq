@@ -10,8 +10,8 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  : Delete document and derivatives.
  : 
  : Completely removes any files in the eXist collection associated with a 
- : doc-id. Returns a short confirmation that the resources have been deleted. 
- : If no TEI document is associated with the given doc-id, the response will 
+ : proj-id. Returns a short confirmation that the resources have been deleted. 
+ : If no collection is associated with the given proj-id, the response will 
  : have a status code of 500.
  : 
  : <ul>
@@ -19,9 +19,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  :  <li>Method: DELETE</li>
  :  <ul>
  :    <lh>Parameters</lh>
- :    <li>doc-id: A unique identifier for the document record attached to the 
- : original TEI document and its derivatives (MODS, TFE).</li>
- :    <li>proj-id: The unique identifier of the project which owns the work.</li>
+ :    <li>proj-id: The unique identifier of the project to be deleted.</li>
  :  </ul>
  : </ul>
  :
@@ -34,7 +32,6 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "DELETE";
 declare variable $parameters := map {
-                                  "doc-id" : "xs:string",
                                   "proj-id" : 'xs:string'
                                 };
 (: Variables corresponding to the expected response structure. :)
@@ -46,17 +43,17 @@ let $estimateCode := if ( $projID eq '' or $projID eq '/' ) then
                         500
                       else
                         txq:test-request($method, $parameters, $successCode)
-let $docID := txq:get-param('doc-id')
-let $delDir := concat("/db/tapas-data/",$projID,"/",$docID)
 let $responseBody :=  if ( $estimateCode = $successCode ) then
-                        if ( xmldb:collection-available($delDir) ) then
-                          let $delete := xmldb:remove($delDir)
-                          return 
-                              (: xmldb:remove() does not return anything helpful, 
-                               : so check to make sure the collection is gone. :)
-                              if ( not(xmldb:collection-available($delDir)) ) then
-                                <p>Deleted document collection at {$delDir}.</p>
-                              else 500
-                        else 500
+                        let $delDir := concat("/db/tapas-data/",$projID)
+                        return
+                          if ( xmldb:collection-available($delDir) ) then
+                            let $delete := xmldb:remove($delDir)
+                            return 
+                                (: xmldb:remove() does not return anything helpful, 
+                                 : so check to make sure the collection is gone. :)
+                                if ( not(xmldb:collection-available($delDir)) ) then
+                                  <p>Deleted project collection at {$delDir}.</p>
+                                else 500
+                          else 500
                       else tgen:get-error($estimateCode)
 return txq:build-response($estimateCode, $contentType, $responseBody)

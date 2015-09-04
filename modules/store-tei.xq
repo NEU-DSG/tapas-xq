@@ -19,6 +19,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  :    <lh>Parameters</lh>
  :    <li>doc-id: A unique identifier for the document record attached to the 
  : original TEI document and its derivatives (MODS, TFE).</li>
+ :    <li>proj-id: The unique identifier of the project which owns the work.</li>
  :  </ul>
  : </ul>
  :
@@ -31,21 +32,29 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "PUT";
 declare variable $parameters := map {
-                                  "doc-id" : 'xs:string'
+                                  "doc-id" : 'xs:string',
+                                  "proj-id" : 'xs:string'
                                 };
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 201;
 declare variable $contentType := "application/xml";
 
-let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $projID := txq:get-param('proj-id')
+let $estimateCode :=  if ( $projID eq '' ) then
+                        500
+                      else
+                        txq:test-request($method, $parameters, $successCode) 
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $docID := txq:get-param('doc-id')
                         let $teiXML := txq:get-body-xml()
-                        let $dataPath := concat("/db/tapas-data/",$docID)
-                        (: Create the document directory if this is not just a
-                         : replacement version of the TEI, but a new resource. :)
+                        let $dataPath := concat("/db/tapas-data/",$projID,"/",$docID)
+                        (: Create the project/document directory if this is not just
+                         : a replacement version of the TEI, but a new resource. :)
+                        let $projDir := if (not(xmldb:collection-available(concat("/db/tapas-data/",$projID)))) then
+                                          xmldb:create-collection("/db/tapas-data/",$projID)
+                                        else ()
                         let $docDir :=  if (not(xmldb:collection-available($dataPath))) then
-                                          xmldb:create-collection("/db/tapas-data/",$docID)
+                                          xmldb:create-collection(concat("/db/tapas-data/",$projID),$docID)
                                         else ()
                         (: xmldb:store() returns the path to the new resource, 
                          : or, on failure, an empty sequence. :)

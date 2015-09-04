@@ -52,16 +52,21 @@ declare variable $parameters := map {
 declare variable $successCode := 201;
 declare variable $contentType := "application/xml";
 
-let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $projID := txq:get-param('proj-id')
+let $docID := txq:get-param('doc-id')
+let $docURI := concat("/db/tapas-data/",$projID,"/",$docID,"/",$docID,".xml")
+let $estimateCode :=  if ( $projID eq '' or not(doc-available($docURI)) ) then
+                        500
+                      else
+                        txq:test-request($method, $parameters, $successCode)
 let $responseBody :=  if ( $estimateCode = $successCode ) then
-                        let $docID := txq:get-param('doc-id')
                         let $collections := <tapas:collections>{ 
                                               for $n in tokenize(txq:get-param('collections'),',')
                                               return <tapas:collection>{ $n }</tapas:collection>
                                             }</tapas:collections>
                         let $tfe := <tapas:metadata xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0">
                                       <tapas:owners>
-                                        <tapas:project>{ txq:get-param('proj-id') }</tapas:project>
+                                        <tapas:project>{ $projID }</tapas:project>
                                         <tapas:document>{ $docID }</tapas:document>
                                         { $collections }
                                       </tapas:owners>
@@ -69,7 +74,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                     </tapas:metadata>
                         (: xmldb:store() returns the path to the new resource, 
                          : or, on failure, an empty sequence. :)
-                        let $isStored := xmldb:store(concat("/db/tapas-data/",$docID),"/tfe.xml",$tfe)
+                        let $isStored := xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID),"/tfe.xml",$tfe)
                         return 
                             if ( empty($isStored) ) then
                               500
