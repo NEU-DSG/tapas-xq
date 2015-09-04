@@ -20,7 +20,7 @@
   
   <xsl:variable name="displayFields">
     <xsl:if test="$displayTitle">
-      <mods:titleInfo displayLabel="TAPAS title:">
+      <mods:titleInfo displayLabel="TAPAS Title:">
         <xsl:call-template name="constructTitle">
           <xsl:with-param name="inputTitle" select="normalize-space($displayTitle)"/>
         </xsl:call-template>
@@ -34,7 +34,7 @@
         </xsl:call-template>
       </xsl:variable>
       <xsl:for-each select="tokenize($displayAuthors,'\|')">
-        <mods:name displayLabel="TAPAS author:">
+        <mods:name displayLabel="TAPAS Author:">
           <mods:namePart><xsl:value-of select="normalize-space(.)"/></mods:namePart>
           <xsl:copy-of select="$autRole"/>
         </mods:name>
@@ -48,14 +48,14 @@
         </xsl:call-template>
       </xsl:variable>
       <xsl:for-each select="tokenize($displayContributors,'\|')">
-        <mods:name displayLabel="TAPAS contributor:">
+        <mods:name displayLabel="TAPAS Contributor:">
           <mods:namePart><xsl:value-of select="normalize-space(.)"/></mods:namePart>
           <xsl:copy-of select="$ctrbRole"/>
         </mods:name>
       </xsl:for-each>
     </xsl:if>
     <xsl:if test="$timelineDate">
-      <mods:note type="date" displayLabel="TAPAS timeline date:">
+      <mods:note type="date" displayLabel="TAPAS Timeline Date:">
         <xsl:value-of select="if ($timelineDate castable as xs:date) then xs:date($timelineDate)
                               else $timelineDate"/>
       </mods:note>
