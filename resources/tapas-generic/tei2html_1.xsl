@@ -17,6 +17,13 @@
       javascript and other features from the html/browser
       environment. Originally named <tt>genericTEI2genericXHTML5.xslt</tt>.</xd:p>
       <xd:p><xd:b>change log:</xd:b></xd:p>
+      <xd:p><xd:i>2015-09-05</xd:i> by Syd: 
+      <xd:ul>
+        <xd:li>Alter paths to css/ and js/ assets to match new world order</xd:li>
+        <xd:li>Change to match new pointer handling system: no longer rely on @tapas-hashed-ref,
+        instead just take value of attr, as Hydra will be munging URL before we get it</xd:li>
+      </xd:ul>
+      </xd:p>
       <xd:p><xd:i>2014-05-23</xd:i> by Syd: second bug of 05-20 fixed: identifier of contextualItem was being generated w/o spaces in some cases</xd:p>
       <xd:p><xd:i>2014-05-22</xd:i> by Syd: added processing of person/@sex and person/sex.</xd:p>
       <xd:p><xd:i>2014-05-20</xd:i> by Syd: Note:
@@ -50,18 +57,17 @@
   <xsl:param name="tapasTitle" select="'TAPAS: '"/>
   <xsl:param name="less"       select="'styles.less'"/>
   <xsl:param name="lessJS"     select="'less.js'"/>
-  <!-- set filePrefix parameter to ".." to use locally; path below is for within-TAPAS use -->
-  <xsl:param name="filePrefix"/>
-  <xsl:param name="view.diplo" select="concat($filePrefix,'/tapas-generic/css/tapasGdiplo.css')"/>
-  <xsl:param name="view.norma" select="concat($filePrefix,'/tapas-generic/css/tapasGnormal.css')"/>
+  <!-- set filePrefix parameter to "../" to use locally; path below is for within-TAPAS use -->
+  <xsl:param name="filePrefix" select="'../'"/>
+  <xsl:param name="view.diplo" select="concat($filePrefix,'css/tapasGdiplo.css')"/>
+  <xsl:param name="view.norma" select="concat($filePrefix,'css/tapasGnormal.css')"/>
   <!-- JQuery is not being used at the moment, but we may be putting it back -->
-  <xsl:param name="jqueryJS"   select="concat($filePrefix,'/tapas-generic/js/jquery/jquery.min.js')"/>
-  <xsl:param name="jqueryBlockUIJS" select="concat($filePrefix,'/tapas-generic/js/jquery/plugins/jquery.blockUI.js')"/>
-  <xsl:param name="teibpJS"    select="concat($filePrefix,'/tapas-generic/js/teibp.js')"/>
+  <xsl:param name="jqueryJS"   select="concat($filePrefix,'js/jquery/jquery.min.js')"/>
+  <xsl:param name="jqueryBlockUIJS" select="concat($filePrefix,'js/jquery/plugins/jquery.blockUI.js')"/>
+  <xsl:param name="teibpJS"    select="concat($filePrefix,'js/teibp.js')"/>
   <xsl:variable name="htmlFooter">
     <div id="footer"> This is the <a href="{$tapasHome}">TAPAS</a> generic view.</div>
   </xsl:variable>
-  <xsl:param name="displayPageBreaks" select="true()"/>
   <xsl:param name="lessSide" select="'server'"/><!-- 'server' or 'client' -->
   <xsl:variable name="numNotes" select="count( /tei:TEI/tei:text//tei:note )"/>
   <!-- WARNING: above line ignores possibility of a <teiCorpus> -->
@@ -136,15 +142,11 @@
   <xsl:template name="contextual">
     <div id="tei_contextual">
       <xsl:for-each select="
-        //@data-tapas-flattened-ref
-        [ parent::tei:name or parent::tei:orgName or parent::tei:persName or parent::tei:rs ]
-        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@data-tapas-flattened-ref ) ]
-        |
-        //@ref
-        [ not( ../@data-tapas-flattened-ref ) ]
-        [ parent::tei:name or parent::tei:orgName or parent::tei:persName or parent::tei:rs ]
-        [ not(. =  preceding::*[self::tei:name or self::tei:orgName or self::tei:persName or self::tei:placeName or self::tei:rs]/@ref ) ]
-        ">
+          //tei:name/@ref
+        | //tei:orgName/@ref
+        | //tei:persName/@ref
+        | //tei:placeName/@ref
+        | //tei:rs/@ref">
         <xsl:sort select="concat(local-name(..),'=',.)"/>
         <xsl:call-template name="generateContextItem">
           <xsl:with-param name="ref" select="../@ref"/>
@@ -241,16 +243,7 @@
         <xsl:otherwise>ref</xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    <xsl:variable name="target">
-      <xsl:choose>
-        <xsl:when test="@data-tapas-flattened-target">
-          <xsl:value-of select="normalize-space(@data-tapas-flattened-target)"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="normalize-space(@target)"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
+    <xsl:variable name="target" select="normalize-space(@target)"/>
     <xsl:variable name="class">
       <xsl:variable name="count">
         <xsl:choose>
@@ -278,10 +271,13 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    <a href="{@target}" class="{$class}">
+    <a href="{$target}" class="{$class}">
       <xsl:apply-templates select="@*[not( local-name(.) = 'target') ]"/>
       <xsl:call-template name="rendition"/>
       <xsl:apply-templates select="node()"/>
+      <xsl:if test="$gi = 'ptr'">
+        <xsl:value-of select="$target"/>
+      </xsl:if>
     </a>
   </xsl:template>
 
@@ -336,6 +332,36 @@
           </xsl:otherwise>
         </xsl:choose>
       </xsl:attribute>
+    </xsl:element>
+  </xsl:template>
+  
+  <xd:doc>
+    <xd:desc>Try to tease out which <gi>quote</gi>s are block-level and which are inline</xd:desc>
+  </xd:doc>
+  <xsl:template match="tei:q[not(@style|@rend|@rendition)]
+                 | tei:quote[not(@style|@rend|@rendition)]">
+    <xsl:variable name="gi" select="local-name(.)"/>
+    <xsl:variable name="pre"
+      select="(preceding-sibling::text()|preceding-sibling::*)
+      [last()][self::text()][not(normalize-space(.)='')]"/>
+    <xsl:variable name="preLen" select="string-length($pre)"/>
+    <xsl:variable name="preLast" select="substring( $pre, $preLen, 1 )"/>
+    <xsl:variable name="must-be-inline" select="normalize-space($preLen) != ''"/>
+    <xsl:variable name="must-be-block" select="tei:l|tei:p|tei:ab|tei:table|tei:floatingText|tei:figure|tei:list"/>
+    <xsl:variable name="style">
+      <xsl:choose>
+        <xsl:when test="$must-be-block and not( $must-be-inline )">display:block;</xsl:when>
+        <xsl:when test="$must-be-inline and not( $must-be-block )">display:inline;</xsl:when>
+        <xsl:when test="$must-be-block"> display: block; </xsl:when>
+        <xsl:otherwise><!-- neither --> display: inline; </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:element name="{$gi}">
+      <xsl:apply-templates select="@*"/>
+      <xsl:attribute name="style">
+        <xsl:value-of select="$style"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="node()"/>
     </xsl:element>
   </xsl:template>
   
@@ -569,10 +595,10 @@
   </xsl:template>
 
   <xsl:template name="javascript">
-    <script type="text/javascript" src="{$filePrefix}/tapas-generic/js/jquery/jquery.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}/tapas-generic/js/jquery-ui/ui/minified/jquery-ui.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}/tapas-generic/js/contextualItems.js"/>
-    <link rel="stylesheet" href="{$filePrefix}/tapas-generic/css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"/>
+    <script type="text/javascript" src="{$filePrefix}js/jquery/jquery.min.js"/>
+    <script type="text/javascript" src="{$filePrefix}js/jquery-ui/ui/minified/jquery-ui.min.js"/>
+    <script type="text/javascript" src="{$filePrefix}js/contextualItems.js"/>
+    <link rel="stylesheet" href="{$filePrefix}css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"/>
     <script type="text/javascript" src="{$teibpJS}"/>
     <script type="text/javascript">
       jQuery(document).ready(function() {
@@ -626,40 +652,31 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    <xsl:choose>
-      <xsl:when test="$displayPageBreaks = true()">
-        <span class="-teibp-pb">
-          <xsl:call-template name="addID"/>
-          <a class="-teibp-pageNum" data-tapas-n="{$pn}">
-            <xsl:if test="@n">
-              <xsl:attribute name="data-tei-n">
-                <xsl:value-of select="@n"/>
+    <span class="-teibp-pb">
+      <xsl:call-template name="addID"/>
+      <a class="-teibp-pageNum" data-tapas-n="{$pn}">
+        <xsl:if test="@n">
+          <xsl:attribute name="data-tei-n">
+            <xsl:value-of select="@n"/>
+          </xsl:attribute>
+        </xsl:if>
+        <xsl:text>&#xA0;</xsl:text>
+      </a>
+      <xsl:if test="@facs">
+        <span class="-teibp-pbFacs">
+          <a class="gallery-facs" rel="prettyPhoto[gallery1]">
+            <xsl:attribute name="onclick">
+              <xsl:value-of select="concat('showFacs(',$apos,@n,$apos,',',$apos,@facs,$apos,',',$apos,$id,$apos,')')"/>
+            </xsl:attribute>
+            <img  alt="{$altTextPbFacs}" class="-teibp-thumbnail">
+              <xsl:attribute name="src">
+                <xsl:value-of select="@facs"/>
               </xsl:attribute>
-            </xsl:if>
+            </img>
           </a>
-          <xsl:if test="@facs">
-            <span class="-teibp-pbFacs">
-              <a class="gallery-facs" rel="prettyPhoto[gallery1]">
-                <xsl:attribute name="onclick">
-                  <xsl:value-of select="concat('showFacs(',$apos,@n,$apos,',',$apos,@facs,$apos,',',$apos,$id,$apos,')')"/>
-                </xsl:attribute>
-                <img  alt="{$altTextPbFacs}" class="-teibp-thumbnail">
-                  <xsl:attribute name="src">
-                    <xsl:value-of select="@facs"/>
-                  </xsl:attribute>
-                </img>
-              </a>
-            </span>
-          </xsl:if>
         </span>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:element name="{local-name(.)}">
-          <xsl:apply-templates select="@*"/>
-          <xsl:attribute name="data-tapas-n"><xsl:value-of select="$pn"/></xsl:attribute>
-        </xsl:element>
-      </xsl:otherwise>
-    </xsl:choose>
+      </xsl:if>
+    </span>
   </xsl:template>
 
   <!--
@@ -685,7 +702,7 @@
   -->
 
   <xsl:template name="tagUsage2style">
-    <style type="text/css" id="tagusage-css">
+    <xsl:variable name="tagusage-css">
       <xsl:for-each select="//tei:namespace[@name ='http://www.tei-c.org/ns/1.0']/tei:tagUsage">
         <xsl:value-of select="concat('&#x000a;',@gi,' { ')"/>
         <xsl:call-template name="tokenize">
@@ -693,7 +710,12 @@
         </xsl:call-template>
         <xsl:value-of select="'}&#x000a;'"/>
       </xsl:for-each>
-    </style>
+    </xsl:variable>
+    <xsl:if test="normalize-space($tagusage-css) != ''">
+      <style type="text/css" id="tagusage-css">
+        <xsl:copy-of select="$tagusage-css"/>
+      </style>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template name="tokenize">

@@ -1,4 +1,3 @@
-/* imports */
 @import url('http://fonts.googleapis.com/css?family=Arvo:400,700,400italic,700italic|Gentium+Book+Basic:400,400italic,700,700italic');
 /* imports */
 /* @import url("shell.css"); */
@@ -40,7 +39,6 @@ body {
 }
 .note-like {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   margin: 1.5em auto 1.5em auto;
@@ -52,7 +50,6 @@ body {
   border: 1px solid #4d88cd;
   background: #faf3ed;
   /* reset text-indent for note with <l> ancestors. */
-
   text-indent: 0;
   font-size: 85%;
   text-align: justify;
@@ -126,7 +123,6 @@ ab {
 }
 accMat {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -134,7 +130,6 @@ accMat:before {
   content: "accompanying materials: ";
 }
 acquisition {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -144,7 +139,6 @@ acquisition:before {
   content: "acquisition";
 }
 activity {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -163,12 +157,10 @@ add[place=below] {
 }
 additional {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 additions {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -178,25 +170,21 @@ additions:before {
 }
 addrLine {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 address[rend~="block"],
 addresss[rendition~="#block"] {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 adminInfo {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 altIdentifier {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -206,12 +194,10 @@ altIdentifier:before {
 }
 app {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 appInfo {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -221,7 +207,6 @@ appInfo:before {
 }
 application {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -229,7 +214,6 @@ application:after {
   content: " " attr(version);
 }
 argument {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -242,7 +226,6 @@ att:before {
   content: "@";
 }
 titleStmt > author {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -264,7 +247,6 @@ publicationStmt > availability[status]:before {
 /* B */
 back {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -273,7 +255,6 @@ epigraph bibl:before {
 }
 bibl[rend~="block"],
 bibl[rendition~="#block"] {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -285,12 +266,10 @@ bibl title {
 }
 biblFull {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 binding {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -305,7 +284,6 @@ binding[contemporary]:before {
 }
 bindingDesc {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -313,7 +291,6 @@ bindngDesc:before {
   content: "Binding Description: \A";
 }
 birth {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -326,7 +303,6 @@ body {
   background-color: inherit;
 }
 byline {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -390,7 +366,6 @@ closer {
   margin-bottom: 1em;
   padding-bottom: 1em;
   border-bottom: 1px dotted #333333;
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -466,37 +441,31 @@ date[when]:empty:before {
 }
 dateline {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 docDate {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 docEdition {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 docImprint {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 docTitle {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 /* e */
 egXML {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -529,7 +498,6 @@ fileDesc > extent {
 /* f */
 figure {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   text-align: center;
@@ -555,7 +523,6 @@ graphic {
 /* h */
 /* Need head with TEI parent to distinguish from HTML head */
 TEI head {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -591,7 +558,6 @@ div > div > div > div > div > div head {
 }
 figure > head {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   margin: 1.5em auto 1.5em auto;
@@ -603,7 +569,6 @@ figure > head {
   border: 1px solid #4d88cd;
   background: #faf3ed;
   /* reset text-indent for note with <l> ancestors. */
-
   text-indent: 0;
   font-size: 85%;
   text-align: justify;
@@ -654,12 +619,10 @@ cell item {
 /* l */
 l {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   /*padding-left:2em;
 text-indent:-2em;*/
-
 }
 .poem-line-count {
   font-size: 80%;
@@ -815,7 +778,6 @@ listBibl biblStruct:last-child {
 /* m */
 milestone {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   margin-left: auto;
@@ -847,7 +809,6 @@ note {
 note[place~="foot"],
 note[place~="bottom"] {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   font-size: 90%;
@@ -861,7 +822,6 @@ note[place~="bottom"]:before {
   content: attr(data-tapas-note-num) "\00a0";
 }
 div[type="endnotes"]:before {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -889,13 +849,11 @@ oVar {
 }
 opener {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 opener placeName,
 opener date {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -920,7 +878,6 @@ p {
   margin-top: 1em;
   margin-bottom: 1em;
   /*text-align:justify;*/
-
 }
 *[rendition~="#center"] p {
   text-align: center;
@@ -977,7 +934,6 @@ div[type="poem"] {
 }
 postscript {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   margin-top: 2em;
@@ -994,12 +950,10 @@ profileDesc {
 }
 provenance {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 docImprint pubPlace {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1034,7 +988,6 @@ q[prev]:before {
 }
 quote {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1078,7 +1031,6 @@ quote p:first-child {
 /* r */
 re {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1107,7 +1059,6 @@ remarks:before {
   content: "remarks: ";
 }
 respStmt {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1140,7 +1091,6 @@ closer tapas_metadata {
 }
 samplingDecl {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1150,7 +1100,6 @@ scriptNote {
   margin-bottom: 1em;
 }
 seal {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1170,7 +1119,6 @@ secFol:before {
 }
 sense {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1178,7 +1126,6 @@ seriesStmt {
   display: none;
 }
 setting {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1188,7 +1135,6 @@ signed {
   margin-top: 1.5em;
 }
 signed persName {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1218,7 +1164,6 @@ sound {
 }
 source {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1231,7 +1176,6 @@ space:before {
 }
 TEI span {
   /* .hide; */
-
 }
 TEI egXML span {
   display: inline;
@@ -1241,7 +1185,6 @@ speaker {
   margin-right: 0;
 }
 sponsor {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1334,12 +1277,10 @@ surplus {
 }
 TEI {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
 table {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1382,7 +1323,6 @@ teiHeader {
 }
 TEI > text {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1402,7 +1342,6 @@ TEI tapas_metadata source {
 }
 TEI tapas_metadata date,
 TEI tapas_metadata creator {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1434,7 +1373,6 @@ title[level=m] {
 /* as a hack to solve a JavaScript/jQuery issue. */
 titleStmt > tei-title {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
@@ -1464,7 +1402,6 @@ titlePage pb,
 titlePage space,
 titlePage titlePart {
   display: block;
-  display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1472,7 +1409,6 @@ titlePage byline docAuthor {
   display: inline;
 }
 trailer {
-  display: block;
   display: block;
   margin-top: 0;
   margin-bottom: 0;
