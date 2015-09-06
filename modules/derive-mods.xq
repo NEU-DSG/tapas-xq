@@ -15,8 +15,17 @@ import module namespace transform="http://exist-db.org/xquery/transform";
  : <ul>
  :  <lh>Request Expectations</lh>
  :  <li>Method: POST</li>
- :  <li>Content-Type: application/xml</li>
- :  <li>Request body must be a TEI-encoded XML document.</li>
+ :  <li>Content-Type: multipart/form-data</li>
+ :  <ul>
+ :    <lh>Optional parameters</lh>
+ :    <li>title: The title of the item as it appears on TAPAS.</li>
+ :    <li>authors: A string with each author's name concatenated by a '|'.</li>
+ :    <li>contributors: A string with each contributor's name concatenated by a '|'.</li>
+ :    <li>timeline-date: The date corresponding to the item in the TAPAS 
+ : timeline. xs:date format preferred. 
+ : (see http://www.w3schools.com/schema/schema_dtypes_date.asp)</li>
+ :    <li>file: The TEI-encoded XML document to be transformed.</li>
+ :  </ul>
  : </ul>
  :
  : @return XML
@@ -27,15 +36,41 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
-declare variable $parameters := map {};
+declare variable $parameters := map {
+                                      "title" : 'xs:string?',
+                                      "authors" : 'xs:string?',
+                                      "contributors" : 'xs:string?',
+                                      "timeline-date" : 'xs:string?',
+                                      "file" : 'node()?'
+                                    };
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 200;
 declare variable $contentType := "application/xml";
 
 let $estimateCode := txq:test-request($method, $parameters, $successCode) 
 let $responseBody :=  if ( $estimateCode = $successCode ) then
-                        let $teiXML := txq:get-body-xml()
-                        let $mods := transform:transform($teiXML, doc("../resources/TAPAS2MODSminimal.xsl"), ())
+                        let $teiXML := txq:get-param-xml('file')
+                        let $title := txq:get-param('title')
+                        let $authors := txq:get-param('authors')
+                        let $contributors := txq:get-param('contributors')
+                        let $date := txq:get-param('timeline-date')
+                        let $XSLparams := <parameters>
+                                            {
+                                              if ( $title instance of xs:string ) then 
+                                                <param name="displayTitle" value="{$title}"/>
+                                              else (),
+                                              if ( $authors instance of xs:string ) then
+                                                <param name="displayAuthors" value="{$authors}"/>
+                                              else (),
+                                              if ( $contributors instance of xs:string ) then
+                                                <param name="displayContributors" value="{$contributors}"/>
+                                              else (),
+                                              if ( $date instance of xs:string ) then
+                                                <param name="timelineDate" value="{$date}"/>
+                                              else ()
+                                            }
+                                          </parameters>
+                        let $mods := transform:transform($teiXML, doc("../resources/tapas2mods.xsl"), $XSLparams)
                         return $mods
                       else tgen:get-error($estimateCode)
 return txq:build-response($estimateCode, $contentType, $responseBody)
