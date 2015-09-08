@@ -33,16 +33,9 @@ function init(){
 	document.getElementsByClassName('teibp').getElementById('pbToggle').checked = false;
 }
 
-//If W3C event model used, prefer that. Window events are fallbacks
-if(document.addEventListener){
-	//W3C event model used
-	document.addEventListener("DOMContentLoaded", init, false);
-	window.addEventListener("load", init, false);
-} else if(document.attachEvent){
-	//IE event model used
-	document.attachEvent( "onreadystatechange", init);
-	window.attachEvent( "onload", init);
-}
+$(document).ready(function(){
+	init();
+});
 
 function switchThemes(theme){ // This needs to be fixed.
 	document.getElementById('maincss').href=theme.options[theme.selectedIndex].value;
