@@ -10,13 +10,13 @@ function addPageBreaks(){
         Tapas.currentTheme = 'diplomatic';
     } else {
         Tapas.currentTheme = 'normalized';
-    }    
+    }
     if (Tapas.currentTheme == 'diplomatic') {
-    	$(".tapas-generic pb").css("display","block");	
-    	$(".tapas-generic .-teibp-pb").css("display","block");        
+    	$(".tapas-generic pb").css("display","block");
+    	$(".tapas-generic .-teibp-pb").css("display","block");
     } else {
-    	$(".tapas-generic pb").css("display","inline");	
-    	$(".tapas-generic .-teibp-pb").css("display","inline");        
+    	$(".tapas-generic pb").css("display","inline");
+    	$(".tapas-generic .-teibp-pb").css("display","inline");
     }
 }
 
@@ -34,16 +34,9 @@ function init(){
 	document.getElementsByClassName('tapas-generic').getElementById('pbToggle').checked = false;
 }
 
-//If W3C event model used, prefer that. Window events are fallbacks
-if(document.addEventListener){
-	//W3C event model used
-	document.addEventListener("DOMContentLoaded", init, false);
-	window.addEventListener("load", init, false);
-} else if(document.attachEvent){
-	//IE event model used
-	document.attachEvent( "onreadystatechange", init);
-	window.attachEvent( "onload", init);
-}
+$(document).ready(function(){
+	init();
+});
 
 function switchThemes(event) { // This needs to be changed so TAPAS can include TEI as a div instead of an iframe
     var cssFile = jQuery(event.target).val();
@@ -82,7 +75,7 @@ function showFacs(num, url, id) {
 	facsWindow.document.write($("teiHeader")[0].outerHTML)
 	//facsWindow.document.write("<teiHeader>" + $("teiHeader")[0].html() + "</teiHeader>")
 	//facsWindow.document.write($('<teiHeader>').append($('teiHeader').clone()).html();)
-	
+
 	//facsWindow.document.write($("teiHeader")[0].outerHTML)
 	facsWindow.document.write("<div id='resizable'>")
 	facsWindow.document.write("<div class='facsImage'>")
@@ -92,7 +85,7 @@ function showFacs(num, url, id) {
 	facsWindow.document.write("</div>")
 	facsWindow.document.write("</div>")
 	facsWindow.document.write($("footer")[0].outerHTML)
-	
+
 	facsWindow.document.write("</body>")
 	facsWindow.document.write("</html>")
 	facsWindow.document.close()
