@@ -19,7 +19,7 @@ $(document).ready(function(){
   document.getElementsByTagName('body')[0].appendChild(container);
 
 //Now we work through the links to footnotes.
-  var links = document.getElementsByTagName('a');
+  var links = document.getElementsByClassName('tapas-generic').getElementsByTagName('a');
   for (var i=0; i<links.length; i++){
     if (links[i].getAttribute('href').substring(0, 5) == '#Note'){
       if (links[i].getAttribute('class') != 'link_return'){
@@ -31,9 +31,9 @@ $(document).ready(function(){
 });
 
 function showPopupFootnote(footnoteId){
-  var footnotePopup = document.getElementById('footnotePopup');
-  var footnotePopupContent = document.getElementById('footnotePopupContent');
-  var footnote = document.getElementById(footnoteId);
+  var footnotePopup = document.getElementsByClassName('tapas-generic').getElementById('footnotePopup');
+  var footnotePopupContent = document.getElementsByClassName('tapas-generic').getElementById('footnotePopupContent');
+  var footnote = document.getElementsByClassName('tapas-generic').getElementById(footnoteId);
   if ((footnotePopup == null)||(footnotePopupContent == null)||(footnote == null)){
 //If something is missing, we just default to original behaviour and jump to the footnote.
     document.location.hash = footnoteId;
@@ -59,8 +59,8 @@ function clearContent(targetEl){
 //Bind the escape key so that it hides the popup if it's showing.
 $(document).keyup(function(e){
   if(e.keyCode === 27)
-    if (document.getElementById('footnotePopup').style.display == 'block'){
-      document.getElementById('footnotePopup').style.display = 'none';
+    if (document.getElementsByClassName('tapas-generic').getElementById('footnotePopup').style.display == 'block'){
+      document.getElementsByClassName('tapas-generic').getElementById('footnotePopup').style.display = 'none';
       e.preventDefault();
       e.stopPropagation();
     }

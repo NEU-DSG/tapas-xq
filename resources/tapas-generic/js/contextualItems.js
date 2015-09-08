@@ -1,21 +1,21 @@
 var Tapas = {};
 
 Tapas.findATarget = function(ref) {
-    var aTarget = $("a[id='" + ref + "']");
+    var aTarget = $(".tapas-generic a[id='" + ref + "']");
 
     if(aTarget.length !=0 ) {
         return aTarget;
     }
     ref = ref.replace('#', '');
-    aTarget = $("a[id='" + ref + "']");
+    aTarget = $(".tapas-generic a[id='" + ref + "']");
     
     if(aTarget.length !=0 ) {
         return aTarget;
     }
 
     //try using the fancy character
-    aTarget = $("a[id='Ћ." + ref + "']");
-    console.log("a[id='Ћ." + ref + "']");
+    aTarget = $(".tapas-generic a[id='Ћ." + ref + "']");
+    console.log(".tapas-generic a[id='Ћ." + ref + "']");
     return aTarget;
 }
 
@@ -55,27 +55,27 @@ Tapas.displayRefData = function(e) {
 }
 
 Tapas.refreshDialog = function(html, target) {
-    $("#tapas-ref-dialog").dialog('close');
-    $("#tapas-ref-dialog").html(html);
+    $(".tapas-generic #tapas-ref-dialog").dialog('close');
+    $(".tapas-generic #tapas-ref-dialog").html(html);
     //placing the dialog for data display in the big white space currently there. Adjust position via jQueryUI rules for different behavior
-    $("#tapas-ref-dialog").dialog( "option", "position", { my: "right", at: "right", of: window });
+    $(".tapas-generic #tapas-ref-dialog").dialog( "option", "position", { my: "right", at: "right", of: window });
     
     var identifierEl = target.children('p.identifier');
     if(identifierEl.length == 0) {
         //dialog title by mouseovered text, where the mouseovered element is passed as target, usually a note
-        $("#tapas-ref-dialog").dialog( "option", "title", $(target).text());
+        $(".tapas-generic #tapas-ref-dialog").dialog( "option", "title", $(target).text());
     } else {
         //dialog title by identifier, usually an ography
-        $("#tapas-ref-dialog").dialog( "option", "title", $(identifierEl).text());
+        $(".tapas-generic #tapas-ref-dialog").dialog( "option", "title", $(identifierEl).text());
     }
-    $("#tapas-ref-dialog").dialog('open');    
+    $(".tapas-generic #tapas-ref-dialog").dialog('open');    
 }
 
 Tapas.displayNoteData = function(e) {
     var html = '';
     var target = $(e.target);
     var tapasNoteNum = target.text();
-    var note = $("note[data-tapas-note-num = '" + tapasNoteNum + "']");
+    var note = $(".tapas-generic note[data-tapas-note-num = '" + tapasNoteNum + "']");
     html = note.html();
     Tapas.refreshDialog(html, target);
 }
@@ -86,7 +86,7 @@ Tapas.displayRefNoteData = function(e) {
     var href = target.attr('href');
     if (typeof href != 'undefined' && href.charAt(0) == '#') {
         var noteId = href.substring(1);
-        var note = $("note#" + noteId);
+        var note = $(".tapas-generic note#" + noteId);
         html = note.html();
         var noteType = note.attr('type');
         var noteNumber = note.data('tapas-note-num');
@@ -102,18 +102,18 @@ Tapas.displayRefNoteData = function(e) {
         }
         
         //works slightly differently from the other notes, so sad duplication of Tapas.refreshDialog here
-        $("#tapas-ref-dialog").dialog('close');
-        $("#tapas-ref-dialog").html(html);
+        $(".tapas-generic #tapas-ref-dialog").dialog('close');
+        $(".tapas-generic #tapas-ref-dialog").html(html);
         //placing the dialog for data display in the big white space currently there. Adjust position via jQueryUI rules for different behavior
-        $("#tapas-ref-dialog").dialog( "option", "position", { my: "right", at: "right", of: window });
-        $("#tapas-ref-dialog").dialog( "option", "title", dialogTitle);
-        $("#tapas-ref-dialog").dialog('open');        
+        $(".tapas-generic #tapas-ref-dialog").dialog( "option", "position", { my: "right", at: "right", of: window });
+        $(".tapas-generic #tapas-ref-dialog").dialog( "option", "title", dialogTitle);
+        $(".tapas-generic #tapas-ref-dialog").dialog('open');        
         
     }
 }
 
 Tapas.rewriteExternalRefs = function() {
-    var externalRefNodes = $("[ref*='http']");
+    var externalRefNodes = $(".tapas-generic [ref*='http']");
     externalRefNodes.each(function(index, el) {
        $(el).addClass('external-ref').unbind('mouseover');
        //$(el).replaceWith(Tapas.linkifyExternalRef(el));
@@ -164,7 +164,7 @@ Tapas.ographyToHtml = function(ography) {
 }
 
 Tapas.closeDialog = function() {
-   $("#tapas-ref-dialog").dialog('close'); 
+   $(".tapas-generic #tapas-ref-dialog").dialog('close'); 
 }
 
 Tapas.findOgraphyType = function(ography) {
@@ -174,18 +174,18 @@ Tapas.findOgraphyType = function(ography) {
 //Slap on the events/eventHandlers
 
 $(document).ready(function() {
-   var refs = $("[ref]");
+   var refs = $(".tapas-generic [ref]");
    refs.mouseover(Tapas.displayRefData);
-   var notes = $("[class='note-marker']");
+   var notes = $(".tapas-generic [class='note-marker']");
    notes.mouseover(Tapas.displayNoteData);
-   var refNotes = $("a.ref-note");
+   var refNotes = $(".tapas-generic a.ref-note");
    refNotes.mouseover(Tapas.displayRefNoteData);
    //Tapas.rewriteExternalRefs();
    Tapas.notes = notes;
    Tapas.refs = refs; // not sure yet if we'll need this data on the Tapas object
    Tapas.currentTheme = 'diplomatic';
    Tapas.showPbs = true;
-   $("#tapas-ref-dialog").dialog({autoOpen: false}); //initialize the dialog, placing and data in it handled by Tapas.displayRefData 
-   $("#viewBox").change(switchThemes);
+   $(".tapas-generic #tapas-ref-dialog").dialog({autoOpen: false}); //initialize the dialog, placing and data in it handled by Tapas.displayRefData 
+   $(".tapas-generic #viewBox").change(switchThemes);
 });
 

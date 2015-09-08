@@ -1,10 +1,10 @@
 function clearPageBreaks(){
-	$("pb").css("display","none");
-	$(".-teibp-pb").css("display","none");
+	$(".tapas-generic pb").css("display","none");
+	$(".tapas-generic .-teibp-pb").css("display","none");
 }
 
 function addPageBreaks(){
-    var viewBox = $('select#viewBox');
+    var viewBox = $('.tapas-generic select#viewBox');
     var cssFile = viewBox.val();
     if (cssFile.indexOf('tapasGdiplo') > -1) {
         Tapas.currentTheme = 'diplomatic';
@@ -12,17 +12,17 @@ function addPageBreaks(){
         Tapas.currentTheme = 'normalized';
     }    
     if (Tapas.currentTheme == 'diplomatic') {
-    	$("pb").css("display","block");	
-    	$(".-teibp-pb").css("display","block");        
+    	$(".tapas-generic pb").css("display","block");	
+    	$(".tapas-generic .-teibp-pb").css("display","block");        
     } else {
-    	$("pb").css("display","inline");	
-    	$(".-teibp-pb").css("display","inline");        
+    	$(".tapas-generic pb").css("display","inline");	
+    	$(".tapas-generic .-teibp-pb").css("display","inline");        
     }
 }
 
 function init(){
-	document.getElementById('pbToggle').onclick = function(){
-		if(document.getElementById('pbToggle').checked){
+	document.getElementsByClassName('tapas-generic').getElementById('pbToggle').onclick = function(){
+		if(document.getElementsByClassName('tapas-generic').getElementById('pbToggle').checked){
 			clearPageBreaks();
 			Tapas.showPbs = false;
 		}else{
@@ -31,7 +31,7 @@ function init(){
 		}
 	};
 	addPageBreaks();
-	document.getElementById('pbToggle').checked = false;
+	document.getElementsByClassName('tapas-generic').getElementById('pbToggle').checked = false;
 }
 
 //If W3C event model used, prefer that. Window events are fallbacks
@@ -45,7 +45,7 @@ if(document.addEventListener){
 	window.attachEvent( "onload", init);
 }
 
-function switchThemes(event) {
+function switchThemes(event) { // This needs to be changed so TAPAS can include TEI as a div instead of an iframe
     var cssFile = jQuery(event.target).val();
     if (cssFile == '../css/tapasGdiplo.css') {
         Tapas.currentTheme = 'diplomatic';
