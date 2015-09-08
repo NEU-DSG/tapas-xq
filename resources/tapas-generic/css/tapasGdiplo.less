@@ -21,156 +21,158 @@
 @greybackground: #CCCCCC;
 @boxpadding: 5px;
 
-add {
-background: @highlightyellow;
-}
+.tapas-generic {
+  add {
+  background: @highlightyellow;
+  }
 
-add:hover:before {
-.italic;
-content:"(Added by: " attr(hand) " ) " ;
-}
+  add:hover:before {
+  .tapas-generic .italic;
+  content:"(Added by: " attr(hand) " ) " ;
+  }
 
-choice orig, choice sic, choice abbr, supplied, gap {
-border-bottom: @hoverunderline;
-}
+  choice orig, choice sic, choice abbr, supplied, gap {
+  border-bottom: @hoverunderline;
+  }
 
-choice reg, choice corr, choice expan {
-border: @noteborder;
-.hide;
-padding: @boxpadding;
-background: @whitebackground;
-}
+  choice reg, choice corr, choice expan {
+  border: @noteborder;
+  .tapas-generic .hide;
+  padding: @boxpadding;
+  background: @whitebackground;
+  }
 
-choice:hover reg, choice:hover corr, choice:hover expan, add:hover, supplied:hover, gap:hover, unclear:hover {
-display: inline;
-}
+  choice:hover reg, choice:hover corr, choice:hover expan, add:hover, supplied:hover, gap:hover, unclear:hover {
+  display: inline;
+  }
 
-choice abbr + expan:after,
-choice expan + abbr:after,
-choice sic + corr:after,
-choice corr + sic:after,
-choice orig + reg:after,
-choice reg + orig:after,
-choice abbr + expan:before,
-choice expan + abbr:before,
-choice sic + corr:before,
-choice corr + sic:before,
-choice orig + reg:before,
-choice reg + orig:before {
-content: "";
-}
+  choice abbr + expan:after,
+  choice expan + abbr:after,
+  choice sic + corr:after,
+  choice corr + sic:after,
+  choice orig + reg:after,
+  choice reg + orig:after,
+  choice abbr + expan:before,
+  choice expan + abbr:before,
+  choice sic + corr:before,
+  choice corr + sic:before,
+  choice orig + reg:before,
+  choice reg + orig:before {
+  content: "";
+  }
 
-del {
-text-decoration: line-through;
-}
+  del {
+  text-decoration: line-through;
+  }
 
-gap[reason]:after, gap[extent]:after, gap[quantity]:after, gap:after {
-.italic;
-}
+  gap[reason]:after, gap[extent]:after, gap[quantity]:after, gap:after {
+  .tapas-generic .italic;
+  }
 
-gap[reason]:after {
-content: "(Gap reason: " attr(reason) ")]";
-}
+  gap[reason]:after {
+  content: "(Gap reason: " attr(reason) ")]";
+  }
 
-gap[extent]:after {
-content: "(Gap of " attr(extent) " " attr(unit) "; reason: " attr(reason) ")]";
-}
+  gap[extent]:after {
+  content: "(Gap of " attr(extent) " " attr(unit) "; reason: " attr(reason) ")]";
+  }
 
-gap[quantity]:after {
-content: "(Gap of " attr(quantity) " " attr(unit) "; reason: " attr(reason) ")]";
-}
+  gap[quantity]:after {
+  content: "(Gap of " attr(quantity) " " attr(unit) "; reason: " attr(reason) ")]";
+  }
 
-gap:after {
-content: "(Unclear text)]";
-}
+  gap:after {
+  content: "(Unclear text)]";
+  }
 
-.head-font {
-font-family: @body-font-family;
-font-weight: normal;
-}
+  .head-font {
+  font-family: @body-font-family;
+  font-weight: normal;
+  }
 
-lb:after {
-content: '\a' ; 
-white-space: pre;
-}
+  lb:after {
+  content: '\a' ;
+  white-space: pre;
+  }
 
-milestone {
-background: @greybackground;
-}
+  milestone {
+  background: @greybackground;
+  }
 
-milestone[n]:before, milestone[unit]:before, milestone:before {
-.italic;
-}
+  milestone[n]:before, milestone[unit]:before, milestone:before {
+  .tapas-generic .italic;
+  }
 
-milestone[n]:before {
-content: attr(n);
-}
+  milestone[n]:before {
+  content: attr(n);
+  }
 
-milestone[unit]:before {
-content: attr(unit) " " attr(n);
-}
+  milestone[unit]:before {
+  content: attr(unit) " " attr(n);
+  }
 
-milestone:before {
-content:  ;
-}
+  milestone:before {
+  content:  ;
+  }
 
-subst {
-background: @whitebackground;
-padding: @boxpadding;
-border: @noteborder;
-}
+  subst {
+  background: @whitebackground;
+  padding: @boxpadding;
+  border: @noteborder;
+  }
 
-supplied:before, gap:before {
-content: "[";
-}
+  supplied:before, gap:before {
+  content: "[";
+  }
 
-supplied:after, gap:after {
-content: "]";
-}
+  supplied:after, gap:after {
+  content: "]";
+  }
 
-supplied:hover:before {
-content:"[(Text supplied: " attr(reason) ") " ;
-}
+  supplied:hover:before {
+  content:"[(Text supplied: " attr(reason) ") " ;
+  }
 
-unclear {
-padding-bottom: @boxpadding;
-border-bottom: @heavyhoverunderline;
-background: @highlightblue;
-}
+  unclear {
+  padding-bottom: @boxpadding;
+  border-bottom: @heavyhoverunderline;
+  background: @highlightblue;
+  }
 
-unclear[reason]:hover:before {
-.italic;
-content: " (Unclear text: " attr(reason) ") ";
-}
+  unclear[reason]:hover:before {
+  .tapas-generic .italic;
+  content: " (Unclear text: " attr(reason) ") ";
+  }
 
-unclear:hover:before {
-.italic;
-content:" (Unclear text) " ;
-}
+  unclear:hover:before {
+  .tapas-generic .italic;
+  content:" (Unclear text) " ;
+  }
 
 
-.-teibp-pb {
-.pb;
-border-bottom: @heavyhoverunderline;
-border-top: @heavyhoverunderline;
-}
+  .-teibp-pb {
+  .tapas-generic .pb;
+  border-bottom: @heavyhoverunderline;
+  border-top: @heavyhoverunderline;
+  }
 
-.-teibp-pb a {}
+  .-teibp-pb a {}
 
-.-teibp-pb a:hover {
-text-decoration: none;
-color: @linkgrey;
-}
+  .-teibp-pb a:hover {
+  text-decoration: none;
+  color: @linkgrey;
+  }
 
-.-teibp-pb a:before {
-.italic;
-content: "Page " attr(data-tei-n);
-}
+  .-teibp-pb a:before {
+  .tapas-generic .italic;
+  content: "Page " attr(data-tei-n);
+  }
 
-.-teibp-pb a.gallery-facs:before {
-content: " ";
-}
+  .-teibp-pb a.gallery-facs:before {
+  content: " ";
+  }
 
-.-teibp-thumbnail {
-padding: (@boxpadding * 3);
+  .-teibp-thumbnail {
+  padding: (@boxpadding * 3);
+  }
 }

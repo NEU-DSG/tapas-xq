@@ -9,35 +9,102 @@ body {
   margin: 0;
 }
 /* Less variables */
-.block {
+.tapas-generic {
+  /* teibp classes */
+  /* Choice elements */
+  /* A */
+  /* add */
+  /* B */
+  /* c */
+  /* for cell or row with @role = label */
+  /* For things like collation, condition, etc. that can have text or paragraphs as
+	children, we should use margins, when the content is text, and no margins when there
+	are child paragraphs (or other block elements). Otherwise we end up with double
+	margins. */
+  /* Need to discuss and coordinate handling of sic/corr, abbr/expan, and orig/reg */
+  /*
+	Need to handle attributes for custEvent. All the att.datable* attributes will be tricky.
+	custodialHist and custEvent may normally be hidden along with other header metadata, but
+	we'll have other datable elements that may be tricky. */
+  /* d */
+  /* e */
+  /* f */
+  /* g */
+  /* h */
+  /* Need head with TEI parent to distinguish from HTML head */
+  /* i */
+  /* j */
+  /* k */
+  /* l */
+  /*
+	.poem-line-count + l {
+	margin-top: 1em;
+	display: inline-block;
+	text-indent: 0em;
+	padding-left: 0
+	}*/
+  /* Match only lists that are descendants of
+	text. Otherwise they show up in the header. */
+  /* m */
+  /* n */
+  /* o */
+  /* p */
+  /*
+	pb:before {
+	content: "page:\a0" attr(n);
+	}*/
+  /* q */
+  /* r */
+  /* s */
+  /* When TEI document is embedded in HTML page,
+	   TEI's <s> element can be interpreted by
+	   browser as HTML <s>, which results in
+	   a strike-through from the "user agent"
+	   styles. */
+  /* t */
+  /* title */
+  /* Need TEI ancestor to distinguish TEI title from HTML title */
+  /* We transformed teiHeader//title to tei.title  */
+  /* as a hack to solve a JavaScript/jQuery issue. */
+  /* u */
+  /* v */
+  /* w */
+  /* x */
+  /* z */
+  /* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
+  /* xml-serialization */
+  /* loading animation */
+  /* facsViewer */
+}
+.tapas-generic .block {
   display: block;
 }
-.block-margins {
+.tapas-generic .block-margins {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.hide {
+.tapas-generic .hide {
   display: none;
 }
-.inline {
+.tapas-generic .inline {
   display: inline;
 }
-.list-item {
+.tapas-generic .list-item {
   display: list-item;
 }
-.italic {
+.tapas-generic .italic {
   font-style: italic;
 }
-.mono {
+.tapas-generic .mono {
   font-family: Courier,monospace;
 }
-.box-shadow {
+.tapas-generic .box-shadow {
   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-.note-like {
+.tapas-generic .note-like {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -57,23 +124,22 @@ body {
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-.quotesUS {
+.tapas-generic .quotesUS {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.quotesUK {
+.tapas-generic .quotesUK {
   quotes: "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019";
 }
-.quotes {
+.tapas-generic .quotes {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-/* teibp classes */
-.-teibp-thumbnail {
+.tapas-generic .-teibp-thumbnail {
   max-height: 60px;
 }
-.-teibp-pbFacs {
+.tapas-generic .-teibp-pbFacs {
   display: none;
 }
-.page-setup {
+.tapas-generic .page-setup {
   margin-left: 2em;
   margin-right: 4em;
   padding: 2.5em;
@@ -84,148 +150,145 @@ body {
   color: #232936;
   width: 33em;
 }
-.table-border {
+.tapas-generic .table-border {
   border: 1px dotted #333333;
 }
-/* Choice elements */
-choice abbr + expan:before,
-choice expan + abbr:before,
-choice sic + corr:before,
-choice corr + sic:before,
-choice orig + reg:before,
-choice reg + orig:before {
+.tapas-generic choice abbr + expan:before,
+.tapas-generic choice expan + abbr:before,
+.tapas-generic choice sic + corr:before,
+.tapas-generic choice corr + sic:before,
+.tapas-generic choice orig + reg:before,
+.tapas-generic choice reg + orig:before {
   content: " (";
 }
-choice abbr + expan:after,
-choice expan + abbr:after,
-choice sic + corr:after,
-choice corr + sic:after,
-choice orig + reg:after,
-choice reg + orig:after {
+.tapas-generic choice abbr + expan:after,
+.tapas-generic choice expan + abbr:after,
+.tapas-generic choice sic + corr:after,
+.tapas-generic choice corr + sic:after,
+.tapas-generic choice orig + reg:after,
+.tapas-generic choice reg + orig:after {
   content: ")";
 }
-/* A */
-a[rend~="super"] {
+.tapas-generic a[rend~="super"] {
   vertical-align: super;
   font-size: 70%;
 }
-a.ref-not-found,
-.ptr-not-found,
-[class$="-not-found"] {
+.tapas-generic a.ref-not-found,
+.tapas-generic .ptr-not-found,
+.tapas-generic [class$="-not-found"] {
   text-decoration: none;
   color: inherit;
   pointer: text;
 }
-ab {
+.tapas-generic ab {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-accMat {
+.tapas-generic accMat {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-accMat:before {
+.tapas-generic accMat:before {
   content: "accompanying materials: ";
 }
-acquisition {
+.tapas-generic acquisition {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-acquisition:before {
+.tapas-generic acquisition:before {
   font-weight: bold;
   content: "acquisition";
 }
-activity {
+.tapas-generic activity {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-activity:before {
+.tapas-generic activity:before {
   content: "activity: ";
 }
-/* add */
-add {
+.tapas-generic add {
   vertical-align: super;
   font-size: 90%;
 }
-add[place=below] {
+.tapas-generic add[place=below] {
   vertical-align: sub;
   font-size: 90%;
 }
-additional {
+.tapas-generic additional {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-additions {
+.tapas-generic additions {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-additions:before {
+.tapas-generic additions:before {
   content: "Significant additions within the document: ";
 }
-addrLine {
+.tapas-generic addrLine {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-address[rend~="block"],
-addresss[rendition~="#block"] {
+.tapas-generic address[rend~="block"],
+.tapas-generic addresss[rendition~="#block"] {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-adminInfo {
+.tapas-generic adminInfo {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-altIdentifier {
+.tapas-generic altIdentifier {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-altIdentifier:before {
+.tapas-generic altIdentifier:before {
   content: "Alternate ID: ";
 }
-app {
+.tapas-generic app {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-appInfo {
+.tapas-generic appInfo {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-appInfo:before {
+.tapas-generic appInfo:before {
   content: "Application information: ";
 }
-application {
+.tapas-generic application {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-application:after {
+.tapas-generic application:after {
   content: " " attr(version);
 }
-argument {
+.tapas-generic argument {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-att {
+.tapas-generic att {
   font-family: Courier,monospace;
   line-height: normal;
 }
-att:before {
+.tapas-generic att:before {
   content: "@";
 }
-titleStmt > author {
+.tapas-generic titleStmt > author {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -233,136 +296,133 @@ titleStmt > author {
   font-weight: normal;
   margin-bottom: 1em;
 }
-publicationStmt > availability {
+.tapas-generic publicationStmt > availability {
   font-size: 80%;
 }
-publicationStmt > availability:before {
+.tapas-generic publicationStmt > availability:before {
   font-weight: bold;
   content: "Availability: ";
 }
-publicationStmt > availability[status]:before {
+.tapas-generic publicationStmt > availability[status]:before {
   font-weight: bold;
   content: "Availability (" attr(status) "): ";
 }
-/* B */
-back {
+.tapas-generic back {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-epigraph bibl:before {
+.tapas-generic epigraph bibl:before {
   content: "\2014";
 }
-bibl[rend~="block"],
-bibl[rendition~="#block"] {
+.tapas-generic bibl[rend~="block"],
+.tapas-generic bibl[rendition~="#block"] {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
   padding-left: 2em;
   text-indent: -2em;
 }
-bibl title {
+.tapas-generic bibl title {
   font-style: italic;
 }
-biblFull {
+.tapas-generic biblFull {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-binding {
+.tapas-generic binding {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-binding:before {
+.tapas-generic binding:before {
   content: "Binding: \A";
   white-space: pre-wrap;
 }
-binding[contemporary]:before {
+.tapas-generic binding[contemporary]:before {
   content: "Binding: \A" "Contemporary: " attr(contemporary) "\A";
   white-space: pre-wrap;
 }
-bindingDesc {
+.tapas-generic bindingDesc {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-bindngDesc:before {
+.tapas-generic bindngDesc:before {
   content: "Binding Description: \A";
 }
-birth {
+.tapas-generic birth {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-birth:before {
+.tapas-generic birth:before {
   content: "Birth: ";
 }
-body {
+.tapas-generic body {
   color: inherit;
   background-color: inherit;
 }
-byline {
+.tapas-generic byline {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-/* c */
-cRefPattern {
+.tapas-generic cRefPattern {
   display: none;
 }
-caption {
+.tapas-generic caption {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-case[value]:before {
+.tapas-generic case[value]:before {
   font-weight: bold;
   content: attr(value) " ";
 }
-castGroup {
+.tapas-generic castGroup {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-castItem {
+.tapas-generic castItem {
   display: list-item;
   list-style-type: none;
 }
-castlist {
+.tapas-generic castlist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   margin-left: 2em;
 }
-cb {
+.tapas-generic cb {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-cb:before {
+.tapas-generic cb:before {
   content: "[column break]";
   color: gray;
 }
-cell {
+.tapas-generic cell {
   display: table-cell;
   padding: 1em 1.5em 1em 1em;
   border: 1px dotted #333333;
 }
-/* for cell or row with @role = label */
-[role=label] {
+.tapas-generic [role=label] {
   font-weight: bold;
 }
-climate {
+.tapas-generic climate {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-climate:before {
+.tapas-generic climate:before {
   font-weight: bold;
   content: "Climate: ";
 }
-closer {
+.tapas-generic closer {
   margin-bottom: 1em;
   padding-bottom: 1em;
   border-bottom: 1px dotted #333333;
@@ -370,102 +430,91 @@ closer {
   margin-top: 0;
   margin-bottom: 0;
 }
-code {
+.tapas-generic code {
   font-family: Courier,monospace;
 }
-/* For things like collation, condition, etc. that can have text or paragraphs as 
-children, we should use margins, when the content is text, and no margins when there 
-are child paragraphs (or other block elements). Otherwise we end up with double 
-margins. */
-collation {
+.tapas-generic collation {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-colophon {
+.tapas-generic colophon {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-condition {
+.tapas-generic condition {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-constitution {
+.tapas-generic constitution {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-constitution:before {
+.tapas-generic constitution:before {
   font-weight: bold;
   content: "Constitution: ";
 }
-constitution[type] {
+.tapas-generic constitution[type] {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-constitution[type]:before {
+.tapas-generic constitution[type]:before {
   font-weight: bold;
   content: "Constitution (" attr(type) "): ";
 }
-constitution[type=frags] {
+.tapas-generic constitution[type=frags] {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-constitution[type=frags]:before {
+.tapas-generic constitution[type=frags]:before {
   font-weight: bold;
   content: "Constitution (fragments): ";
 }
-/* Need to discuss and coordinate handling of sic/corr, abbr/expan, and orig/reg */
-/*
-Need to handle attributes for custEvent. All the att.datable* attributes will be tricky. 
-custodialHist and custEvent may normally be hidden along with other header metadata, but
-we'll have other datable elements that may be tricky. */
-custEvent {
+.tapas-generic custEvent {
   display: list-item;
 }
-custodialHist {
+.tapas-generic custodialHist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-/* d */
-[data-tapas-hashed-ref] {
+.tapas-generic [data-tapas-hashed-ref] {
   border-bottom: 1px dotted #000000;
 }
-date[when]:empty:before {
+.tapas-generic date[when]:empty:before {
   content: attr(when);
 }
-dateline {
+.tapas-generic dateline {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-docDate {
+.tapas-generic docDate {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-docEdition {
+.tapas-generic docEdition {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-docImprint {
+.tapas-generic docImprint {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-docTitle {
+.tapas-generic docTitle {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-/* e */
-egXML {
+.tapas-generic egXML {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -480,23 +529,22 @@ egXML {
   font-family: monospace;
   white-space: pre;
 }
-emph {
+.tapas-generic emph {
   font-style: italic;
 }
-encodingDesc {
+.tapas-generic encodingDesc {
   display: none;
 }
-epigraph {
+.tapas-generic epigraph {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   padding: 0 1em;
 }
-fileDesc > extent {
+.tapas-generic fileDesc > extent {
   display: none;
 }
-/* f */
-figure {
+.tapas-generic figure {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -504,59 +552,56 @@ figure {
   margin-left: auto;
   margin-right: auto;
 }
-/* g */
-gap {
+.tapas-generic gap {
   /* GLS: Depending upon how we handle gap and lacuna, we may want to enclose in [] */
 }
-gi {
+.tapas-generic gi {
   font-family: Courier,monospace;
 }
-gi:before {
+.tapas-generic gi:before {
   content: "<";
 }
-gi:after {
+.tapas-generic gi:after {
   content: ">";
 }
-graphic {
+.tapas-generic graphic {
   display: none;
 }
-/* h */
-/* Need head with TEI parent to distinguish from HTML head */
-TEI head {
+.tapas-generic TEI head {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
   font-weight: normal;
 }
-TEI text front > head,
-TEI text body > head,
-TEI text back > head {
+.tapas-generic TEI text front > head,
+.tapas-generic TEI text body > head,
+.tapas-generic TEI text back > head {
   margin-bottom: 1em;
 }
-body > head {
+.tapas-generic body > head {
   font-size: 140%;
 }
-div > head {
+.tapas-generic div > head {
   font-size: 135%;
 }
-div > div > head {
+.tapas-generic div > div > head {
   font-size: 130%;
 }
-div > div > div > head {
+.tapas-generic div > div > div > head {
   font-size: 125%;
 }
-div > div > div > div > head,
-list > head {
+.tapas-generic div > div > div > div > head,
+.tapas-generic list > head {
   font-size: 120%;
 }
-div > div > div > div > div > head {
+.tapas-generic div > div > div > div > div > head {
   font-size: 115%;
 }
-div > div > div > div > div > div head {
+.tapas-generic div > div > div > div > div > div head {
   font-size: 110%;
 }
-figure > head {
+.tapas-generic figure > head {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -579,169 +624,156 @@ figure > head {
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
   font-size: 13pt;
 }
-div[type="canto"] head {
+.tapas-generic div[type="canto"] head {
   display: block;
   margin-top: 0.25em;
   margin-bottom: 0.25em;
 }
-div head[type="sub"] {
+.tapas-generic div head[type="sub"] {
   font-size: 115%;
 }
-div[type="chapter"] > head {
+.tapas-generic div[type="chapter"] > head {
   text-align: center;
   margin-bottom: 1em;
 }
-div[type="half_title"] > head {
+.tapas-generic div[type="half_title"] > head {
   text-align: center;
   padding: 1em;
   border: 1px dashed lightgray;
 }
-head[type="supplied"] {
+.tapas-generic head[type="supplied"] {
   display: none;
 }
-/* i */
-ident {
+.tapas-generic ident {
   font-family: Courier,monospace;
 }
-item {
+.tapas-generic item {
   display: list-item;
 }
-list item {
+.tapas-generic list item {
   margin-left: 1em;
   margin-top: .125em;
   margin-bottom: .25em;
 }
-cell item {
+.tapas-generic cell item {
   margin-left: 1em;
 }
-/* j */
-/* k */
-/* l */
-l {
+.tapas-generic l {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
   /*padding-left:2em;
-text-indent:-2em;*/
+	text-indent:-2em;*/
 }
-.poem-line-count {
+.tapas-generic .poem-line-count {
   font-size: 80%;
   display: inline-block;
   min-width: 1.5em;
   float: right;
 }
-/*
-.poem-line-count + l {
-margin-top: 1em;
-display: inline-block;
-text-indent: 0em;
-padding-left: 0
-}*/
-label + item {
+.tapas-generic label + item {
   list-style: none;
 }
-list label {
+.tapas-generic list label {
   float: left;
 }
-list label:after {
+.tapas-generic list label:after {
   content: " ";
 }
-list[type="gloss"] > label {
+.tapas-generic list[type="gloss"] > label {
   display: inline-block;
   font-weight: bold;
 }
-lg {
+.tapas-generic lg {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-lg[style*="text-align:center"],
-lg[style*="text-align: center"] {
+.tapas-generic lg[style*="text-align:center"],
+.tapas-generic lg[style*="text-align: center"] {
   text-align: left !important;
 }
-list {
+.tapas-generic list {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-p list {
+.tapas-generic p list {
   text-align: left;
 }
-item > list {
+.tapas-generic item > list {
   margin-top: 0;
 }
-list label {
+.tapas-generic list label {
   display: inline-block;
   min-width: 1.5em;
 }
-list label + item {
+.tapas-generic list label + item {
   list-style-type: none;
   margin-left: 0em;
 }
-list label + item:after {
+.tapas-generic list label + item:after {
   content: "\A";
   white-space: pre;
 }
-/* Match only lists that are descendants of 
-text. Otherwise they show up in the header. */
-text list[type=simple] {
+.tapas-generic text list[type=simple] {
   list-style-type: none;
 }
-text list[type=simple] > item {
+.tapas-generic text list[type=simple] > item {
   margin-left: 0;
 }
-text list[type=bulleted] {
+.tapas-generic text list[type=bulleted] {
   list-style-type: disc;
 }
-text list[type=ordered] {
+.tapas-generic text list[type=ordered] {
   list-style-type: none;
   counter-reset: items 0;
   margin-left: 1em;
 }
-text list[type=ordered] label {
+.tapas-generic text list[type=ordered] label {
   display: none;
 }
-text list[type=ordered] > item {
+.tapas-generic text list[type=ordered] > item {
   display: list-item;
   margin-left: 0;
 }
-text list[type=ordered] > item:before {
+.tapas-generic text list[type=ordered] > item:before {
   counter-increment: items 1;
   content: counter(items, decimal) ". ";
 }
-text list[type=gloss],
-text list[type=gloss] > item {
+.tapas-generic text list[type=gloss],
+.tapas-generic text list[type=gloss] > item {
   list-style-type: none;
 }
-text div[type~="contents"] list item {
+.tapas-generic text div[type~="contents"] list item {
   padding-top: .5em;
 }
-text list item a[rend~="right"] {
+.tapas-generic text list item a[rend~="right"] {
   float: right;
 }
-text list[type=toc] {
+.tapas-generic text list[type=toc] {
   list-style: none;
   margin-bottom: 20px;
 }
-text list[type=toc] > item {
+.tapas-generic text list[type=toc] > item {
   list-style-type: none;
 }
-text list[type=toc] item {
+.tapas-generic text list[type=toc] item {
   position: relative;
   background: url('http://5thirtyone.com/sandbox/share/toc/dot.gif') repeat-x bottom left;
   overflow: hidden;
   padding-bottom: 2px;
   margin-left: 0;
 }
-text list[type=toc] a,
-text list[type=toc] label,
-text list[type=toc] rs {
+.tapas-generic text list[type=toc] a,
+.tapas-generic text list[type=toc] label,
+.tapas-generic text list[type=toc] rs {
   display: inline-block;
   background: #edf3fa;
   position: relative;
   bottom: -4px;
 }
-text list[type=toc] a {
+.tapas-generic text list[type=toc] a {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -750,33 +782,32 @@ text list[type=toc] a {
   border-bottom: 0;
   text-decoration: none;
 }
-text list[type=toc] label {
+.tapas-generic text list[type=toc] label {
   background-color: #edf3fa;
   float: left;
   padding: 0 2px 3px 0;
 }
-text list[type=toc] rs {
+.tapas-generic text list[type=toc] rs {
   padding: 0 2px 3px 0;
 }
-text list item p:first-child {
+.tapas-generic text list item p:first-child {
   display: inline;
 }
-listBibl bibl {
+.tapas-generic listBibl bibl {
   display: list-item;
   list-style: none;
   margin: .5em 0;
 }
-listBibl biblStruct {
+.tapas-generic listBibl biblStruct {
   display: list-item;
   list-style: none;
   margin: .5em 0;
 }
-listBibl bibl:last-child,
-listBibl biblStruct:last-child {
+.tapas-generic listBibl bibl:last-child,
+.tapas-generic listBibl biblStruct:last-child {
   padding-bottom: 1em;
 }
-/* m */
-milestone {
+.tapas-generic milestone {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -784,30 +815,29 @@ milestone {
   margin-right: auto;
   text-align: center;
 }
-milestone:before {
+.tapas-generic milestone:before {
   content: "* * * * *";
 }
-msContents .block-margins {
+.tapas-generic msContents .block-margins {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-musicNotation {
+.tapas-generic musicNotation {
   font-weight: bold;
 }
-musicNotation:before {
+.tapas-generic musicNotation:before {
   font-weight: bold;
   content: "Musical Notation: ";
 }
-/* n */
-node {
+.tapas-generic node {
   display: none;
 }
-note {
+.tapas-generic note {
   display: none;
 }
-note[place~="foot"],
-note[place~="bottom"] {
+.tapas-generic note[place~="foot"],
+.tapas-generic note[place~="bottom"] {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -815,13 +845,13 @@ note[place~="bottom"] {
   padding: 2px 0;
   font-family: Arial, Verdana, sans-serif;
 }
-note[place~="foot"]:before,
-note[place~="bottom"]:before {
+.tapas-generic note[place~="foot"]:before,
+.tapas-generic note[place~="bottom"]:before {
   vertical-align: super;
   font-size: 70%;
   content: attr(data-tapas-note-num) "\00a0";
 }
-div[type="endnotes"]:before {
+.tapas-generic div[type="endnotes"]:before {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -829,63 +859,61 @@ div[type="endnotes"]:before {
   content: 'Endnotes: ';
   font-family: Arial, Verdana, sans-serif;
 }
-div[type="endnotes"] note {
+.tapas-generic div[type="endnotes"] note {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   font-size: 90%;
   font-family: Arial, Verdana, sans-serif;
 }
-.note-marker {
+.tapas-generic .note-marker {
   vertical-align: super;
   font-size: 70%;
 }
-notesStmt {
+.tapas-generic notesStmt {
   display: none;
 }
-/* o */
-oVar {
+.tapas-generic oVar {
   font-style: italic;
 }
-opener {
+.tapas-generic opener {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-opener placeName,
-opener date {
+.tapas-generic opener placeName,
+.tapas-generic opener date {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-opener tapas_metadata {
+.tapas-generic opener tapas_metadata {
   display: inline;
 }
-opener tapas_metadata:before {
+.tapas-generic opener tapas_metadata:before {
   content: "\00000a";
   white-space: pre;
 }
-origPlace {
+.tapas-generic origPlace {
   font-weight: bold;
 }
-origPlace:before {
+.tapas-generic origPlace:before {
   font-weight: bold;
   content: "Place of Origin: ";
 }
-/* p */
-p {
+.tapas-generic p {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   /*text-align:justify;*/
 }
-*[rendition~="#center"] p {
+.tapas-generic *[rendition~="#center"] p {
   text-align: center;
 }
-availability > p:first-child {
+.tapas-generic availability > p:first-child {
   margin-top: 0em;
 }
-.pb {
+.tapas-generic .pb {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -895,7 +923,7 @@ availability > p:first-child {
   padding: 1em 0;
   font-size: 11pt;
 }
-pb {
+.tapas-generic pb {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -905,320 +933,307 @@ pb {
   padding: 1em 0;
   font-size: 11pt;
 }
-/*
-pb:before {
-content: "page:\a0" attr(n);
-}*/
-performance {
+.tapas-generic performance {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-persName[ref] {
+.tapas-generic persName[ref] {
   border-bottom: 1px dotted #000000;
 }
-person {
+.tapas-generic person {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-personGrp {
+.tapas-generic personGrp {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-div[type="poem"] {
+.tapas-generic div[type="poem"] {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-postscript {
+.tapas-generic postscript {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
   margin-top: 2em;
 }
-principal {
+.tapas-generic principal {
   font-weight: bold;
 }
-principal:before {
+.tapas-generic principal:before {
   font-weight: bold;
   content: "Principal: ";
 }
-profileDesc {
+.tapas-generic profileDesc {
   display: none;
 }
-provenance {
+.tapas-generic provenance {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-docImprint pubPlace {
+.tapas-generic docImprint pubPlace {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-publicationStmt > * {
+.tapas-generic publicationStmt > * {
   display: none;
 }
-publicationStmt {
+.tapas-generic publicationStmt {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-publicationStmt > date {
+.tapas-generic publicationStmt > date {
   display: none;
 }
-publicationStmt > publisher {
+.tapas-generic publicationStmt > publisher {
   display: none;
 }
-/* q */
-q {
+.tapas-generic q {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-q:before {
+.tapas-generic q:before {
   content: open-quote;
 }
-q:after {
+.tapas-generic q:after {
   content: close-quote;
 }
-q[next]:after,
-q[prev]:before {
+.tapas-generic q[next]:after,
+.tapas-generic q[prev]:before {
   content: "" !important;
 }
-quote {
+.tapas-generic quote {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-quote:before {
+.tapas-generic quote:before {
   content: open-quote;
 }
-quote:after {
+.tapas-generic quote:after {
   content: close-quote;
 }
-quote[next]:after,
-quote[prev]:before {
+.tapas-generic quote[next]:after,
+.tapas-generic quote[prev]:before {
   content: "" !important;
 }
-q l:first-child,
-quote l:first-child {
+.tapas-generic q l:first-child,
+.tapas-generic quote l:first-child {
   display: inline;
   padding-left: 0;
   text-indent: 0;
 }
-q l:last-child,
-quote l:last-child {
+.tapas-generic q l:last-child,
+.tapas-generic quote l:last-child {
   display: inline;
   padding-left: 0;
   text-indent: 0;
 }
-q lg:first-child,
-quote lg:first-child {
+.tapas-generic q lg:first-child,
+.tapas-generic quote lg:first-child {
   display: inline;
 }
-q p:last-child,
-quote p:last-child {
+.tapas-generic q p:last-child,
+.tapas-generic quote p:last-child {
   margin-bottom: 0;
   display: inline;
 }
-q p:first-child,
-quote p:first-child {
+.tapas-generic q p:first-child,
+.tapas-generic quote p:first-child {
   margin-top: 0;
   display: inline;
 }
-/* r */
-re {
+.tapas-generic re {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-recordHist {
+.tapas-generic recordHist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.ref-external:link {
+.tapas-generic .ref-external:link {
   border-bottom: 1px solid #333333;
   text-decoration: none;
 }
-.ref-note:link {
+.tapas-generic .ref-note:link {
   border-bottom: 1px dotted #808080;
   text-decoration: none;
 }
-.ref-note:hover {
+.tapas-generic .ref-note:hover {
   border-bottom: 1px dotted #000000;
   text-decoration: none;
 }
-remarks {
+.tapas-generic remarks {
   font-weight: bold;
 }
-remarks:before {
+.tapas-generic remarks:before {
   font-weight: bold;
   content: "remarks: ";
 }
-respStmt {
+.tapas-generic respStmt {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-bibl respStmt {
+.tapas-generic bibl respStmt {
   display: inline;
 }
-revisionDesc {
+.tapas-generic revisionDesc {
   display: none;
 }
-row {
+.tapas-generic row {
   display: table-row;
 }
-/* s */
-/* When TEI document is embedded in HTML page, 
-   TEI's <s> element can be interpreted by
-   browser as HTML <s>, which results in 
-   a strike-through from the "user agent"
-   styles. */
-s {
+.tapas-generic s {
   text-decoration: none;
 }
-tapas_metadata {
+.tapas-generic tapas_metadata {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-closer tapas_metadata {
+.tapas-generic closer tapas_metadata {
   display: inline;
 }
-samplingDecl {
+.tapas-generic samplingDecl {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-scriptNote {
+.tapas-generic scriptNote {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-seal {
+.tapas-generic seal {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-seal:before {
+.tapas-generic seal:before {
   font-weight: bold;
   content: "Seal: ";
 }
-sealDesc {
+.tapas-generic sealDesc {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-secFol:before {
+.tapas-generic secFol:before {
   font-weight: bold;
   content: "Second Folio: ";
 }
-sense {
+.tapas-generic sense {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-seriesStmt {
+.tapas-generic seriesStmt {
   display: none;
 }
-setting {
+.tapas-generic setting {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-signed {
+.tapas-generic signed {
   display: inline-block;
   margin-top: 1.5em;
 }
-signed persName {
+.tapas-generic signed persName {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-closer signed:before {
+.tapas-generic closer signed:before {
   content: "\00000a";
   white-space: pre;
 }
-closer signed {
+.tapas-generic closer signed {
   margin-top: 0;
 }
-soCalled {
+.tapas-generic soCalled {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-soCalled:before {
+.tapas-generic soCalled:before {
   content: open-quote;
 }
-soCalled:after {
+.tapas-generic soCalled:after {
   content: close-quote;
 }
-soCalled[next]:after,
-soCalled[prev]:before {
+.tapas-generic soCalled[next]:after,
+.tapas-generic soCalled[prev]:before {
   content: "" !important;
 }
-sound {
+.tapas-generic sound {
   font-style: italic;
 }
-source {
+.tapas-generic source {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-sourceDesc {
+.tapas-generic sourceDesc {
   display: none;
 }
-space:before {
+.tapas-generic space:before {
   font-weight: bold;
   content: "";
 }
-TEI span {
+.tapas-generic TEI span {
   /* .hide; */
 }
-TEI egXML span {
+.tapas-generic TEI egXML span {
   display: inline;
 }
-speaker {
+.tapas-generic speaker {
   font-weight: bold;
   margin-right: 0;
 }
-sponsor {
+.tapas-generic sponsor {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-sponsor:before {
+.tapas-generic sponsor:before {
   font-weight: bold;
   content: "Sponsor: ";
 }
-stage {
+.tapas-generic stage {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   font-style: italic;
 }
-stamp {
+.tapas-generic stamp {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-stamp:before {
+.tapas-generic stamp:before {
   font-weight: bold;
   content: "Stamped: ";
 }
-stringVal {
+.tapas-generic stringVal {
   /* doesn't seem to be part of tei 5 */
 }
-superEntry {
+.tapas-generic superEntry {
   /* Block with space above and below, maybe have no block and space for <entry> when contained by this element */
 }
-surplus {
+.tapas-generic surplus {
   display: none;
 }
-/* t */
-#tapasToolbox {
+.tapas-generic #tapasToolbox {
   position: fixed;
   top: 20px;
   left: 720px;
@@ -1232,14 +1247,14 @@ surplus {
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
 }
-#tapasToolbox h1 {
+.tapas-generic #tapasToolbox h1 {
   display: none;
 }
-#tapasToolbox label {
+.tapas-generic #tapasToolbox label {
   display: inline;
   margin-right: .5em;
 }
-.toolboxinput {
+.tapas-generic .toolboxinput {
   border: 1px solid #4d88cd;
   border-radius: 0px;
   background: #edf3fa;
@@ -1248,7 +1263,7 @@ surplus {
   -webkit-border-radius: 0em;
   display: inline-block;
 }
-#tapasToolbox input[type=checkbox] {
+.tapas-generic #tapasToolbox input[type=checkbox] {
   border: 1px solid #4d88cd;
   border-radius: 0px;
   background: #edf3fa;
@@ -1262,10 +1277,10 @@ surplus {
   padding: 0;
   vertical-align: text-bottom;
 }
-#tapasToolbox input[type=checkbox]:checked {
+.tapas-generic #tapasToolbox input[type=checkbox]:checked {
   background: #337dd3;
 }
-#tapasToolbox input[type=select] {
+.tapas-generic #tapasToolbox input[type=select] {
   border: 1px solid #4d88cd;
   border-radius: 0px;
   background: #edf3fa;
@@ -1275,12 +1290,12 @@ surplus {
   display: inline-block;
   padding: .25em;
 }
-TEI {
+.tapas-generic TEI {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-table {
+.tapas-generic table {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1290,88 +1305,84 @@ table {
   margin-bottom: 2em;
   font-size: 12pt;
 }
-table > head {
+.tapas-generic table > head {
   text-align: center;
 }
-#tapas-ref-dialog {
+.tapas-generic #tapas-ref-dialog {
   padding: 0.5em 1.25em 0.5em 0.5em;
   background: none;
   background-color: white;
   color: black;
   font-size: 13px;
 }
-#tapas-ref-dialog .tei-element {
+.tapas-generic #tapas-ref-dialog .tei-element {
   display: none;
 }
-#tapas-ref-dialog p {
+.tapas-generic #tapas-ref-dialog p {
   text-align: left;
 }
-#tapas-ref-dialog .ography-data {
+.tapas-generic #tapas-ref-dialog .ography-data {
   font-weight: bold;
 }
-#tapas-ref-dialog .ography title {
+.tapas-generic #tapas-ref-dialog .ography title {
   display: inline;
 }
-#tei_contextual {
+.tapas-generic #tei_contextual {
   display: none;
 }
-teiHeader {
+.tapas-generic teiHeader {
   display: none;
   margin-top: 2em;
   margin-bottom: 2em;
   border-bottom: 1px solid #999;
 }
-TEI > text {
+.tapas-generic TEI > text {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-textClass {
+.tapas-generic textClass {
   display: none;
 }
-textDesc {
+.tapas-generic textDesc {
   display: none;
 }
-TEI teiHeader + tapas_metadata {
+.tapas-generic TEI teiHeader + tapas_metadata {
   display: none;
 }
-TEI tapas_metadata contributor,
-TEI tapas_metadata rights,
-TEI tapas_metadata source {
+.tapas-generic TEI tapas_metadata contributor,
+.tapas-generic TEI tapas_metadata rights,
+.tapas-generic TEI tapas_metadata source {
   display: none;
 }
-TEI tapas_metadata date,
-TEI tapas_metadata creator {
+.tapas-generic TEI tapas_metadata date,
+.tapas-generic TEI tapas_metadata creator {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-/* title */
-/* Need TEI ancestor to distinguish TEI title from HTML title */
-TEI title {
+.tapas-generic TEI title {
   display: inline;
 }
-TEI title[level=a] {
+.tapas-generic TEI title[level=a] {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-TEI title[level=a]:before {
+.tapas-generic TEI title[level=a]:before {
   content: open-quote;
 }
-TEI title[level=a]:after {
+.tapas-generic TEI title[level=a]:after {
   content: close-quote;
 }
-TEI title[level=a][next]:after {
+.tapas-generic TEI title[level=a][next]:after {
   content: "" !important;
 }
-TEI title[level=a][prev]:before {
+.tapas-generic TEI title[level=a][prev]:before {
   content: "" !important;
 }
-title[level=m] {
+.tapas-generic title[level=m] {
   font-style: italic;
 }
-/* We transformed teiHeader//title to tei.title  */
-/* as a hack to solve a JavaScript/jQuery issue. */
-titleStmt > tei-title {
+.tapas-generic titleStmt > tei-title {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1380,35 +1391,35 @@ titleStmt > tei-title {
   font-weight: bold !important;
   font-size: 150%;
 }
-titleStmt > editor:before {
+.tapas-generic titleStmt > editor:before {
   content: "Edited by ";
 }
-titlePage argument,
-titlePage byline,
-titlePage cb,
-titlePage docAuthor,
-titlePage docDate,
-titlePage docEdition,
-titlePage docImprint,
-titlePage docTitle,
-titlePage epigraph,
-titlePage figure,
-titlePage gap,
-titlePage imprimatur,
-titlePage lb,
-titlePage milestone,
-titlePage note,
-titlePage pb,
-titlePage space,
-titlePage titlePart {
+.tapas-generic titlePage argument,
+.tapas-generic titlePage byline,
+.tapas-generic titlePage cb,
+.tapas-generic titlePage docAuthor,
+.tapas-generic titlePage docDate,
+.tapas-generic titlePage docEdition,
+.tapas-generic titlePage docImprint,
+.tapas-generic titlePage docTitle,
+.tapas-generic titlePage epigraph,
+.tapas-generic titlePage figure,
+.tapas-generic titlePage gap,
+.tapas-generic titlePage imprimatur,
+.tapas-generic titlePage lb,
+.tapas-generic titlePage milestone,
+.tapas-generic titlePage note,
+.tapas-generic titlePage pb,
+.tapas-generic titlePage space,
+.tapas-generic titlePage titlePart {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-titlePage byline docAuthor {
+.tapas-generic titlePage byline docAuthor {
   display: inline;
 }
-trailer {
+.tapas-generic trailer {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
@@ -1416,37 +1427,31 @@ trailer {
   padding-bottom: 1em;
   border-bottom: 1px dotted #333333;
 }
-typeDesc {
+.tapas-generic typeDesc {
   display: none;
 }
-/* u */
-u:before {
+.tapas-generic u:before {
   content: "-";
 }
-.ui-widget-header {
+.tapas-generic .ui-widget-header {
   border: 0px;
   background: none;
 }
-.ui-dialog .ui-dialog-titlebar {
+.tapas-generic .ui-dialog .ui-dialog-titlebar {
   font-size: 15px;
   min-height: 21px;
 }
-.ui-dialog .ui-dialog-titlebar-close {
+.tapas-generic .ui-dialog .ui-dialog-titlebar-close {
   right: 0;
 }
-/* v */
-view {
+.tapas-generic view {
   font-style: italic;
 }
-/* w */
-/* x */
-/* z */
-/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
-html > body {
+.tapas-generic html > body {
   margin: 0;
   padding: 0;
 }
-html {
+.tapas-generic html {
   margin: 0;
   padding: 0;
   margin-left: 2em;
@@ -1459,26 +1464,26 @@ html {
   color: #232936;
   width: 33em;
 }
-img {
+.tapas-generic img {
   border: 1px solid #4d88cd;
 }
-footer {
+.tapas-generic footer {
   margin-top: 1em;
   border-top: 1px solid #232936;
   padding-top: .5em;
   font-size: 12pt;
 }
-a:link,
-a:visited,
-a:active {
+.tapas-generic a:link,
+.tapas-generic a:visited,
+.tapas-generic a:active {
   color: #337dd3;
   text-decoration: none;
 }
-a:hover {
+.tapas-generic a:hover {
   color: #337dd3;
   text-decoration: underline;
 }
-#teibpToolbox {
+.tapas-generic #teibpToolbox {
   left: 56em;
   top: 25px;
   position: fixed;
@@ -1495,33 +1500,31 @@ a:hover {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   width: 12em;
 }
-#teibpToolbox h1 {
+.tapas-generic #teibpToolbox h1 {
   font-weight: bold;
   font-size: 115%;
   margin-top: 0;
   margin-bottom: .5em;
   border-bottom: 1px solid #4d88cd;
 }
-/* xml-serialization */
-.eg-element {
+.tapas-generic .eg-element {
   color: #0165c8;
 }
-.eg-comment {
+.tapas-generic .eg-comment {
   color: gray;
 }
-.eg-att,
-.eg-nsdecl {
+.tapas-generic .eg-att,
+.tapas-generic .eg-nsdecl {
   color: #f58650;
 }
-.eg-attvalue,
-.eg-ns {
+.tapas-generic .eg-attvalue,
+.tapas-generic .eg-ns {
   color: #993300;
 }
-.eg-text {
+.tapas-generic .eg-text {
   color: #232936;
 }
-/* loading animation */
-#loading {
+.tapas-generic #loading {
   display: none;
   position: fixed;
   left: 0;
@@ -1530,158 +1533,157 @@ a:hover {
   height: 100%;
   background-image: url("../images/transparentbg.png");
 }
-/* facsViewer */
-#resizable {
+.tapas-generic #resizable {
   background-color: #edf3fa;
   width: 550px;
   height: 700px;
   overflow: hidden;
   padding: 0 1em .25em 0;
 }
-div.facsImage {
+.tapas-generic div.facsImage {
   width: 100%;
   height: 98%;
   overflow-y: scroll;
   border: 1px solid black;
 }
-div.facsImage img {
+.tapas-generic div.facsImage img {
   max-width: 98% !important;
   margin-top: .5em;
 }
-div.facsImage img:first-child {
+.tapas-generic div.facsImage img:first-child {
   margin-top: 0;
 }
-div#footer {
+.tapas-generic div#footer {
   width: 67%;
   text-align: center;
   border: dashed thin black;
   padding: 1ex 1ex 1ex 1ex;
   background-color: #d4dae0;
 }
-div#footer > p {
+.tapas-generic div#footer > p {
   text-align: center;
 }
-add {
+.tapas-generic add {
   background: #ffff66;
 }
-add:hover:before {
+.tapas-generic add:hover:before {
   font-style: italic;
   content: "(Added by: " attr(hand) " ) ";
 }
-choice orig,
-choice sic,
-choice abbr,
-supplied,
-gap {
+.tapas-generic choice orig,
+.tapas-generic choice sic,
+.tapas-generic choice abbr,
+.tapas-generic supplied,
+.tapas-generic gap {
   border-bottom: 1px dotted #000000;
 }
-choice reg,
-choice corr,
-choice expan {
+.tapas-generic choice reg,
+.tapas-generic choice corr,
+.tapas-generic choice expan {
   border: 1px solid #cccccc;
   display: none;
   padding: 5px;
   background: #ffffff;
 }
-choice:hover reg,
-choice:hover corr,
-choice:hover expan,
-add:hover,
-supplied:hover,
-gap:hover,
-unclear:hover {
+.tapas-generic choice:hover reg,
+.tapas-generic choice:hover corr,
+.tapas-generic choice:hover expan,
+.tapas-generic add:hover,
+.tapas-generic supplied:hover,
+.tapas-generic gap:hover,
+.tapas-generic unclear:hover {
   display: inline;
 }
-choice abbr + expan:after,
-choice expan + abbr:after,
-choice sic + corr:after,
-choice corr + sic:after,
-choice orig + reg:after,
-choice reg + orig:after,
-choice abbr + expan:before,
-choice expan + abbr:before,
-choice sic + corr:before,
-choice corr + sic:before,
-choice orig + reg:before,
-choice reg + orig:before {
+.tapas-generic choice abbr + expan:after,
+.tapas-generic choice expan + abbr:after,
+.tapas-generic choice sic + corr:after,
+.tapas-generic choice corr + sic:after,
+.tapas-generic choice orig + reg:after,
+.tapas-generic choice reg + orig:after,
+.tapas-generic choice abbr + expan:before,
+.tapas-generic choice expan + abbr:before,
+.tapas-generic choice sic + corr:before,
+.tapas-generic choice corr + sic:before,
+.tapas-generic choice orig + reg:before,
+.tapas-generic choice reg + orig:before {
   content: "";
 }
-del {
+.tapas-generic del {
   text-decoration: line-through;
 }
-gap[reason]:after,
-gap[extent]:after,
-gap[quantity]:after,
-gap:after {
+.tapas-generic gap[reason]:after,
+.tapas-generic gap[extent]:after,
+.tapas-generic gap[quantity]:after,
+.tapas-generic gap:after {
   font-style: italic;
 }
-gap[reason]:after {
+.tapas-generic gap[reason]:after {
   content: "(Gap reason: " attr(reason) ")]";
 }
-gap[extent]:after {
+.tapas-generic gap[extent]:after {
   content: "(Gap of " attr(extent) " " attr(unit) "; reason: " attr(reason) ")]";
 }
-gap[quantity]:after {
+.tapas-generic gap[quantity]:after {
   content: "(Gap of " attr(quantity) " " attr(unit) "; reason: " attr(reason) ")]";
 }
-gap:after {
+.tapas-generic gap:after {
   content: "(Unclear text)]";
 }
-.head-font {
+.tapas-generic .head-font {
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
   font-weight: normal;
 }
-lb:after {
+.tapas-generic lb:after {
   content: '\a';
   white-space: pre;
 }
-milestone {
+.tapas-generic milestone {
   background: #cccccc;
 }
-milestone[n]:before,
-milestone[unit]:before,
-milestone:before {
+.tapas-generic milestone[n]:before,
+.tapas-generic milestone[unit]:before,
+.tapas-generic milestone:before {
   font-style: italic;
 }
-milestone[n]:before {
+.tapas-generic milestone[n]:before {
   content: attr(n);
 }
-milestone[unit]:before {
+.tapas-generic milestone[unit]:before {
   content: attr(unit) " " attr(n);
 }
-milestone:before {
+.tapas-generic milestone:before {
   content: ;
 }
-subst {
+.tapas-generic subst {
   background: #ffffff;
   padding: 5px;
   border: 1px solid #cccccc;
 }
-supplied:before,
-gap:before {
+.tapas-generic supplied:before,
+.tapas-generic gap:before {
   content: "[";
 }
-supplied:after,
-gap:after {
+.tapas-generic supplied:after,
+.tapas-generic gap:after {
   content: "]";
 }
-supplied:hover:before {
+.tapas-generic supplied:hover:before {
   content: "[(Text supplied: " attr(reason) ") ";
 }
-unclear {
+.tapas-generic unclear {
   padding-bottom: 5px;
   border-bottom: 2px dotted #808080;
   background: #3399ff;
 }
-unclear[reason]:hover:before {
+.tapas-generic unclear[reason]:hover:before {
   font-style: italic;
   content: " (Unclear text: " attr(reason) ") ";
 }
-unclear:hover:before {
+.tapas-generic unclear:hover:before {
   font-style: italic;
   content: " (Unclear text) ";
 }
-.-teibp-pb {
+.tapas-generic .-teibp-pb {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -1693,17 +1695,17 @@ unclear:hover:before {
   border-bottom: 2px dotted #808080;
   border-top: 2px dotted #808080;
 }
-.-teibp-pb a:hover {
+.tapas-generic .-teibp-pb a:hover {
   text-decoration: none;
   color: #808080;
 }
-.-teibp-pb a:before {
+.tapas-generic .-teibp-pb a:before {
   font-style: italic;
   content: "Page " attr(data-tei-n);
 }
-.-teibp-pb a.gallery-facs:before {
+.tapas-generic .-teibp-pb a.gallery-facs:before {
   content: " ";
 }
-.-teibp-thumbnail {
+.tapas-generic .-teibp-thumbnail {
   padding: 15px;
 }

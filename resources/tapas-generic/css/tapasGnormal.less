@@ -21,97 +21,99 @@
 @greybackground: #CCCCCC;
 @boxpadding: 5px;
 
-.head-font {
-font-family: @body-font-family;
-font-weight: normal;
-}
+.tapas-generic {
+  .head-font {
+  font-family: @body-font-family;
+  font-weight: normal;
+  }
 
-choice reg, choice corr, choice expan {
-border-bottom: @hoverunderline;
-}
+  choice reg, choice corr, choice expan {
+  border-bottom: @hoverunderline;
+  }
 
-choice orig, choice sic, choice abbr {
-.hide;
-border: @noteborder;
-padding: @boxpadding;
-background: @whitebackground;
-}
+  choice orig, choice sic, choice abbr {
+  .tapas-generic .hide;
+  border: @noteborder;
+  padding: @boxpadding;
+  background: @whitebackground;
+  }
 
-choice:hover orig, choice:hover sic, choice:hover abbr, gap:hover {
-.inline;
-}
+  choice:hover orig, choice:hover sic, choice:hover abbr, gap:hover {
+  .tapas-generic .inline;
+  }
 
-choice abbr + expan:after,
-choice expan + abbr:after,
-choice sic + corr:after,
-choice corr + sic:after,
-choice orig + reg:after,
-choice reg + orig:after,
-choice abbr + expan:before,
-choice expan + abbr:before,
-choice sic + corr:before,
-choice corr + sic:before,
-choice orig + reg:before,
-choice reg + orig:before {
-  content: "";
-}
+  choice abbr + expan:after,
+  choice expan + abbr:after,
+  choice sic + corr:after,
+  choice corr + sic:after,
+  choice orig + reg:after,
+  choice reg + orig:after,
+  choice abbr + expan:before,
+  choice expan + abbr:before,
+  choice sic + corr:before,
+  choice corr + sic:before,
+  choice orig + reg:before,
+  choice reg + orig:before {
+    content: "";
+  }
 
-del, subst del {
-.hide;
-}
+  del, subst del {
+  .tapas-generic .hide;
+  }
 
-fw {
-.hide;
-}
+  fw {
+  .tapas-generic .hide;
+  }
 
-gap {
-border-bottom: @hoverunderline;
-}
+  gap {
+  border-bottom: @hoverunderline;
+  }
 
-gap:before {
-content: "[";
-}
+  gap:before {
+  content: "[";
+  }
 
-gap:after {
-content: "]";
-}
+  gap:after {
+  content: "]";
+  }
 
-gap[reason]:after, gap[extent]:after, gap[quantity]:after, gap:after {
-.italic;
-}
+  gap[reason]:after, gap[extent]:after, gap[quantity]:after, gap:after {
+  .tapas-generic .italic;
+  }
 
-gap[reason]:after {
-content: "(Gap reason: " attr(reason) ")]";
-}
+  gap[reason]:after {
+  content: "(Gap reason: " attr(reason) ")]";
+  }
 
-gap[extent]:after {
-content: "(Gap of " attr(extent) " " attr(unit) "; reason: " attr(reason) ")]";
-}
+  gap[extent]:after {
+  content: "(Gap of " attr(extent) " " attr(unit) "; reason: " attr(reason) ")]";
+  }
 
-gap[quantity]:after {
-content: "(Gap of " attr(quantity) " " attr(unit) "; reason: " attr(reason) ")]";
-}
+  gap[quantity]:after {
+  content: "(Gap of " attr(quantity) " " attr(unit) "; reason: " attr(reason) ")]";
+  }
 
-gap:after {
-content: "(Unclear text)]";
-}
+  gap:after {
+  content: "(Unclear text)]";
+  }
 
-.-teibp-pb a {
-font-family: "sans-serif";
-display: inline;
-margin: 0; 
-text-align: left;
-text-decoration: none;
-color: gray;
-border-bottom: 0;
-}
+  .-teibp-pb a {
+  font-family: "sans-serif";
+  display: inline;
+  margin: 0;
+  text-align: left;
+  text-decoration: none;
+  color: gray;
+  border-bottom: 0;
+  }
 
-.-teibp-pb a:before {
-font-family: "Segoe UI Symbol", "Arial Unicode MS", "DejaVu Sans", "Meiryo UI", "MS UI Gothic", "Everson Mono Unicode", Meiryo, "MS Gothic", "MS Mincho", "MS PGothic", "MS PMincho", "Meslo LG L", "Meslo LG L DZ", "Meslo M L", "Meslo M L DZ", "Meslo S L", "Meslo S L DZ", "Symbola", "DejaVu Sans Condensed", "DejaVu Sans Mono", Code2000, "Everson Mono", Quivira, sans-serif;
-content:"\002119";
-padding: 0 .5em 0 0; 
-float:left;
-}
-.-teibp-pb a:hover:before {
-content:"\002119 " attr(data-tapas-n);
+  .-teibp-pb a:before {
+  font-family: "Segoe UI Symbol", "Arial Unicode MS", "DejaVu Sans", "Meiryo UI", "MS UI Gothic", "Everson Mono Unicode", Meiryo, "MS Gothic", "MS Mincho", "MS PGothic", "MS PMincho", "Meslo LG L", "Meslo LG L DZ", "Meslo M L", "Meslo M L DZ", "Meslo S L", "Meslo S L DZ", "Symbola", "DejaVu Sans Condensed", "DejaVu Sans Mono", Code2000, "Everson Mono", Quivira, sans-serif;
+  content:"\002119";
+  padding: 0 .5em 0 0;
+  float:left;
+  }
+  .-teibp-pb a:hover:before {
+  content:"\002119 " attr(data-tapas-n);
+  }
 }

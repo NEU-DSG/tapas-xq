@@ -13,2346 +13,2348 @@ margin: 0;
 
 /* Less variables */
 
-.block {
-display:block;
-}
-
-.block(@margins: 0) {
-display:block;
-margin-top:@margins;
-margin-bottom:@margins;
-}
-
-.block-margins {
-.block(1em);
-}
-
-.hide {
-display:none;
-}
-
-.inline {
-display:inline;
-}
-
-.list-item {
-display:list-item;
-}
-
-.italic {
-font-style: italic;
-}
-
-.mono {
-font-family:Courier,monospace;
-}
-
-.box-shadow {
--webkit-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
--moz-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
-}
-
-.note-like {
-.block;
-margin:1.5em auto 1.5em auto;
-padding:.5em 1.5em 1.5em 1.5em;
-border:1px solid black;
-border-radius: 15px;
-width: 325px; 
-position: relative; 
-border: 1px solid @border-color;
-background: @note-background-color;
-/* reset text-indent for note with <l> ancestors. */
-text-indent:0;
-font-size:85%;
-text-align:justify;
-.box-shadow;
-}
-
-.quotesUS {
-quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
-}
-
-.quotesUK {
-quotes: "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019";
-}
-
-.quotes {
-	.quotesUS;
-}
-
-/* teibp classes */
-
-.-teibp-thumbnail {
-max-height: 60px;
-}
-
-.-teibp-pbFacs {
-.hide;
-}
-
-
-.label (@content: "") {
-	&:before{
-		font-weight: bold;
-		content: @content;
+.tapas-generic {
+	.block {
+	display:block;
 	}
-}
 
-.surround (@before, @after){
-	&:before{
-	content: @before;
+	.block(@margins: 0) {
+	display:block;
+	margin-top:@margins;
+	margin-bottom:@margins;
 	}
-	&:after{
-		content: @after;
+
+	.block-margins {
+	.block(1em);
 	}
-}
 
-.messageReplace (@message){}
-
-.page-setup {
-margin-left:2em;
-margin-right:4em;
-padding:2.5em;
-font-family: @body-font-family;
-font-size:@body-font-size;
-line-height:@body-line-height;
-background-color:@background-color;
-color:@color;
-width:33em;
-}
-
-.table-border {
-border:@darkunderline;
-}
-
-/* Choice elements */
-choice {
-	abbr + expan, expan + abbr, sic + corr, corr + sic, orig + reg, reg + orig{
-		.surround(" (", ")");
+	.hide {
+	display:none;
 	}
-}
 
-/* A */
-a[rend~="super"] {
-vertical-align:super;
-font-size: 70%;
-}
-
-a.ref-not-found, 
-.ptr-not-found,
-[class$="-not-found"] {
-text-decoration: none;
-color: inherit;
-pointer: text;
-}
-
-ab {
-.block-margins;
-} 
-
-accMat {
-.block;
-}
-
-accMat:before {
-content: "accompanying materials: ";
-}
-
-acquisition {
-.block;
-.label("acquisition");
-} 
-
-activity {
-.block;
-}  
-
-activity:before {
-content: "activity: ";
-}
-
-/* add */
-add {
-vertical-align:super;
-font-size:90%;
-}
-
-add[place=below] {
-vertical-align:sub;
-font-size:90%;
-}
-
-additional {
-.block;
-}  
-
-additions {
-.block;
-}
-
-additions:before {
-content: "Significant additions within the document: ";
-} 
-
-addrLine {
-.block;
-} 
-
-address {}
-
-address[rend~="block"], 
-addresss[rendition~="#block"]  {
-.block;
-} 
-
-adminInfo  {
-.block;
-} 
-
-affiliation {}
-
-age {}
-
-alt {} 
-
-altGrp {} 
-
-altIdent {} 
-
-altIdentifier  {
-.block;
-}
-
-altIdentifier:before {
-content: "Alternate ID: ";
-}
-
-am {}
-
-analytic {}
-
-anchor {} 
-
-app  {
-.block;
-}  
-
-appInfo  {
-.block;
-}
-
-appInfo:before {
-content: "Application information: ";
-}
-
-application  {
-.block;
-}
-
-application:after {
-content: " " attr(version);
-}
-
-arc {}
-
-argument {
-.block;
-}  
-
-att {
-.mono;
-line-height: normal;
-} 
-
-att:before {
-content: "@";
-}
-
-attDef {}
-
-attlist {} 
-
-attRef {} 
-
-author {} 
-
-titleStmt > author {
-.block;
-.head-font;
-margin-bottom:1em;
-}
-
-authority {} 
-
-publicationStmt > availability{
-font-size:80%;
-.label("Availability: ");
-}
-
-publicationStmt > availability[status]{
-.label("Availability (" attr(status) "): ");
-}
-
-/* B */
-
-back  {
-.block;
-} 
-
-bibl {}
-
-epigraph bibl:before {
-content: "\2014";
-}
-
-bibl[rend~="block"], bibl[rendition~="#block"] {
-.block;
-padding-left:2em;
-text-indent:-2em;
-}
-
-bibl title { 
-font-style: italic;
-}
-
-biblFull  {
-.block;
-} 
-
-biblScope {}
-
-biblStruct {}
-
-bicond {}
-
-binary {}
-
-binaryObject {}
-
-binding {
-.block;
-}
-
-binding:before {
-content: "Binding: \A";
-white-space: pre-wrap;
-}
-
-binding[contemporary]:before {
-content: "Binding: \A" "Contemporary: " attr(contemporary) "\A";
-white-space: pre-wrap;
-}
-
-bindingDesc  {
-.block;
-} 
-
-bindngDesc:before {
-content: "Binding Description: \A";
-}
-
-birth  {
-.block;
-}
-
-birth:before {
-content: "Birth: ";
-}
-
-bloc {}
-
-body {
-color: inherit;
-background-color: inherit;
-}
-
-broadcast {}
-
-byline {
-.block;
-}
-
-/* c */
-
-c {}
-
-cRefPattern {
-.hide;
-}
-
-caesura {}
-
-camera {}
-
-caption {
-.block-margins
-}
-
-case {}
-
-case[value]{
-.label(attr(value) " ");
-}
-
-castGroup {
-.block-margins;
-}
-
-castItem {
-.list-item;
-list-style-type:none;
-}
-
-castlist {
-.block-margins;
-margin-left:2em;
-}
-
-catDesc {}
-
-catRef {}
-
-catchwords {}
-
-category {}
-
-cb {
-.block-margins;
-}
-
-cb:before {
-content:"[column break]";
-color: gray;
-}
-
-cell {
-display:table-cell;
-padding:1em 1.5em 1em 1em;
-.table-border;
-}
-
-/* for cell or row with @role = label */
-[role=label] {
-font-weight:bold;
-}
-
-certainty {}
-
-change {}
-
-channel {}
-
-char {}
-
-charDecl {}
-
-charName {}
-
-charProp {}
-
-choice {}
-
-cit {}
-
-cl {}
-
-classCode {}
-
-classDecl {}
-
-classRef {}
-
-classSpec {}
-
-classes {}
-
-climate {
-.block-margins;
-.label("Climate: ");
-}
-
-closer {
-margin-bottom: 1em;
-padding-bottom: 1em;
-border-bottom: @darkunderline;
-.block;
-}
-
-code {
-.mono;
-}
-
-/* For things like collation, condition, etc. that can have text or paragraphs as 
-children, we should use margins, when the content is text, and no margins when there 
-are child paragraphs (or other block elements). Otherwise we end up with double 
-margins. */
-
-collation {.block-margins;}
-
-collection {}
-
-colloc {}
-
-colophon {.block-margins;}
-
-cond {}
-
-condition {.block-margins;}
-
-constitution {
-.block-margins;
-.label("Constitution: ");
-}
-
-constitution[type] {
-.block-margins;
-.label("Constitution (" attr(type) "): ");
-}
-
-constitution[type=frags] {
-.block-margins;
-.label("Constitution (fragments): ");
-}
-
-constraint {}
-
-constraintSpec {}
-
-content {}
-
-/* Need to discuss and coordinate handling of sic/corr, abbr/expan, and orig/reg */
-
-corr {}
-
-correction {}
-
-country {}
-
-creation {}
-
-/*
-Need to handle attributes for custEvent. All the att.datable* attributes will be tricky. 
-custodialHist and custEvent may normally be hidden along with other header metadata, but
-we'll have other datable elements that may be tricky. */
-
-custEvent {
-.list-item;
-}
-
-custodialHist {
-.block-margins;
-}
-
-/* d */
-
-[data-tapas-hashed-ref] {
-border-bottom: @hoverunderline;
-}
-
-damage {}
-
-damageSpan {}
-
-datatype {}
-
-date {}
-
-date[when]:empty:before {
-	content: attr(when);
-}
-
-dateline {
-.block;
-}
-
-death {}
-
-decoDesc {}
-
-decoNote {}
-
-def {}
-
-default {}
-
-defaultVal {}
-
-del {}
-
-delSpan {}
-
-depth {}
-
-derivation {}
-
-desc {}
-
-dictScrap {}
-
-dim {}
-
-dimensions {}
-
-distinct {}
-
-distributor {}
-
-district {}
-
-divGen {}
-
-docAuthor {}
-
-docDate {
-.block;
-}
-
-docEdition {
-.block
-}
-
-docImprint {
-.block;
-}
-
-docTitle {
-.block;
-}
-
-domain {}
-
-/* e */
-
-eLeaf {}
-
-eTree {}
-
-edition {}
-
-editionStmt {}
-
-editor {}
-
-editorialDecl {}
-
-education {}
-
-eg {}
-
-egXML {
-.block;
-font-size: 80%;
-margin-left: 1em;
-padding-left: 1em;
-border-left: 1px solid @border-color;
-margin-top: .75em;
-margin-bottom: .75em;
-padding-top: .75em;
-padding-bottom: .75em;
-font-family:monospace;
-white-space:pre;
-}
-
-elementRef {}
-
-elementSpec {}
-
-email {}
-
-emph {
-font-style:italic;
-}
-
-encodingDesc {
-.hide;
-}
-
-entry {}
-
-entryFree {}
-
-epigraph {
-.block-margins;
-padding: 0 1em;
-}
-
-epilogue {}
-
-equipment {}
-
-equiv {}
-
-etym {}
-
-event {}
-
-ex {}
-
-exemplum {}
-
-expan {}
-
-explicit {}
-
-fileDesc > extent {
-.hide;
-}
-
-/* f */
-
-f {}
-
-fDecl {}
-
-fDescr {}
-
-fLib {}
-
-facsimile {}
-
-factuality {}
-
-faith {}
-
-figDesc {}
-
-figure {
-.block;
-text-align:center;
-margin-left:auto;
-margin-right:auto;
-}
-
-fileDesc {}
-
-filiation {}
-
-finalRubric {}
-
-floatingText {}
-
-floruit {}
-
-foliation {}
-
-foreign {}
-
-forename {}
-
-forest {}
-
-forestGrp {}
-
-form {}
-
-formula {}
-
-front {}
-
-fs {}
-
-fsConstraints {}
-
-fsDecl {}
-
-fsDescr {}
-
-fsdDecl {}
-
-fsdLink {}
-
-funder {}
-
-fvLib {}
-
-fw {}
-
-/* g */
-
-g {}
-
-gap {/* GLS: Depending upon how we handle gap and lacuna, we may want to enclose in [] */ }
-
-gb {}
-
-gen {}
-
-genName {}
-
-geo {}
-
-geoDecl {}
-
-geogFeat {}
-
-geogName {}
-
-gi {
-.mono;
-}
-
-gi:before {
-content:"<";
-}
-
-gi:after {
-content:">";
-}
-
-gloss {}
-
-glyph {}
-
-glyphName {}
-
-gram {}
-
-gramGrp {}
-
-graph {
-.messageReplace("Message here.");
-}
-
-graphic {
-.hide;
-}
-group {}
-
-/* h */
-
-handDesc {}
-
-handNote {}
-
-handNotes {}
-
-handShift {}
-
-head {}
-
-/* Need head with TEI parent to distinguish from HTML head */
-TEI head {
-.block;
-.head-font;
-}
-
-TEI text front > head, TEI text body > head, TEI text back > head {
-margin-bottom: 1em;
-}
-
-body > head {
-font-size: 140%;
-} 
-
-div > head {
-font-size: 135%;
-}
-
-div > div > head {
-font-size: 130%;
-}
-
-div > div > div > head {
-font-size: 125%;
-}
-
-div > div > div > div > head, 
-list > head {
-font-size: 120%;
-}
-
-div > div > div > div > div > head {
-font-size: 115%;
-}
-
-div > div > div > div > div > div head {
-font-size: 110%;
-}
-
-figure > head {
-.note-like;
-width:85%;
-font-family:@body-font-family;
-font-size:@body-font-size;
-}
-
-div[type="canto"] head {
-.block(.25em);
-}
-
-div head[type="sub"]{
-font-size: 115%;
-}
-
-div[type="chapter"] > head {
-text-align: center;
-margin-bottom: 1em;
-}
-
-div[type="half_title"] > head {
-text-align:center;
-padding: 1em;
-border: 1px dashed lightgray;
-}
-
-head[type="supplied"] {
-.hide;
-}
-
-headItem {}
-
-headLabel {}
-
-height {}
-
-heraldry {}
-
-hi {}
-
-history {}
-
-hom {}
-
-hyph {}
-
-hyphenation {}
-
-/* i */
-
-iNode {}
-
-iType {}
-
-ident {
-.mono;
-}
-
-idno {}
-
-if {}
-
-iff {}
-
-imprimatur {}
-
-imprint {}
-
-incident {}
-
-incipit {}
-
-index {}
-
-institution {}
-
-interaction {}
-
-interp {}
-
-interpGrp {}
-
-interpretation {}
-
-item {
-.list-item;
-}
-
-list item {
-margin-left: 1em;
-margin-top: .125em;
-margin-bottom: .25em;
-}
-
-cell item {
-margin-left:1em;
-}
-
-
-/* j */
-
-join {}
-
-joinGrp {}
-
-/* k */
-keywords {}
-
-kinesic {}
-
-/* l */
-
-l {
-.block;
-/*padding-left:2em;
-text-indent:-2em;*/
-}
-
-.poem-line-count {
-font-size: 80%;
-display: inline-block;
-min-width: 1.5em;
-float: right;
-}
-
-/*
-.poem-line-count + l {
-margin-top: 1em;
-display: inline-block;
-text-indent: 0em;
-padding-left: 0
-}*/
-
-label {}
-
-label + item {
-    list-style: none;
-}
-
-list label {
-    float: left;
-}
-
-list label:after {
-    content: " ";
-}
-
-list[type = "gloss"] > label {
-display: inline-block;
-font-weight:bold;
-}
-
-lacunaEnd {}
-
-lacunaStart {}
-
-lang {}
-
-langKnowledge {}
-
-langKnown {}
-
-langUsage {}
-
-language {}
-
-layout {}
-
-layoutDesc {}
-
-lb {}
-
-lbl {}
-
-leaf {}
-
-lem {}
-
-lg {
-.block-margins;
-}
-
-lg[type="verse_paragraph"] l {
-}
-
-lg[style*="text-align:center"],
-lg[style*="text-align: center"] {
-  text-align: left !important;
-}
-
-
-link {}
-
-linkGrp {}
-
-list {
-.block-margins;
-}
-
-p list {
-text-align:left;
-}
-
-item > list {
-margin-top:0;
-}
-
-list label {
-display: inline-block;
-min-width: 1.5em;
-}
-
-list label + item {
-list-style-type: none;
-margin-left: 0em;
-}
-
-list label + item:after {
-content: "\A" ;
-white-space: pre;
-}
-
-/* Match only lists that are descendants of 
-text. Otherwise they show up in the header. */
-
-text list[type=simple],  {
-list-style-type:none;
-}
-
-text list[type=simple] > item {
-margin-left: 0;
-}
-
-text list[type=bulleted] {
-list-style-type:disc;
-}
-
-text list[type=ordered] {
-list-style-type:none;
-counter-reset: items 0;
-margin-left:1em;
-}
-
-text list[type=ordered] label {
-.hide; 
-}
-
-text list[type=ordered] > item {
-.list-item;
-margin-left:0;	
-}
-
-text list[type=ordered] > item:before {
-counter-increment:items 1;
-content: counter(items, decimal) ". ";
-}
-
-text list[type=gloss],
-text list[type=gloss] > item {
-list-style-type: none;
-}
-
-text div[type~="contents"] list item {
-padding-top:.5em;
-}
-
-text list item a[rend~="right"] {
-float:right;
-}
-
-text list[type=toc] {
-list-style: none;
-margin-bottom: 20px;
-}
-
-text list[type=toc] > item {
-list-style-type: none;
-}
-
-text list[type=toc] item {
-position:relative;
-background: url('http://5thirtyone.com/sandbox/share/toc/dot.gif') repeat-x bottom left;
-overflow: hidden;
-padding-bottom: 2px;
-margin-left: 0;
-}
-
-text list[type=toc] a,
-text list[type=toc] label,
-text list[type=toc] rs {
-display: inline-block;
-background: @background-color;
-position: relative;
-bottom: -4px;
-}
-
-text list[type=toc] a {
-position:absolute;
-right:0;
-bottom:0;
-padding: 0 0 3px 2px;
-width:70px;
-border-bottom:0;
-text-decoration: none;
-}
-
-text list[type=toc] label {
-background-color:@background-color;
-float:left;
-padding: 0 2px 3px 0;
-}
-
-text list[type=toc] rs {
-padding: 0 2px 3px 0;
-}
-
-text list item p:first-child {
-.inline;
-}
-
-listBibl bibl {
-display: list-item;
-list-style: none;
-margin: .5em 0;
-}
-
-listBibl biblStruct {
-display: list-item;
-list-style: none;
-margin: .5em 0;
-}
-
-listBibl bibl:last-child,
-listBibl biblStruct:last-child {
-padding-bottom: 1em; 
-}
-
-listEvent {}
-
-listNym {}
-
-listOrg {}
-
-listPerson {}
-
-listPlace {}
-
-listRef {}
-
-listWit {}
-
-localName {}
-
-locale {}
-
-location {}
-
-locus {}
-
-locusGrp {}
-
-/* m */
-
-m {}
-
-macroRef {}
-
-macroSpec {}
-
-mapping {}
-
-material {}
-
-measure {}
-
-measureGrp {}
-
-meeting {}
-
-memberOf {}
-
-mentioned {}
-
-metDecl {}
-
-metSym {}
-
-milestone {
-.block;
-margin-left:auto;
-margin-right:auto;
-text-align:center;
-}
-
-milestone:before {
-content: "* * * * *";
-}
-
-moduleRef {}
-
-moduleSpec {}
-
-monogr {}
-
-mood {}
-
-move {}
-
-msContents {
-.block-margins {
-	.block(1em)
+	.inline {
+	display:inline;
 	}
-}
 
-msDesc {}
+	.list-item {
+	display:list-item;
+	}
+
+	.italic {
+	font-style: italic;
+	}
+
+	.mono {
+	font-family:Courier,monospace;
+	}
+
+	.box-shadow {
+	-webkit-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
+	-moz-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
+	box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
+	}
+
+	.note-like {
+	.block;
+	margin:1.5em auto 1.5em auto;
+	padding:.5em 1.5em 1.5em 1.5em;
+	border:1px solid black;
+	border-radius: 15px;
+	width: 325px;
+	position: relative;
+	border: 1px solid @border-color;
+	background: @note-background-color;
+	/* reset text-indent for note with <l> ancestors. */
+	text-indent:0;
+	font-size:85%;
+	text-align:justify;
+	.box-shadow;
+	}
+
+	.quotesUS {
+	quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
+	}
+
+	.quotesUK {
+	quotes: "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019";
+	}
+
+	.quotes {
+		.quotesUS;
+	}
+
+	/* teibp classes */
+
+	.-teibp-thumbnail {
+	max-height: 60px;
+	}
+
+	.-teibp-pbFacs {
+	.tapas-generic .hide;
+	}
+
+
+	.label (@content: "") {
+		&:before{
+			font-weight: bold;
+			content: @content;
+		}
+	}
+
+	.surround (@before, @after){
+		&:before{
+		content: @before;
+		}
+		&:after{
+			content: @after;
+		}
+	}
+
+	.messageReplace (@message){}
+
+	.page-setup {
+	margin-left:2em;
+	margin-right:4em;
+	padding:2.5em;
+	font-family: @body-font-family;
+	font-size:@body-font-size;
+	line-height:@body-line-height;
+	background-color:@background-color;
+	color:@color;
+	width:33em;
+	}
+
+	.table-border {
+	border:@darkunderline;
+	}
+
+	/* Choice elements */
+	choice {
+		abbr + expan, expan + abbr, sic + corr, corr + sic, orig + reg, reg + orig{
+			.surround(" (", ")");
+		}
+	}
+
+	/* A */
+	a[rend~="super"] {
+	vertical-align:super;
+	font-size: 70%;
+	}
 
-msIdentifier {}
+	a.ref-not-found,
+	.ptr-not-found,
+	[class$="-not-found"] {
+	text-decoration: none;
+	color: inherit;
+	pointer: text;
+	}
 
-msItem {}
+	ab {
+	.block-margins;
+	}
 
-msItemStruct {}
+	accMat {
+	.block;
+	}
 
-msName {}
+	accMat:before {
+	content: "accompanying materials: ";
+	}
 
-msPart {}
+	acquisition {
+	.block;
+	.label("acquisition");
+	}
 
-musicNotation {
-.label("Musical Notation: ");
-font-weight: bold;
-}
+	activity {
+	.block;
+	}
 
-/* n */
+	activity:before {
+	content: "activity: ";
+	}
 
-name {}
+	/* add */
+	add {
+	vertical-align:super;
+	font-size:90%;
+	}
 
-nameLink {}
+	add[place=below] {
+	vertical-align:sub;
+	font-size:90%;
+	}
 
-namespace {}
+	additional {
+	.block;
+	}
 
-nationality {}
+	additions {
+	.block;
+	}
 
-node {
-.hide
-}
+	additions:before {
+	content: "Significant additions within the document: ";
+	}
 
-normalization {}
+	addrLine {
+	.block;
+	}
 
-note {
-.hide;
-}
+	address {}
 
-note[place~="foot"],
-note[place~="bottom"] {
-.block;
-font-size: 90%;
-padding: 2px 0;
-font-family: Arial, Verdana, sans-serif;
-}
+	address[rend~="block"],
+	addresss[rendition~="#block"]  {
+	.block;
+	}
 
-note[place~="foot"]:before,
-note[place~="bottom"]:before {
-vertical-align: super;
-font-size: 70%;
-content: attr(data-tapas-note-num) "\00a0";
-}
+	adminInfo  {
+	.block;
+	}
 
-div[type="endnotes"]:before {
-.block;
-margin-top: 1em;
-content: 'Endnotes: ';
-font-family: Arial, Verdana, sans-serif;
-}
+	affiliation {}
 
-div[type="endnotes"] note {
-.block-margins;
-font-size: 90%;
-font-family: Arial, Verdana, sans-serif;
-}
+	age {}
 
+	alt {}
 
-.note-marker {
-vertical-align:super;
-font-size:70%;
-}
+	altGrp {}
 
-notesStmt {
-.hide;
-}
+	altIdent {}
 
-num {}
+	altIdentifier  {
+	.block;
+	}
 
-number {}
+	altIdentifier:before {
+	content: "Alternate ID: ";
+	}
 
-numeric {}
+	am {}
 
-nym {}
- 
-/* o */
+	analytic {}
 
-oRef {}
+	anchor {}
 
-oVar {
-.italic;
-}
+	app  {
+	.block;
+	}
 
-objectDesc {}
+	appInfo  {
+	.block;
+	}
 
-objectType {}
+	appInfo:before {
+	content: "Application information: ";
+	}
 
-occupation {}
+	application  {
+	.block;
+	}
 
-offset {}
+	application:after {
+	content: " " attr(version);
+	}
 
-opener {
-.block;
-}
+	arc {}
 
-opener placeName,
-opener date {
-.block;
-}
+	argument {
+	.block;
+	}
 
-opener tapas_metadata {
-.inline;
-}
+	att {
+	.mono;
+	line-height: normal;
+	}
 
-opener tapas_metadata:before {
-content: "\00000a";
-white-space: pre;
-}
+	att:before {
+	content: "@";
+	}
 
-org {}
+	attDef {}
 
-orgName {}
+	attlist {}
 
-origDate {}
+	attRef {}
 
-origPlace {
-.label("Place of Origin: ");
-font-weight: bold;
-}
+	author {}
 
-origin {}
+	titleStmt > author {
+	.block;
+	.tapas-generic .head-font;
+	margin-bottom:1em;
+	}
 
-orth {}
+	authority {}
 
-/* p */
+	publicationStmt > availability{
+	font-size:80%;
+	.label("Availability: ");
+	}
 
-p {
-.block-margins;
-/*text-align:justify;*/
-}
+	publicationStmt > availability[status]{
+	.label("Availability (" attr(status) "): ");
+	}
 
-*[rendition~="#center"] p {
-text-align:center;
-}
+	/* B */
 
-availability > p:first-child {
-margin-top:0em;
-}
+	back  {
+	.block;
+	}
 
-pRef {}
+	bibl {}
 
-pVar {}
+	epigraph bibl:before {
+	content: "\2014";
+	}
 
-particDesc {}
+	bibl[rend~="block"], bibl[rendition~="#block"] {
+	.block;
+	padding-left:2em;
+	text-indent:-2em;
+	}
 
-pause {}
+	bibl title {
+	font-style: italic;
+	}
 
-.pb {
-.block-margins;
-width: 100%;
-text-align: right;
-color: gray;
-padding: 1em 0;
-font-size:11pt;
-}
+	biblFull  {
+	.block;
+	}
 
-pb {
-.pb;
-}
-/*
-pb:before {
-content: "page:\a0" attr(n);
-}*/
+	biblScope {}
 
-pc {}
+	biblStruct {}
 
-per {}
+	bicond {}
 
-performance {
-.block-margins;
-}
+	binary {}
 
-persName[ref] {
-border-bottom: @hoverunderline;
-}
+	binaryObject {}
 
-person {
-.block-margins;
-}
+	binding {
+	.block;
+	}
 
-personGrp {
-.block-margins;
-}
+	binding:before {
+	content: "Binding: \A";
+	white-space: pre-wrap;
+	}
 
-phr {}
+	binding[contemporary]:before {
+	content: "Binding: \A" "Contemporary: " attr(contemporary) "\A";
+	white-space: pre-wrap;
+	}
 
-physDesc {}
+	bindingDesc  {
+	.block;
+	}
 
-place {}
+	bindngDesc:before {
+	content: "Binding Description: \A";
+	}
 
-placeName {}
+	birth  {
+	.block;
+	}
 
-div[type="poem"]{
-.block-margins;
-}
+	birth:before {
+	content: "Birth: ";
+	}
 
-population {}
+	bloc {}
 
-pos {}
+	body {
+	color: inherit;
+	background-color: inherit;
+	}
 
-postBox {}
+	broadcast {}
 
-postCode {}
+	byline {
+	.block;
+	}
 
-postscript {
-.block;
-margin-top:2em;
-}
+	/* c */
 
-precision {}
+	c {}
 
-preparedness {}
+	cRefPattern {
+	.tapas-generic .hide;
+	}
 
-principal {
-.label("Principal: ");
-font-weight: bold;
-}
+	caesura {}
 
-profileDesc {
-.hide;
-}
+	camera {}
 
-projectDesc {}
+	caption {
+	.block-margins
+	}
 
-prologue {}
+	case {}
 
-pron {}
+	case[value]{
+	.label(attr(value) " ");
+	}
 
-provenance {
-.block;
-}
+	castGroup {
+	.block-margins;
+	}
 
-ptr {}
+	castItem {
+	.list-item;
+	list-style-type:none;
+	}
 
-pubPlace {}
+	castlist {
+	.block-margins;
+	margin-left:2em;
+	}
 
-docImprint pubPlace {
-.block;
-}
+	catDesc {}
 
-publicationStmt > * {
-.hide;
-}
+	catRef {}
 
-publicationStmt {
-.block-margins;
-}
+	catchwords {}
 
-publicationStmt > date {
-.hide;
-}
+	category {}
 
-publisher {}
+	cb {
+	.block-margins;
+	}
 
-publicationStmt > publisher {
-.hide;
-}
+	cb:before {
+	content:"[column break]";
+	color: gray;
+	}
 
-purpose {}
+	cell {
+	display:table-cell;
+	padding:1em 1.5em 1em 1em;
+	.table-border;
+	}
 
-/* q */
+	/* for cell or row with @role = label */
+	[role=label] {
+	font-weight:bold;
+	}
 
-q {
-.quotes;
-}
+	certainty {}
 
-q:before {
-content: open-quote;
-}
+	change {}
 
-q:after {
-content: close-quote;
-}
+	channel {}
 
-q[next]:after,
-q[prev]:before {
-content: "" !important;
-}
+	char {}
 
-quotation {}
+	charDecl {}
 
-quote {
-.quotes;
-.block;
-}
+	charName {}
 
-quote:before {
-content: open-quote;
-}
+	charProp {}
 
-quote:after {
-content: close-quote;
-}
+	choice {}
 
-quote[next]:after,
-quote[prev]:before {
-content: "" !important;
-}
+	cit {}
 
-q l:first-child,
-quote l:first-child {
-.inline;
-padding-left: 0;
-text-indent: 0;
-}
+	cl {}
 
-q l:last-child,
-quote l:last-child {
-.inline;
-padding-left: 0;
-text-indent: 0;
-}
+	classCode {}
 
-q lg:first-child,
-quote lg:first-child {
-.inline;
-}
+	classDecl {}
 
-q p:last-child,
-quote p:last-child {
-margin-bottom: 0;
-.inline;
-}
+	classRef {}
 
-q p:first-child,
-quote p:first-child,{
-margin-top: 0;
-.inline;
-}
+	classSpec {}
 
-/* r */
-rdg {}
+	classes {}
 
-rdgGrp {}
+	climate {
+	.block-margins;
+	.label("Climate: ");
+	}
 
-re {
-.block;
-}
+	closer {
+	margin-bottom: 1em;
+	padding-bottom: 1em;
+	border-bottom: @darkunderline;
+	.block;
+	}
 
-recordHist {
-.block-margins;
-}
+	code {
+	.mono;
+	}
 
-recording {}
+	/* For things like collation, condition, etc. that can have text or paragraphs as
+	children, we should use margins, when the content is text, and no margins when there
+	are child paragraphs (or other block elements). Otherwise we end up with double
+	margins. */
 
-recordingStmt {}
+	collation {.block-margins;}
 
-ref {}
+	collection {}
 
-.ref-external:link {
-border-bottom: 1px solid @linkdarkgrey;
-text-decoration: none;
-}
+	colloc {}
 
-.ref-note:link {
-border-bottom: @underline;
-text-decoration: none;
-}
+	colophon {.block-margins;}
 
-.ref-note:hover {
-border-bottom: @hoverunderline;
-text-decoration: none;
-}
+	cond {}
 
-refState {}
+	condition {.block-margins;}
 
-refsDecl {}
+	constitution {
+	.block-margins;
+	.label("Constitution: ");
+	}
 
-region {}
+	constitution[type] {
+	.block-margins;
+	.label("Constitution (" attr(type) "): ");
+	}
 
-relatedItem {}
+	constitution[type=frags] {
+	.block-margins;
+	.label("Constitution (fragments): ");
+	}
 
-relation {}
+	constraint {}
 
-relationGrp {}
+	constraintSpec {}
 
-remarks {
-.label("remarks: ");
-font-weight: bold;
-}
+	content {}
 
-rendition {}
+	/* Need to discuss and coordinate handling of sic/corr, abbr/expan, and orig/reg */
 
-repository {}
+	corr {}
 
-residence {}
+	correction {}
 
-resp {}
+	country {}
 
-respStmt {
-.block;
-}
+	creation {}
 
-bibl respStmt {
-.inline;
-}
+	/*
+	Need to handle attributes for custEvent. All the att.datable* attributes will be tricky.
+	custodialHist and custEvent may normally be hidden along with other header metadata, but
+	we'll have other datable elements that may be tricky. */
 
-respons {}
+	custEvent {
+	.list-item;
+	}
 
-restore {}
+	custodialHist {
+	.block-margins;
+	}
 
-revisionDesc {
-.hide;
-}
+	/* d */
 
-rhyme {}
+	[data-tapas-hashed-ref] {
+	border-bottom: @hoverunderline;
+	}
 
-role {}
+	damage {}
 
-roleDesc {}
+	damageSpan {}
 
-roleName {}
+	datatype {}
 
-root {}
+	date {}
 
-row {
-display:table-row;
-}
+	date[when]:empty:before {
+		content: attr(when);
+	}
 
-rs {}
+	dateline {
+	.block;
+	}
 
-rubric {}
+	death {}
 
-/* s */
-/* When TEI document is embedded in HTML page, 
-   TEI's <s> element can be interpreted by
-   browser as HTML <s>, which results in 
-   a strike-through from the "user agent"
-   styles. */
-s {
-text-decoration:none;
-}
-said {}
+	decoDesc {}
 
+	decoNote {}
 
-tapas_metadata {
-.block-margins;
-}
+	def {}
 
-closer tapas_metadata {
-.inline;
-}
+	default {}
 
-samplingDecl {
-.block;
-}
+	defaultVal {}
 
-schemaSpec {}
+	del {}
 
-scriptDesc {}
+	delSpan {}
 
-scriptNote {
-.block-margins;
-}
+	depth {}
 
-scriptStmt {}
+	derivation {}
 
-seal {
-.block;
-.label("Seal: ");
-}
+	desc {}
 
-sealDesc {
-.block-margins;
-}
+	dictScrap {}
 
-secFol {
-.label ("Second Folio: ");
-}
+	dim {}
 
-seg {}
+	dimensions {}
 
-segmentation {}
+	distinct {}
 
-sense {
-.block;
-}
+	distributor {}
 
-series {}
+	district {}
 
-seriesStmt {
-.hide;
-}
+	divGen {}
 
-set {}
+	docAuthor {}
 
-setting {
-.block;
-}
+	docDate {
+	.block;
+	}
 
-settingDesc {}
+	docEdition {
+	.block
+	}
 
-settlement {}
+	docImprint {
+	.block;
+	}
 
-sex {}
+	docTitle {
+	.block;
+	}
 
-shift {}
+	domain {}
 
-sic {}
+	/* e */
 
-signatures {}
+	eLeaf {}
 
-signed {
-display: inline-block;
-margin-top:1.5em;
-}
+	eTree {}
 
-signed persName {
-.block;
-}
+	edition {}
 
-closer signed:before {
-content: "\00000a";
-white-space: pre;
-}
+	editionStmt {}
 
-closer signed {
-margin-top: 0;
-}
+	editor {}
 
-soCalled {
-.quotes;
-}
+	editorialDecl {}
 
-soCalled:before {
-content: open-quote;
-}
+	education {}
 
-soCalled:after {
-content: close-quote;
-}
+	eg {}
 
-soCalled[next]:after,
-soCalled[prev]:before {
-content: "" !important;
-}
+	egXML {
+	.block;
+	font-size: 80%;
+	margin-left: 1em;
+	padding-left: 1em;
+	border-left: 1px solid @border-color;
+	margin-top: .75em;
+	margin-bottom: .75em;
+	padding-top: .75em;
+	padding-bottom: .75em;
+	font-family:monospace;
+	white-space:pre;
+	}
 
-socecStatus {}
+	elementRef {}
 
-sound {
-.italic;
-}
+	elementSpec {}
 
-source {
-.block;
-}
+	email {}
 
-sourceDesc {
-.hide;
-}
+	emph {
+	font-style:italic;
+	}
 
-sp {}
+	encodingDesc {
+	.tapas-generic .hide;
+	}
 
-space {
-.label();
-}
+	entry {}
 
-TEI span {
-/* .hide; */
-}
+	entryFree {}
 
-TEI egXML span {
-.inline;
-}
+	epigraph {
+	.block-margins;
+	padding: 0 1em;
+	}
 
-spanGrp {}
-speaker {
-font-weight:bold; 
-margin-right:0;
-}
-specDesc {}
-specGrp {}
-specGrpRef {}
-specList {}
+	epilogue {}
 
-sponsor {
-.block; 
-.label("Sponsor: ");
-}
+	equipment {}
 
-stage {
-.block-margins; 
-.italic;
-}
+	equiv {}
 
-stamp {
-.block-margins;
-.label("Stamped: ");
-}
+	etym {}
 
-state {}
-stdVals {}
-street {}
-stress {}
-string {}
-stringVal {/* doesn't seem to be part of tei 5 */}
-subc {}
-subst {}
-summary {}
-superEntry {/* Block with space above and below, maybe have no block and space for <entry> when contained by this element */}
-supplied {}
-support {}
-supportDesc {}
-surface {}
-surname {}
+	event {}
 
-surplus {
-.hide
-}
+	ex {}
 
-surrogates {}
-syll {}
-symbol {}
+	exemplum {}
 
-/* t */
+	expan {}
 
-#tapasToolbox {
-position: fixed;
-top: 20px;
-left: 720px;
-background: #FFF;
-padding: 5px 10px 8px;
-border: 1px solid #7681CE;
-font-size: 13px;
-text-transform: uppercase;
-line-height: 1.5;
-border-radius: 3px;
--moz-border-radius: 3px;
--webkit-border-radius: 3px;
-}
+	explicit {}
 
-#tapasToolbox h1 {
-.hide;
-}
+	fileDesc > extent {
+	.tapas-generic .hide;
+	}
 
-#tapasToolbox label {
-.inline;
-margin-right:.5em;
-}
+	/* f */
 
-.toolboxinput {
-border: 1px solid @border-color;
-border-radius: 0px;
-background: @background-color;
--webkit-appearance:none;
--webkit-box-shadow:none;
--webkit-border-radius:0em;
-display: inline-block;
-}
+	f {}
 
-#tapasToolbox input[type=checkbox] {
-.toolboxinput;
-width: 14px;
-height: 14px;
-line-height:normal;
-padding:0;
-vertical-align: text-bottom;
-}
+	fDecl {}
 
-#tapasToolbox input[type=checkbox]:checked {
-background: @link-color;
-}
+	fDescr {}
 
-#tapasToolbox input[type=select] {
-.toolboxinput;
-padding: .25em;
-}
+	fLib {}
 
-TEI {
-.block;
-}
+	facsimile {}
 
-table {
-.block;
-border-collapse: separate;
-border-spacing: 2px;
-margin-top:2em;
-margin-bottom:2em;
-font-size:12pt;
-}
+	factuality {}
 
-table > head {
-text-align:center;
-}
+	faith {}
 
-tag {}
+	figDesc {}
 
-tagUsage {}
+	figure {
+	.block;
+	text-align:center;
+	margin-left:auto;
+	margin-right:auto;
+	}
 
-tagsDecl {}
+	fileDesc {}
 
-#tapas-ref-dialog {
-padding: 0.5em 1.25em 0.5em 0.5em;
-background: none;
-background-color: white;
-color: black;
-font-size: 13px;
-}
+	filiation {}
 
-#tapas-ref-dialog .tei-element {
-.hide
-}
+	finalRubric {}
 
-#tapas-ref-dialog p {
-text-align: left;
-}
+	floatingText {}
 
-#tapas-ref-dialog .ography-data {
-font-weight:bold;
-}
+	floruit {}
 
-#tapas-ref-dialog .ography title {
-.inline;
-}
+	foliation {}
 
-taxonomy {}
+	foreign {}
 
-tech {}
+	forename {}
 
-teiCorpus {}
+	forest {}
 
-#tei_contextual {
-.hide
-}
+	forestGrp {}
 
-teiHeader {
-display:none;
-margin-top:2em;
-margin-bottom:2em;
-border-bottom:1px solid #999;
-}
+	form {}
 
-term {}
-terrain {}
-text {}
+	formula {}
 
-TEI > text {
-.block;
-}
+	front {}
 
-textClass {
-.hide;
-}
+	fs {}
 
-textDesc {
-.hide;
-}
+	fsConstraints {}
 
-textLang {}
+	fsDecl {}
 
-then {}
+	fsDescr {}
 
-time {}
+	fsdDecl {}
 
-timeline {}
+	fsdLink {}
 
-TEI teiHeader + tapas_metadata {
- .hide; 
-}
+	funder {}
 
-TEI tapas_metadata contributor,
-TEI tapas_metadata rights, 
-TEI tapas_metadata source { 
-.hide; 
-}
+	fvLib {}
 
-TEI tapas_metadata date, TEI tapas_metadata creator {
-.block;
-}
+	fw {}
 
-/* title */
-/* Need TEI ancestor to distinguish TEI title from HTML title */
-title {}
+	/* g */
 
-TEI title {
-.inline;
-}
+	g {}
 
-TEI title[level=a] {
+	gap {/* GLS: Depending upon how we handle gap and lacuna, we may want to enclose in [] */ }
+
+	gb {}
+
+	gen {}
+
+	genName {}
+
+	geo {}
+
+	geoDecl {}
+
+	geogFeat {}
+
+	geogName {}
+
+	gi {
+	.mono;
+	}
+
+	gi:before {
+	content:"<";
+	}
+
+	gi:after {
+	content:">";
+	}
+
+	gloss {}
+
+	glyph {}
+
+	glyphName {}
+
+	gram {}
+
+	gramGrp {}
+
+	graph {
+	.messageReplace("Message here.");
+	}
+
+	graphic {
+	.tapas-generic .hide;
+	}
+	group {}
+
+	/* h */
+
+	handDesc {}
+
+	handNote {}
+
+	handNotes {}
+
+	handShift {}
+
+	head {}
+
+	/* Need head with TEI parent to distinguish from HTML head */
+	TEI head {
+	.block;
+	.tapas-generic .head-font;
+	}
+
+	TEI text front > head, TEI text body > head, TEI text back > head {
+	margin-bottom: 1em;
+	}
+
+	body > head {
+	font-size: 140%;
+	}
+
+	div > head {
+	font-size: 135%;
+	}
+
+	div > div > head {
+	font-size: 130%;
+	}
+
+	div > div > div > head {
+	font-size: 125%;
+	}
+
+	div > div > div > div > head,
+	list > head {
+	font-size: 120%;
+	}
+
+	div > div > div > div > div > head {
+	font-size: 115%;
+	}
+
+	div > div > div > div > div > div head {
+	font-size: 110%;
+	}
+
+	figure > head {
+	.note-like;
+	width:85%;
+	font-family:@body-font-family;
+	font-size:@body-font-size;
+	}
+
+	div[type="canto"] head {
+	.block(.25em);
+	}
+
+	div head[type="sub"]{
+	font-size: 115%;
+	}
+
+	div[type="chapter"] > head {
+	text-align: center;
+	margin-bottom: 1em;
+	}
+
+	div[type="half_title"] > head {
+	text-align:center;
+	padding: 1em;
+	border: 1px dashed lightgray;
+	}
+
+	head[type="supplied"] {
+	.tapas-generic .hide;
+	}
+
+	headItem {}
+
+	headLabel {}
+
+	height {}
+
+	heraldry {}
+
+	hi {}
+
+	history {}
+
+	hom {}
+
+	hyph {}
+
+	hyphenation {}
+
+	/* i */
+
+	iNode {}
+
+	iType {}
+
+	ident {
+	.mono;
+	}
+
+	idno {}
+
+	if {}
+
+	iff {}
+
+	imprimatur {}
+
+	imprint {}
+
+	incident {}
+
+	incipit {}
+
+	index {}
+
+	institution {}
+
+	interaction {}
+
+	interp {}
+
+	interpGrp {}
+
+	interpretation {}
+
+	item {
+	.list-item;
+	}
+
+	list item {
+	margin-left: 1em;
+	margin-top: .125em;
+	margin-bottom: .25em;
+	}
+
+	cell item {
+	margin-left:1em;
+	}
+
+
+	/* j */
+
+	join {}
+
+	joinGrp {}
+
+	/* k */
+	keywords {}
+
+	kinesic {}
+
+	/* l */
+
+	l {
+	.block;
+	/*padding-left:2em;
+	text-indent:-2em;*/
+	}
+
+	.poem-line-count {
+	font-size: 80%;
+	display: inline-block;
+	min-width: 1.5em;
+	float: right;
+	}
+
+	/*
+	.poem-line-count + l {
+	margin-top: 1em;
+	display: inline-block;
+	text-indent: 0em;
+	padding-left: 0
+	}*/
+
+	label {}
+
+	label + item {
+	    list-style: none;
+	}
+
+	list label {
+	    float: left;
+	}
+
+	list label:after {
+	    content: " ";
+	}
+
+	list[type = "gloss"] > label {
+	display: inline-block;
+	font-weight:bold;
+	}
+
+	lacunaEnd {}
+
+	lacunaStart {}
+
+	lang {}
+
+	langKnowledge {}
+
+	langKnown {}
+
+	langUsage {}
+
+	language {}
+
+	layout {}
+
+	layoutDesc {}
+
+	lb {}
+
+	lbl {}
+
+	leaf {}
+
+	lem {}
+
+	lg {
+	.block-margins;
+	}
+
+	lg[type="verse_paragraph"] l {
+	}
+
+	lg[style*="text-align:center"],
+	lg[style*="text-align: center"] {
+	  text-align: left !important;
+	}
+
+
+	link {}
+
+	linkGrp {}
+
+	list {
+	.block-margins;
+	}
+
+	p list {
+	text-align:left;
+	}
+
+	item > list {
+	margin-top:0;
+	}
+
+	list label {
+	display: inline-block;
+	min-width: 1.5em;
+	}
+
+	list label + item {
+	list-style-type: none;
+	margin-left: 0em;
+	}
+
+	list label + item:after {
+	content: "\A" ;
+	white-space: pre;
+	}
+
+	/* Match only lists that are descendants of
+	text. Otherwise they show up in the header. */
+
+	text list[type=simple],  {
+	list-style-type:none;
+	}
+
+	text list[type=simple] > item {
+	margin-left: 0;
+	}
+
+	text list[type=bulleted] {
+	list-style-type:disc;
+	}
+
+	text list[type=ordered] {
+	list-style-type:none;
+	counter-reset: items 0;
+	margin-left:1em;
+	}
+
+	text list[type=ordered] label {
+	.tapas-generic .hide;
+	}
+
+	text list[type=ordered] > item {
+	.list-item;
+	margin-left:0;
+	}
+
+	text list[type=ordered] > item:before {
+	counter-increment:items 1;
+	content: counter(items, decimal) ". ";
+	}
+
+	text list[type=gloss],
+	text list[type=gloss] > item {
+	list-style-type: none;
+	}
+
+	text div[type~="contents"] list item {
+	padding-top:.5em;
+	}
+
+	text list item a[rend~="right"] {
+	float:right;
+	}
+
+	text list[type=toc] {
+	list-style: none;
+	margin-bottom: 20px;
+	}
+
+	text list[type=toc] > item {
+	list-style-type: none;
+	}
+
+	text list[type=toc] item {
+	position:relative;
+	background: url('http://5thirtyone.com/sandbox/share/toc/dot.gif') repeat-x bottom left;
+	overflow: hidden;
+	padding-bottom: 2px;
+	margin-left: 0;
+	}
+
+	text list[type=toc] a,
+	text list[type=toc] label,
+	text list[type=toc] rs {
+	display: inline-block;
+	background: @background-color;
+	position: relative;
+	bottom: -4px;
+	}
+
+	text list[type=toc] a {
+	position:absolute;
+	right:0;
+	bottom:0;
+	padding: 0 0 3px 2px;
+	width:70px;
+	border-bottom:0;
+	text-decoration: none;
+	}
+
+	text list[type=toc] label {
+	background-color:@background-color;
+	float:left;
+	padding: 0 2px 3px 0;
+	}
+
+	text list[type=toc] rs {
+	padding: 0 2px 3px 0;
+	}
+
+	text list item p:first-child {
+	.inline;
+	}
+
+	listBibl bibl {
+	display: list-item;
+	list-style: none;
+	margin: .5em 0;
+	}
+
+	listBibl biblStruct {
+	display: list-item;
+	list-style: none;
+	margin: .5em 0;
+	}
+
+	listBibl bibl:last-child,
+	listBibl biblStruct:last-child {
+	padding-bottom: 1em;
+	}
+
+	listEvent {}
+
+	listNym {}
+
+	listOrg {}
+
+	listPerson {}
+
+	listPlace {}
+
+	listRef {}
+
+	listWit {}
+
+	localName {}
+
+	locale {}
+
+	location {}
+
+	locus {}
+
+	locusGrp {}
+
+	/* m */
+
+	m {}
+
+	macroRef {}
+
+	macroSpec {}
+
+	mapping {}
+
+	material {}
+
+	measure {}
+
+	measureGrp {}
+
+	meeting {}
+
+	memberOf {}
+
+	mentioned {}
+
+	metDecl {}
+
+	metSym {}
+
+	milestone {
+	.block;
+	margin-left:auto;
+	margin-right:auto;
+	text-align:center;
+	}
+
+	milestone:before {
+	content: "* * * * *";
+	}
+
+	moduleRef {}
+
+	moduleSpec {}
+
+	monogr {}
+
+	mood {}
+
+	move {}
+
+	msContents {
+	.block-margins {
+		.block(1em)
+		}
+	}
+
+	msDesc {}
+
+	msIdentifier {}
+
+	msItem {}
+
+	msItemStruct {}
+
+	msName {}
+
+	msPart {}
+
+	musicNotation {
+	.label("Musical Notation: ");
+	font-weight: bold;
+	}
+
+	/* n */
+
+	name {}
+
+	nameLink {}
+
+	namespace {}
+
+	nationality {}
+
+	node {
+	.tapas-generic .hide
+	}
+
+	normalization {}
+
+	note {
+	.tapas-generic .hide;
+	}
+
+	note[place~="foot"],
+	note[place~="bottom"] {
+	.block;
+	font-size: 90%;
+	padding: 2px 0;
+	font-family: Arial, Verdana, sans-serif;
+	}
+
+	note[place~="foot"]:before,
+	note[place~="bottom"]:before {
+	vertical-align: super;
+	font-size: 70%;
+	content: attr(data-tapas-note-num) "\00a0";
+	}
+
+	div[type="endnotes"]:before {
+	.block;
+	margin-top: 1em;
+	content: 'Endnotes: ';
+	font-family: Arial, Verdana, sans-serif;
+	}
+
+	div[type="endnotes"] note {
+	.block-margins;
+	font-size: 90%;
+	font-family: Arial, Verdana, sans-serif;
+	}
+
+
+	.note-marker {
+	vertical-align:super;
+	font-size:70%;
+	}
+
+	notesStmt {
+	.tapas-generic .hide;
+	}
+
+	num {}
+
+	number {}
+
+	numeric {}
+
+	nym {}
+
+	/* o */
+
+	oRef {}
+
+	oVar {
+	.tapas-generic .italic;
+	}
+
+	objectDesc {}
+
+	objectType {}
+
+	occupation {}
+
+	offset {}
+
+	opener {
+	.block;
+	}
+
+	opener placeName,
+	opener date {
+	.block;
+	}
+
+	opener tapas_metadata {
+	.inline;
+	}
+
+	opener tapas_metadata:before {
+	content: "\00000a";
+	white-space: pre;
+	}
+
+	org {}
+
+	orgName {}
+
+	origDate {}
+
+	origPlace {
+	.label("Place of Origin: ");
+	font-weight: bold;
+	}
+
+	origin {}
+
+	orth {}
+
+	/* p */
+
+	p {
+	.block-margins;
+	/*text-align:justify;*/
+	}
+
+	*[rendition~="#center"] p {
+	text-align:center;
+	}
+
+	availability > p:first-child {
+	margin-top:0em;
+	}
+
+	pRef {}
+
+	pVar {}
+
+	particDesc {}
+
+	pause {}
+
+	.pb {
+	.block-margins;
+	width: 100%;
+	text-align: right;
+	color: gray;
+	padding: 1em 0;
+	font-size:11pt;
+	}
+
+	pb {
+	.pb;
+	}
+	/*
+	pb:before {
+	content: "page:\a0" attr(n);
+	}*/
+
+	pc {}
+
+	per {}
+
+	performance {
+	.block-margins;
+	}
+
+	persName[ref] {
+	border-bottom: @hoverunderline;
+	}
+
+	person {
+	.block-margins;
+	}
+
+	personGrp {
+	.block-margins;
+	}
+
+	phr {}
+
+	physDesc {}
+
+	place {}
+
+	placeName {}
+
+	div[type="poem"]{
+	.block-margins;
+	}
+
+	population {}
+
+	pos {}
+
+	postBox {}
+
+	postCode {}
+
+	postscript {
+	.block;
+	margin-top:2em;
+	}
+
+	precision {}
+
+	preparedness {}
+
+	principal {
+	.label("Principal: ");
+	font-weight: bold;
+	}
+
+	profileDesc {
+	.tapas-generic .hide;
+	}
+
+	projectDesc {}
+
+	prologue {}
+
+	pron {}
+
+	provenance {
+	.block;
+	}
+
+	ptr {}
+
+	pubPlace {}
+
+	docImprint pubPlace {
+	.block;
+	}
+
+	publicationStmt > * {
+	.tapas-generic .hide;
+	}
+
+	publicationStmt {
+	.block-margins;
+	}
+
+	publicationStmt > date {
+	.tapas-generic .hide;
+	}
+
+	publisher {}
+
+	publicationStmt > publisher {
+	.tapas-generic .hide;
+	}
+
+	purpose {}
+
+	/* q */
+
+	q {
 	.quotes;
-}
-
-TEI title[level=a]:before {content: open-quote;}
-TEI title[level=a]:after {content: close-quote;}
-TEI title[level=a][next]:after {content: "" !important;}
-TEI title[level=a][prev]:before {content: "" !important;}
-
-title[level=m] {
-    .italic;
-}
+	}
+
+	q:before {
+	content: open-quote;
+	}
+
+	q:after {
+	content: close-quote;
+	}
 
-/* We transformed teiHeader//title to tei.title  */
-/* as a hack to solve a JavaScript/jQuery issue. */
-titleStmt > tei-title {
-.block;
-.head-font;
-font-weight:bold !important;
-font-size:150%;
-}
+	q[next]:after,
+	q[prev]:before {
+	content: "" !important;
+	}
 
-titleStmt > editor:before {
-content: "Edited by ";
-}
+	quotation {}
 
-titlePage {}
+	quote {
+	.quotes;
+	.block;
+	}
 
-titlePage argument,
-titlePage byline,
-titlePage cb,
-titlePage docAuthor,
-titlePage docDate,
-titlePage docEdition,
-titlePage docImprint,
-titlePage docTitle,
-titlePage epigraph,
-titlePage figure,
-titlePage gap,
-titlePage imprimatur,
-titlePage lb,
-titlePage milestone,
-titlePage note,
-titlePage pb,
-titlePage space,
-titlePage titlePart {
-.block;
-}
-titlePage byline docAuthor {
-.inline;
-}
+	quote:before {
+	content: open-quote;
+	}
 
+	quote:after {
+	content: close-quote;
+	}
 
-titlePart {}
+	quote[next]:after,
+	quote[prev]:before {
+	content: "" !important;
+	}
 
-titleStmt {}
+	q l:first-child,
+	quote l:first-child {
+	.inline;
+	padding-left: 0;
+	text-indent: 0;
+	}
 
-tns {}
+	q l:last-child,
+	quote l:last-child {
+	.inline;
+	padding-left: 0;
+	text-indent: 0;
+	}
 
-trailer {
-.block;
-margin-bottom: 1em;
-padding-bottom: 1em;
-border-bottom: @darkunderline;
-}
+	q lg:first-child,
+	quote lg:first-child {
+	.inline;
+	}
 
-trait {}
+	q p:last-child,
+	quote p:last-child {
+	margin-bottom: 0;
+	.inline;
+	}
 
-tree {}
+	q p:first-child,
+	quote p:first-child,{
+	margin-top: 0;
+	.inline;
+	}
 
-triangle {}
+	/* r */
+	rdg {}
 
-typeDesc {
-.hide;
-}
+	rdgGrp {}
 
-typeNote {}
+	re {
+	.block;
+	}
 
-/* u */
-u:before {
-content: "-";
-}
+	recordHist {
+	.block-margins;
+	}
 
-unclear {}
+	recording {}
 
-unicodeName {}
+	recordingStmt {}
 
-usg {}
+	ref {}
 
-.ui-widget-header{
-border: 0px;
-background: none;
-}
+	.ref-external:link {
+	border-bottom: 1px solid @linkdarkgrey;
+	text-decoration: none;
+	}
 
-.ui-dialog .ui-dialog-titlebar {
-font-size: 15px;
-min-height: 21px;
-}
+	.ref-note:link {
+	border-bottom: @underline;
+	text-decoration: none;
+	}
 
-.ui-dialog .ui-dialog-titlebar-close{
-right: 0;
-}
+	.ref-note:hover {
+	border-bottom: @hoverunderline;
+	text-decoration: none;
+	}
 
-/* v */
+	refState {}
 
-vAlt {}
+	refsDecl {}
 
-vColl {}
+	region {}
 
-vDefault {}
+	relatedItem {}
 
-vLabel {}
+	relation {}
 
-vMerge {}
+	relationGrp {}
 
-vNot {}
+	remarks {
+	.label("remarks: ");
+	font-weight: bold;
+	}
 
-vRange {}
+	rendition {}
 
-val {}
+	repository {}
 
-valDesc {}
+	residence {}
 
-valItem {}
+	resp {}
 
-valList {}
+	respStmt {
+	.block;
+	}
 
-value {}
+	bibl respStmt {
+	.inline;
+	}
 
-variantEncoding {}
+	respons {}
 
-view {
-.italic;
-}
+	restore {}
 
-vocal {}
+	revisionDesc {
+	.tapas-generic .hide;
+	}
 
-/* w */
+	rhyme {}
 
-w {}
+	role {}
 
-watermark {}
+	roleDesc {}
 
-width {}
+	roleName {}
 
-wit {}
+	root {}
 
-witDetail {}
+	row {
+	display:table-row;
+	}
 
-witEnd {}
+	rs {}
 
-witStart {}
+	rubric {}
 
-witness {}
+	/* s */
+	/* When TEI document is embedded in HTML page,
+	   TEI's <s> element can be interpreted by
+	   browser as HTML <s>, which results in
+	   a strike-through from the "user agent"
+	   styles. */
+	s {
+	text-decoration:none;
+	}
+	said {}
 
-writing {}
 
-/* x */
-xr {}
+	tapas_metadata {
+	.block-margins;
+	}
 
-/* z */
-zone {}
+	closer tapas_metadata {
+	.inline;
+	}
 
-/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
-html > body {
-margin:0;
-padding:0;
-}
+	samplingDecl {
+	.block;
+	}
 
-html {
-margin:0;
-padding:0;
-.page-setup;
-}
+	schemaSpec {}
 
-img {
-border:1px solid @border-color;
-}
+	scriptDesc {}
 
-footer {
-margin-top:1em;
-border-top: 1px solid @color;
-padding-top:.5em;
-font-size:12pt;
-}
-
-a:link, a:visited, a:active  {
-color:@link-color;
-text-decoration:none;
-}
-
-a:hover {
-color:@link-color;
-text-decoration:underline;
-}
-
-#teibpToolbox {
-left: 56em; 
-top: 25px; 
-position: fixed; 
-font-size: 70%;
-margin-right:1em;
-padding:1em;
-border-radius:15px;
-border: 1px solid @border-color;
-background: @note-background-color;
-font-family: Arvo, Verdana, sans-serif;
-text-align:justify;
-.box-shadow;
-width:12em;
-}
-
-#teibpToolbox h1 {
-font-weight:bold;
-font-size:115%;
-margin-top:0;
-margin-bottom:.5em;
-border-bottom:1px solid @border-color;
-}
-
-/* xml-serialization */
-.eg-element {
-    color:rgb(1,101,200);
-}
-.eg-comment {
-    color:gray;
-}
-.eg-att, .eg-nsdecl {
-    color:rgb(245,134,80);
-}
-.eg-attvalue, .eg-ns {
-    color:rgb(153,51,0);
-}
-.eg-text {
-    color:@color;
-}
-
-/* loading animation */
-#loading { 
-.hide; 
-position:fixed; 
-left:0; 
-top:0; 
-width:100%; 
-height:100%;
-background-image:url("../images/transparentbg.png"); 
-}
-
-/* facsViewer */
-
-#resizable {
-background-color:@background-color;
-width:550px;
-height:700px;
-overflow:hidden;
-padding:0 1em .25em 0;
-}
-
-div.facsImage {
-width:100%;
-height: 98%;
-overflow-y:scroll;
-border:1px solid black;
-}
-
-div.facsImage img {
-max-width:98% !important;
-margin-top:.5em;
-}
-
-div.facsImage img:first-child {
-margin-top:0;
-}
-
-div#footer {
-  width: 67%;
-  text-align: center;
-  border: dashed thin black;
-  padding: 1ex 1ex 1ex 1ex;
-  background-color: desaturate( darken( @background-color, 10%), 40% );
-}
-
-div#footer > p {
-  text-align: center;
+	scriptNote {
+	.block-margins;
+	}
+
+	scriptStmt {}
+
+	seal {
+	.block;
+	.label("Seal: ");
+	}
+
+	sealDesc {
+	.block-margins;
+	}
+
+	secFol {
+	.label ("Second Folio: ");
+	}
+
+	seg {}
+
+	segmentation {}
+
+	sense {
+	.block;
+	}
+
+	series {}
+
+	seriesStmt {
+	.tapas-generic .hide;
+	}
+
+	set {}
+
+	setting {
+	.block;
+	}
+
+	settingDesc {}
+
+	settlement {}
+
+	sex {}
+
+	shift {}
+
+	sic {}
+
+	signatures {}
+
+	signed {
+	display: inline-block;
+	margin-top:1.5em;
+	}
+
+	signed persName {
+	.block;
+	}
+
+	closer signed:before {
+	content: "\00000a";
+	white-space: pre;
+	}
+
+	closer signed {
+	margin-top: 0;
+	}
+
+	soCalled {
+	.quotes;
+	}
+
+	soCalled:before {
+	content: open-quote;
+	}
+
+	soCalled:after {
+	content: close-quote;
+	}
+
+	soCalled[next]:after,
+	soCalled[prev]:before {
+	content: "" !important;
+	}
+
+	socecStatus {}
+
+	sound {
+	.tapas-generic .italic;
+	}
+
+	source {
+	.block;
+	}
+
+	sourceDesc {
+	.tapas-generic .hide;
+	}
+
+	sp {}
+
+	space {
+	.label();
+	}
+
+	TEI span {
+	/* .hide; */
+	}
+
+	TEI egXML span {
+	.inline;
+	}
+
+	spanGrp {}
+	speaker {
+	font-weight:bold;
+	margin-right:0;
+	}
+	specDesc {}
+	specGrp {}
+	specGrpRef {}
+	specList {}
+
+	sponsor {
+	.block;
+	.label("Sponsor: ");
+	}
+
+	stage {
+	.block-margins;
+	.tapas-generic .italic;
+	}
+
+	stamp {
+	.block-margins;
+	.label("Stamped: ");
+	}
+
+	state {}
+	stdVals {}
+	street {}
+	stress {}
+	string {}
+	stringVal {/* doesn't seem to be part of tei 5 */}
+	subc {}
+	subst {}
+	summary {}
+	superEntry {/* Block with space above and below, maybe have no block and space for <entry> when contained by this element */}
+	supplied {}
+	support {}
+	supportDesc {}
+	surface {}
+	surname {}
+
+	surplus {
+	.tapas-generic .hide
+	}
+
+	surrogates {}
+	syll {}
+	symbol {}
+
+	/* t */
+
+	#tapasToolbox {
+	position: fixed;
+	top: 20px;
+	left: 720px;
+	background: #FFF;
+	padding: 5px 10px 8px;
+	border: 1px solid #7681CE;
+	font-size: 13px;
+	text-transform: uppercase;
+	line-height: 1.5;
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	}
+
+	#tapasToolbox h1 {
+	.tapas-generic .hide;
+	}
+
+	#tapasToolbox label {
+	.inline;
+	margin-right:.5em;
+	}
+
+	.toolboxinput {
+	border: 1px solid @border-color;
+	border-radius: 0px;
+	background: @background-color;
+	-webkit-appearance:none;
+	-webkit-box-shadow:none;
+	-webkit-border-radius:0em;
+	display: inline-block;
+	}
+
+	#tapasToolbox input[type=checkbox] {
+	.toolboxinput;
+	width: 14px;
+	height: 14px;
+	line-height:normal;
+	padding:0;
+	vertical-align: text-bottom;
+	}
+
+	#tapasToolbox input[type=checkbox]:checked {
+	background: @link-color;
+	}
+
+	#tapasToolbox input[type=select] {
+	.toolboxinput;
+	padding: .25em;
+	}
+
+	TEI {
+	.block;
+	}
+
+	table {
+	.block;
+	border-collapse: separate;
+	border-spacing: 2px;
+	margin-top:2em;
+	margin-bottom:2em;
+	font-size:12pt;
+	}
+
+	table > head {
+	text-align:center;
+	}
+
+	tag {}
+
+	tagUsage {}
+
+	tagsDecl {}
+
+	#tapas-ref-dialog {
+	padding: 0.5em 1.25em 0.5em 0.5em;
+	background: none;
+	background-color: white;
+	color: black;
+	font-size: 13px;
+	}
+
+	#tapas-ref-dialog .tei-element {
+	.tapas-generic .hide
+	}
+
+	#tapas-ref-dialog p {
+	text-align: left;
+	}
+
+	#tapas-ref-dialog .ography-data {
+	font-weight:bold;
+	}
+
+	#tapas-ref-dialog .ography title {
+	.inline;
+	}
+
+	taxonomy {}
+
+	tech {}
+
+	teiCorpus {}
+
+	#tei_contextual {
+	.tapas-generic .hide
+	}
+
+	teiHeader {
+	display:none;
+	margin-top:2em;
+	margin-bottom:2em;
+	border-bottom:1px solid #999;
+	}
+
+	term {}
+	terrain {}
+	text {}
+
+	TEI > text {
+	.block;
+	}
+
+	textClass {
+	.tapas-generic .hide;
+	}
+
+	textDesc {
+	.tapas-generic .hide;
+	}
+
+	textLang {}
+
+	then {}
+
+	time {}
+
+	timeline {}
+
+	TEI teiHeader + tapas_metadata {
+	 .tapas-generic .hide;
+	}
+
+	TEI tapas_metadata contributor,
+	TEI tapas_metadata rights,
+	TEI tapas_metadata source {
+	.tapas-generic .hide;
+	}
+
+	TEI tapas_metadata date, TEI tapas_metadata creator {
+	.block;
+	}
+
+	/* title */
+	/* Need TEI ancestor to distinguish TEI title from HTML title */
+	title {}
+
+	TEI title {
+	.inline;
+	}
+
+	TEI title[level=a] {
+		.quotes;
+	}
+
+	TEI title[level=a]:before {content: open-quote;}
+	TEI title[level=a]:after {content: close-quote;}
+	TEI title[level=a][next]:after {content: "" !important;}
+	TEI title[level=a][prev]:before {content: "" !important;}
+
+	title[level=m] {
+	    .tapas-generic .italic;
+	}
+
+	/* We transformed teiHeader//title to tei.title  */
+	/* as a hack to solve a JavaScript/jQuery issue. */
+	titleStmt > tei-title {
+	.block;
+	.tapas-generic .head-font;
+	font-weight:bold !important;
+	font-size:150%;
+	}
+
+	titleStmt > editor:before {
+	content: "Edited by ";
+	}
+
+	titlePage {}
+
+	titlePage argument,
+	titlePage byline,
+	titlePage cb,
+	titlePage docAuthor,
+	titlePage docDate,
+	titlePage docEdition,
+	titlePage docImprint,
+	titlePage docTitle,
+	titlePage epigraph,
+	titlePage figure,
+	titlePage gap,
+	titlePage imprimatur,
+	titlePage lb,
+	titlePage milestone,
+	titlePage note,
+	titlePage pb,
+	titlePage space,
+	titlePage titlePart {
+	.block;
+	}
+	titlePage byline docAuthor {
+	.inline;
+	}
+
+
+	titlePart {}
+
+	titleStmt {}
+
+	tns {}
+
+	trailer {
+	.block;
+	margin-bottom: 1em;
+	padding-bottom: 1em;
+	border-bottom: @darkunderline;
+	}
+
+	trait {}
+
+	tree {}
+
+	triangle {}
+
+	typeDesc {
+	.tapas-generic .hide;
+	}
+
+	typeNote {}
+
+	/* u */
+	u:before {
+	content: "-";
+	}
+
+	unclear {}
+
+	unicodeName {}
+
+	usg {}
+
+	.ui-widget-header{
+	border: 0px;
+	background: none;
+	}
+
+	.ui-dialog .ui-dialog-titlebar {
+	font-size: 15px;
+	min-height: 21px;
+	}
+
+	.ui-dialog .ui-dialog-titlebar-close{
+	right: 0;
+	}
+
+	/* v */
+
+	vAlt {}
+
+	vColl {}
+
+	vDefault {}
+
+	vLabel {}
+
+	vMerge {}
+
+	vNot {}
+
+	vRange {}
+
+	val {}
+
+	valDesc {}
+
+	valItem {}
+
+	valList {}
+
+	value {}
+
+	variantEncoding {}
+
+	view {
+	.tapas-generic .italic;
+	}
+
+	vocal {}
+
+	/* w */
+
+	w {}
+
+	watermark {}
+
+	width {}
+
+	wit {}
+
+	witDetail {}
+
+	witEnd {}
+
+	witStart {}
+
+	witness {}
+
+	writing {}
+
+	/* x */
+	xr {}
+
+	/* z */
+	zone {}
+
+	/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
+	html > body {
+	margin:0;
+	padding:0;
+	}
+
+	html {
+	margin:0;
+	padding:0;
+	.page-setup;
+	}
+
+	img {
+	border:1px solid @border-color;
+	}
+
+	footer {
+	margin-top:1em;
+	border-top: 1px solid @color;
+	padding-top:.5em;
+	font-size:12pt;
+	}
+
+	a:link, a:visited, a:active  {
+	color:@link-color;
+	text-decoration:none;
+	}
+
+	a:hover {
+	color:@link-color;
+	text-decoration:underline;
+	}
+
+	#teibpToolbox {
+	left: 56em;
+	top: 25px;
+	position: fixed;
+	font-size: 70%;
+	margin-right:1em;
+	padding:1em;
+	border-radius:15px;
+	border: 1px solid @border-color;
+	background: @note-background-color;
+	font-family: Arvo, Verdana, sans-serif;
+	text-align:justify;
+	.box-shadow;
+	width:12em;
+	}
+
+	#teibpToolbox h1 {
+	font-weight:bold;
+	font-size:115%;
+	margin-top:0;
+	margin-bottom:.5em;
+	border-bottom:1px solid @border-color;
+	}
+
+	/* xml-serialization */
+	.eg-element {
+	    color:rgb(1,101,200);
+	}
+	.eg-comment {
+	    color:gray;
+	}
+	.eg-att, .eg-nsdecl {
+	    color:rgb(245,134,80);
+	}
+	.eg-attvalue, .eg-ns {
+	    color:rgb(153,51,0);
+	}
+	.eg-text {
+	    color:@color;
+	}
+
+	/* loading animation */
+	#loading {
+	.tapas-generic .hide;
+	position:fixed;
+	left:0;
+	top:0;
+	width:100%;
+	height:100%;
+	background-image:url("../images/transparentbg.png");
+	}
+
+	/* facsViewer */
+
+	#resizable {
+	background-color:@background-color;
+	width:550px;
+	height:700px;
+	overflow:hidden;
+	padding:0 1em .25em 0;
+	}
+
+	div.facsImage {
+	width:100%;
+	height: 98%;
+	overflow-y:scroll;
+	border:1px solid black;
+	}
+
+	div.facsImage img {
+	max-width:98% !important;
+	margin-top:.5em;
+	}
+
+	div.facsImage img:first-child {
+	margin-top:0;
+	}
+
+	div#footer {
+	  width: 67%;
+	  text-align: center;
+	  border: dashed thin black;
+	  padding: 1ex 1ex 1ex 1ex;
+	  background-color: desaturate( darken( @background-color, 10%), 40% );
+	}
+
+	div#footer > p {
+	  text-align: center;
+	}
 }
