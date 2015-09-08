@@ -1,5 +1,5 @@
 function getPageBreaks(){
-	return document.getElementsByTagName('pb');
+	return document.getElementsByClassName('teibp').getElementsByTagName('pb');
 }
 
 function clearPageBreaks(){
@@ -22,15 +22,15 @@ function addPageBreaks(){
 }
 
 function init(){
-	document.getElementById('pbToggle').onclick = function(){
-		if(document.getElementById('pbToggle').checked){
+	document.getElementsByClassName('teibp').getElementById('pbToggle').onclick = function(){
+		if(document.getElementsByClassName('teibp').getElementById('pbToggle').checked){
 			clearPageBreaks();
 		}else{
 			addPageBreaks();
 		}
 	};
 	addPageBreaks();
-	document.getElementById('pbToggle').checked = false;
+	document.getElementsByClassName('teibp').getElementById('pbToggle').checked = false;
 }
 
 //If W3C event model used, prefer that. Window events are fallbacks
@@ -44,6 +44,6 @@ if(document.addEventListener){
 	window.attachEvent( "onload", init);
 }
 
-function switchThemes(theme){
+function switchThemes(theme){ // This needs to be fixed.
 	document.getElementById('maincss').href=theme.options[theme.selectedIndex].value;
 }
