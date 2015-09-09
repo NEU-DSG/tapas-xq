@@ -4,6 +4,8 @@
   xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
   exclude-result-prefixes="xd"
   version="1.0">
+  
+  <xsl:output method="html"/>
 
   <xd:doc scope="stylesheet">
     <xd:desc>

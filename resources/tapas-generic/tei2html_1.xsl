@@ -50,7 +50,7 @@
 
   <!-- xsl:include href="xml-to-string.xsl"/ -->
 
-  <xsl:output encoding="UTF-8" method="xml" omit-xml-declaration="yes" indent="yes"/>
+  <xsl:output encoding="UTF-8" method="html" omit-xml-declaration="yes" indent="yes"/>
 
   <xsl:param name="teibpHome"  select="'http://dcl.slis.indiana.edu/teibp/'"/>
   <xsl:param name="tapasHome"  select="'http://tapasproject.org/'"/>
@@ -102,11 +102,13 @@
     <html>
       <xsl:call-template name="htmlHead"/>
       <body>
-        <xsl:call-template name="toolbox"/>
-        <xsl:call-template name="dialog"/>
-        <xsl:call-template name="wrapper"/>
-        <xsl:call-template name="contextual"/>
-        <!-- commented out 2014-09-28 by Syd xsl:copy-of select="$htmlFooter"/ -->
+        <div class="tapas-generic">
+          <xsl:call-template name="toolbox"/>
+          <xsl:call-template name="dialog"/>
+          <xsl:call-template name="wrapper"/>
+          <xsl:call-template name="contextual"/>
+          <!-- commented out 2014-09-28 by Syd xsl:copy-of select="$htmlFooter"/ -->
+        </div>
       </body>
     </html>
   </xsl:template>
@@ -115,22 +117,22 @@
     <div id="tapasToolbox">
       <div id="tapasToolbox-pb">
         <label for="pbToggle">Hide page breaks</label>
-        <input type="checkbox" id="pbToggle" />
+        <input type="checkbox" id="pbToggle"></input>
       </div>
       <div id="tapasToolbox-views">
         <label for="viewBox">Views</label>
         <select id="viewBox">
           <!-- this <select> used to have on[cC]hange="switchThemes(this);", but -->
           <!-- that was incorporated into the javascript 2014-04-20 by PMJ. -->
-          <option value="{$view.diplo}" selected="selected">diplomatic</option>
-          <option value="{$view.norma}">normalized</option>
+          <option value="diplomatic" selected="selected">diplomatic</option>
+          <option value="normal">normalized</option>
         </select>
       </div>
     </div>
   </xsl:template>
 
   <xsl:template name="dialog">
-    <div id="tapas-ref-dialog"/>
+    <div id="tapas-ref-dialog"></div>
   </xsl:template>
 
   <xsl:template name="wrapper">
@@ -412,7 +414,7 @@
     <xsl:element name="{local-name(.)}">
       <xsl:apply-templates select="@*"/>
       <xsl:call-template name="addID"/>
-      <img alt="{normalize-space(tei:figDesc)}" src="{tei:graphic/@url}"/>
+      <img alt="{normalize-space(tei:figDesc)}" src="{tei:graphic/@url}"></img>
       <xsl:apply-templates select="*[ not( self::tei:graphic | self::tei:figDesc ) ]"/>
     </xsl:element>
   </xsl:template>
@@ -576,14 +578,14 @@
 
   <xsl:template name="htmlHead">
     <head>
-      <meta charset="UTF-8"/>
+      <meta charset="UTF-8"></meta>
       <xsl:choose>
         <xsl:when test="$lessSide='client'">
-          <link rel="stylesheet/less" type="text/css" href="{$less}"/>
-          <script src="less.js" type="text/javascript"/>
+          <link rel="stylesheet/less" type="text/css" href="{$less}"></link>
+          <script src="less.js" type="text/javascript"></script>
         </xsl:when>
         <xsl:otherwise>
-          <link id="maincss" rel="stylesheet" type="text/css" href="{$view.diplo}"/>
+          <link id="maincss" rel="stylesheet" type="text/css" href="{$view.diplo}"></link>
         </xsl:otherwise>
       </xsl:choose>
       <xsl:call-template name="javascript"/>
@@ -595,17 +597,11 @@
   </xsl:template>
 
   <xsl:template name="javascript">
-    <script type="text/javascript" src="{$filePrefix}js/jquery/jquery.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}js/jquery-ui/ui/minified/jquery-ui.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}js/contextualItems.js"/>
-    <link rel="stylesheet" href="{$filePrefix}css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"/>
-    <script type="text/javascript" src="{$teibpJS}"/>
-    <script type="text/javascript">
-      jQuery(document).ready(function() {
-      $("html > head > title").text($("TEI > teiHeader > fileDesc > titleStmt > title:first").text());
-      $.unblockUI();
-      });
-    </script>
+    <script type="text/javascript" src="{$filePrefix}js/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="{$filePrefix}js/jquery-ui/ui/minified/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="{$filePrefix}js/contextualItems.js"></script>
+    <link rel="stylesheet" href="{$filePrefix}css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"></link>
+    <script type="text/javascript" src="{$teibpJS}"></script>
   </xsl:template>
 
   <xsl:template name="css">
@@ -660,7 +656,7 @@
             <xsl:value-of select="@n"/>
           </xsl:attribute>
         </xsl:if>
-        <xsl:text>&#xA0;</xsl:text>
+        <xsl:text> </xsl:text>
       </a>
       <xsl:if test="@facs">
         <span class="-teibp-pbFacs">
