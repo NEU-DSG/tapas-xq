@@ -5,7 +5,12 @@
 /* @namespace with prefix, as below, throws and error in less. */
 /* @namespace html "http://www.w3.org/1999/xhtml"; */
 /* Less variables */
-.teibp {
+.box-shadow {
+  -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+.teibp.terminal {
   /* US Style Quotes */
   /* UK-Style Quotes */
   /* Choice elements */
@@ -67,7 +72,7 @@
   /* x */
   /* z */
 }
-.teibp .note-like {
+.teibp.terminal .note-like {
   display: block;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
@@ -85,330 +90,315 @@
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-.teibp .quotesUS {
+.teibp.terminal .quotesUS {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp .quotesUK {
+.teibp.terminal .quotesUK {
   quotes: "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019";
 }
-.teibp .quotes {
+.teibp.terminal .quotes {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp .block-margins {
+.teibp.terminal .block-margins {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp .box-shadow {
-  -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-}
-.teibp .hide {
+.teibp.terminal .hide {
   display: none;
 }
-.teibp .mono {
+.teibp.terminal .mono {
   font-family: Courier,monospace;
 }
-.teibp .page-setup {
-  margin-left: 2em;
-  margin-right: 4em;
-  padding: 2.5em;
-  font-family: Monaco, "Andale Mono", Courier, monospace;
-  font-size: 14pt;
-  background-color: #000000;
-  color: #00fd00;
-  width: 33em;
-}
-.teibp .table-border {
+.teibp.terminal .table-border {
   /*
 	border-left: 2px solid @border-color;
 	border-top:2px solid @border-color;
 	*/
   border: 1px dotted #444444;
 }
-.teibp choice abbr + expan:before,
-.teibp choice expan + abbr:before,
-.teibp choice sic + corr:before,
-.teibp choice corr + sic:before,
-.teibp choice orig + reg:before,
-.teibp choice reg + orig:before {
+.teibp.terminal choice abbr + expan:before,
+.teibp.terminal choice expan + abbr:before,
+.teibp.terminal choice sic + corr:before,
+.teibp.terminal choice corr + sic:before,
+.teibp.terminal choice orig + reg:before,
+.teibp.terminal choice reg + orig:before {
   content: " (";
 }
-.teibp choice abbr + expan:after,
-.teibp choice expan + abbr:after,
-.teibp choice sic + corr:after,
-.teibp choice corr + sic:after,
-.teibp choice orig + reg:after,
-.teibp choice reg + orig:after {
+.teibp.terminal choice abbr + expan:after,
+.teibp.terminal choice expan + abbr:after,
+.teibp.terminal choice sic + corr:after,
+.teibp.terminal choice corr + sic:after,
+.teibp.terminal choice orig + reg:after,
+.teibp.terminal choice reg + orig:after {
   content: ")";
 }
-.teibp ab {
+.teibp.terminal ab {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp accMat {
+.teibp.terminal accMat {
   display: block;
 }
-.teibp accMat:before {
+.teibp.terminal accMat:before {
   content: "accompanying materials: ";
 }
-.teibp acquisition {
+.teibp.terminal acquisition {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp acquisition:before {
+.teibp.terminal acquisition:before {
   font-weight: bold;
   content: "acquisition";
 }
-.teibp activity {
+.teibp.terminal activity {
   display: block;
 }
-.teibp activity:before {
+.teibp.terminal activity:before {
   content: "activity: ";
 }
-.teibp actor {
+.teibp.terminal actor {
   /* Empty Rule Set */
 }
-.teibp add {
+.teibp.terminal add {
   vertical-align: super;
 }
-.teibp add[place=below] {
+.teibp.terminal add[place=below] {
   vertical-align: sub;
 }
-.teibp addName {
+.teibp.terminal addName {
   /* Empty Rule Set */
 }
-.teibp addSpan {
+.teibp.terminal addSpan {
   /* Empty Rule Set */
 }
-.teibp additional {
+.teibp.terminal additional {
   display: block;
 }
-.teibp additions {
+.teibp.terminal additions {
   display: block;
 }
-.teibp additions:before {
+.teibp.terminal additions:before {
   content: "Significant additions within the document: ";
 }
-.teibp addrLine {
+.teibp.terminal addrLine {
   display: block;
 }
-.teibp address {
+.teibp.terminal address {
   /* Empty Rule Set */
 }
-.teibp address[rend~="block"],
-.teibp addresss[rendition~="#block"] {
+.teibp.terminal address[rend~="block"],
+.teibp.terminal addresss[rendition~="#block"] {
   display: block;
 }
-.teibp adminInfo {
+.teibp.terminal adminInfo {
   display: block;
 }
-.teibp affiliation {
+.teibp.terminal affiliation {
   /* Empty Rule Set */
 }
-.teibp age {
+.teibp.terminal age {
   /* Empty Rule Set */
 }
-.teibp alt {
+.teibp.terminal alt {
   /* Empty Rule Set */
 }
-.teibp altGrp {
+.teibp.terminal altGrp {
   /* Empty Rule Set */
 }
-.teibp altIdent {
+.teibp.terminal altIdent {
   /* Empty Rule Set */
 }
-.teibp altIdentifier {
+.teibp.terminal altIdentifier {
   display: block;
 }
-.teibp altIdentifier:before {
+.teibp.terminal altIdentifier:before {
   content: "Alternate ID: ";
 }
-.teibp am {
+.teibp.terminal am {
   /* Empty Rule Set */
 }
-.teibp analytic {
+.teibp.terminal analytic {
   /* Empty Rule Set */
 }
-.teibp anchor {
+.teibp.terminal anchor {
   /* Empty Rule Set */
 }
-.teibp app {
+.teibp.terminal app {
   display: block;
 }
-.teibp appInfo {
+.teibp.terminal appInfo {
   display: block;
 }
-.teibp appInfo:before {
+.teibp.terminal appInfo:before {
   content: "Application information: ";
 }
-.teibp application {
+.teibp.terminal application {
   display: block;
 }
-.teibp application:after {
+.teibp.terminal application:after {
   content: " " attr(version);
 }
-.teibp arc {
+.teibp.terminal arc {
   /* Empty Rule Set */
 }
-.teibp argument {
+.teibp.terminal argument {
   display: block;
 }
-.teibp att {
+.teibp.terminal att {
   font-family: Courier,monospace;
 }
-.teibp att:before {
+.teibp.terminal att:before {
   content: "@";
 }
-.teibp attDef {
+.teibp.terminal attDef {
   /* Empty Rule Set */
 }
-.teibp attList {
+.teibp.terminal attList {
   /* Empty Rule Set */
 }
-.teibp attRef {
+.teibp.terminal attRef {
   /* Empty Rule Set */
 }
-.teibp author {
+.teibp.terminal author {
   /* Empty Rule Set */
 }
-.teibp titleStmt > author {
+.teibp.terminal titleStmt > author {
   display: block;
   margin-bottom: 1em;
 }
-.teibp authority {
+.teibp.terminal authority {
   /* Empty Rule Set */
 }
-.teibp publicationStmt > availability {
+.teibp.terminal publicationStmt > availability {
   font-size: 80%;
 }
-.teibp publicationStmt > availability:before {
+.teibp.terminal publicationStmt > availability:before {
   font-weight: bold;
   content: "Availability: ";
 }
-.teibp publicationStmt > availability[status]:before {
+.teibp.terminal publicationStmt > availability[status]:before {
   font-weight: bold;
   content: "Availability (" attr(status) "): ";
 }
-.teibp back {
+.teibp.terminal back {
   display: block;
 }
-.teibp bibl {
+.teibp.terminal bibl {
   /* Empty Rule Set */
 }
-.teibp bibl[rend~="block"],
-.teibp bibl[rendition~="#block"] {
+.teibp.terminal bibl[rend~="block"],
+.teibp.terminal bibl[rendition~="#block"] {
   display: block;
   padding-left: 2em;
   text-indent: -2em;
 }
-.teibp biblFull {
+.teibp.terminal biblFull {
   display: block;
 }
-.teibp biblScope {
+.teibp.terminal biblScope {
   /* Empty Rule Set */
 }
-.teibp biblStruct {
+.teibp.terminal biblStruct {
   /* Empty Rule Set */
 }
-.teibp bicond {
+.teibp.terminal bicond {
   /* Empty Rule Set */
 }
-.teibp binary {
+.teibp.terminal binary {
   /* Empty Rule Set */
 }
-.teibp binaryObject {
+.teibp.terminal binaryObject {
   /* Empty Rule Set */
 }
-.teibp binding {
+.teibp.terminal binding {
   display: block;
 }
-.teibp binding:before {
+.teibp.terminal binding:before {
   content: "Binding: \a";
   white-space: pre-wrap;
 }
-.teibp binding[contemporary]:before {
+.teibp.terminal binding[contemporary]:before {
   content: "Binding: \A" "Contemporary: " attr(contemporary) "\A";
   white-space: pre-wrap;
 }
-.teibp bindingDesc {
+.teibp.terminal bindingDesc {
   display: block;
 }
-.teibp bindngDesc:before {
+.teibp.terminal bindngDesc:before {
   content: "Binding Description: \A";
 }
-.teibp birth {
+.teibp.terminal birth {
   display: block;
 }
-.teibp birth:before {
+.teibp.terminal birth:before {
   content: "Birth: ";
 }
-.teibp bloc {
+.teibp.terminal bloc {
   /* Empty Rule Set */
 }
-.teibp broadcast {
+.teibp.terminal broadcast {
   /* Empty Rule Set */
 }
-.teibp byline {
+.teibp.terminal byline {
   /* Empty Rule Set */
 }
-.teibp c {
+.teibp.terminal c {
   /* Empty Rule Set */
 }
-.teibp cRefPattern {
+.teibp.terminal cRefPattern {
   display: none;
 }
-.teibp caesura {
+.teibp.terminal caesura {
   /* Empty Rule Set */
 }
-.teibp camera {
+.teibp.terminal camera {
   /* Empty Rule Set */
 }
-.teibp caption {
+.teibp.terminal caption {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp case[value]:before {
+.teibp.terminal case[value]:before {
   font-weight: bold;
   content: attr(value) " ";
 }
-.teibp castGroup {
+.teibp.terminal castGroup {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp castItem {
+.teibp.terminal castItem {
   display: list-item;
   list-style-type: none;
 }
-.teibp castList {
+.teibp.terminal castList {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   margin-left: 2em;
 }
-.teibp catDesc {
+.teibp.terminal catDesc {
   /* Empty Rule Set */
 }
-.teibp catRef {
+.teibp.terminal catRef {
   /* Empty Rule Set */
 }
-.teibp category {
+.teibp.terminal category {
   /* Empty Rule Set */
 }
-.teibp cb {
+.teibp.terminal cb {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp cb:before {
+.teibp.terminal cb:before {
   content: "[column break]";
 }
-.teibp cell {
+.teibp.terminal cell {
   display: table-cell;
   padding: 1em 1.5em 1em 1em;
   /*
@@ -418,150 +408,150 @@
   border: 1px dotted #444444;
   width: 100%;
 }
-.teibp [role=label] {
+.teibp.terminal [role=label] {
   font-weight: bold;
 }
-.teibp certainty {
+.teibp.terminal certainty {
   /* Empty Rule Set */
 }
-.teibp change {
+.teibp.terminal change {
   /* Empty Rule Set */
 }
-.teibp channel {
+.teibp.terminal channel {
   /* Empty Rule Set */
 }
-.teibp charDecl {
+.teibp.terminal charDecl {
   /* Empty Rule Set */
 }
-.teibp charName {
+.teibp.terminal charName {
   /* Empty Rule Set */
 }
-.teibp charProp {
+.teibp.terminal charProp {
   /* Empty Rule Set */
 }
-.teibp choice {
+.teibp.terminal choice {
   /* Empty Rule Set */
 }
-.teibp cit {
+.teibp.terminal cit {
   /* Empty Rule Set */
 }
-.teibp cl {
+.teibp.terminal cl {
   /* Empty Rule Set */
 }
-.teibp classCode {
+.teibp.terminal classCode {
   /* Empty Rule Set */
 }
-.teibp classDecl {
+.teibp.terminal classDecl {
   /* Empty Rule Set */
 }
-.teibp classRef {
+.teibp.terminal classRef {
   /* Empty Rule Set */
 }
-.teibp classSpec {
+.teibp.terminal classSpec {
   /* Empty Rule Set */
 }
-.teibp classes {
+.teibp.terminal classes {
   /* Empty Rule Set */
 }
-.teibp climate {
+.teibp.terminal climate {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp climate:before {
+.teibp.terminal climate:before {
   font-weight: bold;
   content: "Climate: ";
 }
-.teibp closer {
+.teibp.terminal closer {
   /* Empty Rule Set */
 }
-.teibp code {
+.teibp.terminal code {
   font-family: Courier,monospace;
 }
-.teibp collation {
+.teibp.terminal collation {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp collection {
+.teibp.terminal collection {
   /* Empty Rule Set */
 }
-.teibp colloc {
+.teibp.terminal colloc {
   /* Empty Rule Set */
 }
-.teibp colophon {
+.teibp.terminal colophon {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp cond {
+.teibp.terminal cond {
   /* Empty Rule Set */
 }
-.teibp condition {
+.teibp.terminal condition {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution {
+.teibp.terminal constitution {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution:before {
+.teibp.terminal constitution:before {
   font-weight: bold;
   content: "Constitution: ";
 }
-.teibp constitution[type] {
+.teibp.terminal constitution[type] {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution[type]:before {
+.teibp.terminal constitution[type]:before {
   font-weight: bold;
   content: "Constitution (" attr(type) "): ";
 }
-.teibp constitution[type=frags] {
+.teibp.terminal constitution[type=frags] {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution[type=frags]:before {
+.teibp.terminal constitution[type=frags]:before {
   font-weight: bold;
   content: "Constitution (fragments): ";
 }
-.teibp constraint {
+.teibp.terminal constraint {
   /* Empty Rule Set */
 }
-.teibp constraintSpec {
+.teibp.terminal constraintSpec {
   /* Empty Rule Set */
 }
-.teibp content {
+.teibp.terminal content {
   /* Empty Rule Set */
 }
-.teibp corr {
+.teibp.terminal corr {
   /* Empty Rule Set */
 }
-.teibp correction {
+.teibp.terminal correction {
   /* Empty Rule Set */
 }
-.teibp country {
+.teibp.terminal country {
   /* Empty Rule Set */
 }
-.teibp creation {
+.teibp.terminal creation {
   /* Empty Rule Set */
 }
-.teibp custEvent {
+.teibp.terminal custEvent {
   display: list-item;
 }
-.teibp custodialHist {
+.teibp.terminal custodialHist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp date[when]:empty:before {
+.teibp.terminal date[when]:empty:before {
   content: attr(when);
 }
-.teibp egXML {
+.teibp.terminal egXML {
   display: block;
   font-size: 80%;
   margin-left: 1em;
@@ -574,125 +564,125 @@
   font-family: monospace;
   white-space: pre;
 }
-.teibp encodingDesc {
+.teibp.terminal encodingDesc {
   display: none;
 }
-.teibp epigraph {
+.teibp.terminal epigraph {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp fileDesc > extent {
+.teibp.terminal fileDesc > extent {
   display: none;
 }
-.teibp figure {
+.teibp.terminal figure {
   display: block;
   text-align: center;
   margin-left: auto;
   margin-right: auto;
 }
-.teibp g {
+.teibp.terminal g {
   /* Empty Rule Set */
 }
-.teibp gap {
+.teibp.terminal gap {
   /* GLS: Depending upon how we handle gap and lacuna, we may want to enclose in [] */
 }
-.teibp gb {
+.teibp.terminal gb {
   /* Empty Rule Set */
 }
-.teibp gen {
+.teibp.terminal gen {
   /* Empty Rule Set */
 }
-.teibp genName {
+.teibp.terminal genName {
   /* Empty Rule Set */
 }
-.teibp geo {
+.teibp.terminal geo {
   /* Empty Rule Set */
 }
-.teibp geoDecl {
+.teibp.terminal geoDecl {
   /* Empty Rule Set */
 }
-.teibp geogFeat {
+.teibp.terminal geogFeat {
   /* Empty Rule Set */
 }
-.teibp geogName {
+.teibp.terminal geogName {
   /* Empty Rule Set */
 }
-.teibp gi {
+.teibp.terminal gi {
   font-family: Courier,monospace;
 }
-.teibp gi:before {
+.teibp.terminal gi:before {
   content: "<";
 }
-.teibp gi:after {
+.teibp.terminal gi:after {
   content: ">";
 }
-.teibp gloss {
+.teibp.terminal gloss {
   /* Empty Rule Set */
 }
-.teibp glyph {
+.teibp.terminal glyph {
   /* Empty Rule Set */
 }
-.teibp glyphName {
+.teibp.terminal glyphName {
   /* Empty Rule Set */
 }
-.teibp gram {
+.teibp.terminal gram {
   /* Empty Rule Set */
 }
-.teibp gramGrp {
+.teibp.terminal gramGrp {
   /* Empty Rule Set */
 }
-.teibp graph {
+.teibp.terminal graph {
   /* Empty for now */
 }
-.teibp graphic {
+.teibp.terminal graphic {
   display: none;
 }
-.teibp group {
+.teibp.terminal group {
   /* Empty Rule Set */
 }
-.teibp handDesc {
+.teibp.terminal handDesc {
   /* Empty Rule Set */
 }
-.teibp handNote {
+.teibp.terminal handNote {
   /* Empty Rule Set */
 }
-.teibp handNotes {
+.teibp.terminal handNotes {
   /* Empty Rule Set */
 }
-.teibp handShift {
+.teibp.terminal handShift {
   /* Empty Rule Set */
 }
-.teibp TEI head {
+.teibp.terminal TEI head {
   display: block;
   font-family: Monaco, "Andale Mono", Courier, monospace;
   font-weight: normal;
 }
-.teibp body > head {
+.teibp.terminal body > head {
   font-size: 180%;
   text-indent: -0.5em;
 }
-.teibp div > head {
+.teibp.terminal div > head {
   font-size: 170%;
   text-indent: -0.5em;
 }
-.teibp div > div > head {
+.teibp.terminal div > div > head {
   font-size: 155%;
 }
-.teibp div > div > div > head {
+.teibp.terminal div > div > div > head {
   font-size: 140%;
 }
-.teibp div > div > div > div > head,
-.teibp list > head {
+.teibp.terminal div > div > div > div > head,
+.teibp.terminal list > head {
   font-size: 130%;
 }
-.teibp div > div > div > div > div > head {
+.teibp.terminal div > div > div > div > div > head {
   font-size: 120%;
 }
-.teibp div > div > div > div > div > div head {
+.teibp.terminal div > div > div > div > div > div head {
   font-size: 110%;
 }
-.teibp figure > head {
+.teibp.terminal figure > head {
   display: block;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
@@ -713,324 +703,324 @@
   font-family: Monaco, "Andale Mono", Courier, monospace;
   font-size: 14pt;
 }
-.teibp headItem {
+.teibp.terminal headItem {
   /* Empty Rule Set */
 }
-.teibp headLabel {
+.teibp.terminal headLabel {
   /* Empty Rule Set */
 }
-.teibp height {
+.teibp.terminal height {
   /* Empty Rule Set */
 }
-.teibp heraldry {
+.teibp.terminal heraldry {
   /* Empty Rule Set */
 }
-.teibp hi {
+.teibp.terminal hi {
   /* GLS: do we want to bold this or change the background color? */
 }
-.teibp history {
+.teibp.terminal history {
   /* Empty Rule Set */
 }
-.teibp hom {
+.teibp.terminal hom {
   /* Empty Rule Set */
 }
-.teibp hyph {
+.teibp.terminal hyph {
   /* Empty Rule Set */
 }
-.teibp hyphenation {
+.teibp.terminal hyphenation {
   /* Empty Rule Set */
 }
-.teibp iNode {
+.teibp.terminal iNode {
   /* Empty Rule Set */
 }
-.teibp iType {
+.teibp.terminal iType {
   /* Empty Rule Set */
 }
-.teibp ident {
+.teibp.terminal ident {
   font-family: Courier,monospace;
 }
-.teibp idno {
+.teibp.terminal idno {
   /* Empty Rule Set */
 }
-.teibp if {
+.teibp.terminal if {
   /* Empty Rule Set */
 }
-.teibp iff {
+.teibp.terminal iff {
   /* Empty Rule Set */
 }
-.teibp imprimatur {
+.teibp.terminal imprimatur {
   /* Empty Rule Set */
 }
-.teibp imprint {
+.teibp.terminal imprint {
   /* Empty Rule Set */
 }
-.teibp incident {
+.teibp.terminal incident {
   /* Empty Rule Set */
 }
-.teibp incipit {
+.teibp.terminal incipit {
   /* Empty Rule Set */
 }
-.teibp index {
+.teibp.terminal index {
   /* Empty Rule Set */
 }
-.teibp institution {
+.teibp.terminal institution {
   /* Empty Rule Set */
 }
-.teibp interaction {
+.teibp.terminal interaction {
   /* Empty Rule Set */
 }
-.teibp interpGrp {
+.teibp.terminal interpGrp {
   /* Empty Rule Set */
 }
-.teibp interpretation {
+.teibp.terminal interpretation {
   /* Empty Rule Set */
 }
-.teibp item {
+.teibp.terminal item {
   display: list-item;
   margin-left: 1em;
 }
-.teibp cell item {
+.teibp.terminal cell item {
   margin-left: 1em;
 }
-.teibp list[type="gloss"] > item {
+.teibp.terminal list[type="gloss"] > item {
   margin-left: 2em;
 }
-.teibp join {
+.teibp.terminal join {
   /* Empty Rule Set */
 }
-.teibp joinGrp {
+.teibp.terminal joinGrp {
   /* Empty Rule Set */
 }
-.teibp keywords {
+.teibp.terminal keywords {
   /* Empty Rule Set */
 }
-.teibp kinesic {
+.teibp.terminal kinesic {
   /* Empty Rule Set */
 }
-.teibp l {
+.teibp.terminal l {
   display: block;
   padding-left: 2em;
   text-indent: -2em;
 }
-.teibp list[type="gloss"] > label {
+.teibp.terminal list[type="gloss"] > label {
   display: block;
   margin-top: 0.25em;
   margin-bottom: 0.25em;
   font-weight: bold;
 }
-.teibp lacunaEnd {
+.teibp.terminal lacunaEnd {
   /* Empty Rule Set */
 }
-.teibp lacunaStart {
+.teibp.terminal lacunaStart {
   /* Empty Rule Set */
 }
-.teibp lang {
+.teibp.terminal lang {
   /* Empty Rule Set */
 }
-.teibp langKnowledge {
+.teibp.terminal langKnowledge {
   /* Empty Rule Set */
 }
-.teibp langKnown {
+.teibp.terminal langKnown {
   /* Empty Rule Set */
 }
-.teibp langUsage {
+.teibp.terminal langUsage {
   /* Empty Rule Set */
 }
-.teibp language {
+.teibp.terminal language {
   /* Empty Rule Set */
 }
-.teibp layout {
+.teibp.terminal layout {
   /* Empty Rule Set */
 }
-.teibp layoutDesc {
+.teibp.terminal layoutDesc {
   /* Empty Rule Set */
 }
-.teibp lb {
+.teibp.terminal lb {
   /* Empty Rule Set */
 }
-.teibp lb:after {
+.teibp.terminal lb:after {
   content: '\a';
   white-space: pre;
 }
-.teibp lbl {
+.teibp.terminal lbl {
   /* Empty Rule Set */
 }
-.teibp leaf {
+.teibp.terminal leaf {
   /* Empty Rule Set */
 }
-.teibp lem {
+.teibp.terminal lem {
   /* Empty Rule Set */
 }
-.teibp lg {
+.teibp.terminal lg {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp link {
+.teibp.terminal link {
   /* Empty Rule Set */
 }
-.teibp linkGrp {
+.teibp.terminal linkGrp {
   /* Empty Rule Set */
 }
-.teibp list {
+.teibp.terminal list {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp item > list {
+.teibp.terminal item > list {
   margin-top: 0;
 }
-.teibp text list[type=simple] {
+.teibp.terminal text list[type=simple] {
   list-style-type: none;
 }
-.teibp text list[type=bulleted] {
+.teibp.terminal text list[type=bulleted] {
   list-style-type: disc;
 }
-.teibp text list[type=ordered] {
+.teibp.terminal text list[type=ordered] {
   list-style-type: none;
   counter-reset: items 0;
 }
-.teibp text list[type=ordered] > item {
+.teibp.terminal text list[type=ordered] > item {
   display: list-item;
   margin-left: 0;
 }
-.teibp item > list[type=ordered] {
+.teibp.terminal item > list[type=ordered] {
   margin-left: 1em;
 }
-.teibp text list[type=ordered] > item:before {
+.teibp.terminal text list[type=ordered] > item:before {
   counter-increment: items 1;
   content: counter(items, decimal) ". ";
 }
-.teibp text list[type=gloss] {
+.teibp.terminal text list[type=gloss] {
   list-style-type: none;
 }
-.teibp item > list[type=ordered] {
+.teibp.terminal item > list[type=ordered] {
   margin-left: 1em;
 }
-.teibp localName {
+.teibp.terminal localName {
   /* Empty Rule Set */
 }
-.teibp locale {
+.teibp.terminal locale {
   /* Empty Rule Set */
 }
-.teibp location {
+.teibp.terminal location {
   /* Empty Rule Set */
 }
-.teibp locus {
+.teibp.terminal locus {
   /* Empty Rule Set */
 }
-.teibp locusGrp {
+.teibp.terminal locusGrp {
   /* Empty Rule Set */
 }
-.teibp m {
+.teibp.terminal m {
   /* Empty Rule Set */
 }
-.teibp macroRef {
+.teibp.terminal macroRef {
   /* Empty Rule Set NOT SURE WHAT EXACTLY*/
 }
-.teibp macroSpec {
+.teibp.terminal macroSpec {
   /* dunno */
 }
-.teibp mapping {
+.teibp.terminal mapping {
   /* not sure, maybe create rends for a few standard types, maybe hide */
 }
-.teibp material {
+.teibp.terminal material {
   /* Empty Rule Set */
 }
-.teibp measure {
+.teibp.terminal measure {
   /* Empty Rule Set */
 }
-.teibp measureGrp {
+.teibp.terminal measureGrp {
   /* probably want to display attributes, at least units and type */
 }
-.teibp meeting {
+.teibp.terminal meeting {
   /*Block */
 }
-.teibp memberOf {
+.teibp.terminal memberOf {
   /* Empty Rule Set */
 }
-.teibp mentioned {
+.teibp.terminal mentioned {
   /* think do nothing, not real clear on function, maybe hide? */
 }
-.teibp metDecl {
+.teibp.terminal metDecl {
   /* Empty Rule Set */
 }
-.teibp metSym {
+.teibp.terminal metSym {
   /* Empty Rule Set */
 }
-.teibp milestone {
+.teibp.terminal milestone {
   display: block;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
 }
-.teibp milestone:before {
+.teibp.terminal milestone:before {
   content: "* * * * *";
 }
-.teibp moduleRef {
+.teibp.terminal moduleRef {
   /* probably hide, not sure how we want to deal */
 }
-.teibp moduleSpec {
+.teibp.terminal moduleSpec {
   /* probably hide, not sure how we want to deal */
 }
-.teibp monogr {
+.teibp.terminal monogr {
   /* block with space above, below */
 }
-.teibp mood {
+.teibp.terminal mood {
   /* Empty Rule Set */
 }
-.teibp move {
+.teibp.terminal move {
   /* not sure, block, maybe just ital, maybe in parenths*/
 }
-.teibp msContents .block-margins {
+.teibp.terminal msContents .block-margins {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp msDesc {
+.teibp.terminal msDesc {
   /* block with space above, below */
 }
-.teibp msIdentifier {
+.teibp.terminal msIdentifier {
   /* block */
 }
-.teibp msItem {
+.teibp.terminal msItem {
   /* block */
 }
-.teibp msItemStruct {
+.teibp.terminal msItemStruct {
   /* block */
 }
-.teibp msName {
+.teibp.terminal msName {
   /* Empty Rule Set */
 }
-.teibp msPart {
+.teibp.terminal msPart {
   /* not sure, think block */
 }
-.teibp musicNotation {
+.teibp.terminal musicNotation {
   font-weight: bold;
 }
-.teibp musicNotation:before {
+.teibp.terminal musicNotation:before {
   font-weight: bold;
   content: "Musical Notation: ";
 }
-.teibp name {
+.teibp.terminal name {
   /* Empty Rule Set */
 }
-.teibp nameLink {
+.teibp.terminal nameLink {
   /* Empty Rule Set */
 }
-.teibp namespace {
+.teibp.terminal namespace {
   /* not sure, hide? */
 }
-.teibp nationality {
+.teibp.terminal nationality {
   /* Empty Rule Set */
 }
-.teibp node {
+.teibp.terminal node {
   display: none;
 }
-.teibp normalization {
+.teibp.terminal normalization {
   /* Empty Rule Set */
 }
-.teibp note {
+.teibp.terminal note {
   display: block;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
@@ -1048,87 +1038,87 @@
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-.teibp notesStmt {
+.teibp.terminal notesStmt {
   /* do we want to box each individual <note> if they're in a <notesStmt>? */
   display: none;
 }
-.teibp num {
+.teibp.terminal num {
   /* Empty Rule Set */
 }
-.teibp number {
+.teibp.terminal number {
   /* Empty Rule Set */
 }
-.teibp numeric {
+.teibp.terminal numeric {
   /* not sure, depends how we're dealing with <f>'s */
 }
-.teibp nym {
+.teibp.terminal nym {
   /* not really sure here */
 }
-.teibp oRef {
+.teibp.terminal oRef {
   /* not sure, think do nothing */
 }
-.teibp oVar {
+.teibp.terminal oVar {
   font-style: italic;
 }
-.teibp objectDesc {
+.teibp.terminal objectDesc {
   /* Empty Rule Set */
 }
-.teibp objectType {
+.teibp.terminal objectType {
   /* Empty Rule Set */
 }
-.teibp occupation {
+.teibp.terminal occupation {
   /* Empty Rule Set */
 }
-.teibp offset {
+.teibp.terminal offset {
   /* Empty Rule Set */
 }
-.teibp opener {
+.teibp.terminal opener {
   /* Empty Rule Set */
 }
-.teibp org {
+.teibp.terminal org {
   /* Empty Rule Set */
 }
-.teibp orgName {
+.teibp.terminal orgName {
   /* Empty Rule Set */
 }
-.teibp origDate {
+.teibp.terminal origDate {
   /* Empty Rule Set */
 }
-.teibp origPlace {
+.teibp.terminal origPlace {
   font-weight: bold;
 }
-.teibp origPlace:before {
+.teibp.terminal origPlace:before {
   font-weight: bold;
   content: "Place of Origin: ";
 }
-.teibp origin {
+.teibp.terminal origin {
   /* Empty Rule Set */
 }
-.teibp p {
+.teibp.terminal p {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   text-align: justify;
 }
-.teibp *[rendition~="#center"] p {
+.teibp.terminal *[rendition~="#center"] p {
   text-align: center;
 }
-.teibp availability > p:first-child {
+.teibp.terminal availability > p:first-child {
   margin-top: 0em;
 }
-.teibp pRef {
+.teibp.terminal pRef {
   /* rend attribute target */
 }
-.teibp pVar {
+.teibp.terminal pVar {
   /* rend attribute target */
 }
-.teibp particDesc {
+.teibp.terminal particDesc {
   /* Empty Rule Set */
 }
-.teibp pause {
+.teibp.terminal pause {
   /* Empty Rule Set*/
 }
-.teibp pb {
+.teibp.terminal pb {
   display: block;
   width: 100%;
   text-align: right;
@@ -1136,488 +1126,488 @@
   margin: 2em 0 2em 0;
   font-size: 11pt;
 }
-.teibp pc {
+.teibp.terminal pc {
   /* Empty Rule Set */
 }
-.teibp per {
+.teibp.terminal per {
   /* don't know, check back */
 }
-.teibp performance {
+.teibp.terminal performance {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp persName {
+.teibp.terminal persName {
   /* Empty Rule Set */
 }
-.teibp person {
+.teibp.terminal person {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp personGrp {
+.teibp.terminal personGrp {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp phr {
+.teibp.terminal phr {
   /* Empty Rule Set */
 }
-.teibp physDesc {
+.teibp.terminal physDesc {
   /* Empty Rule Set */
 }
-.teibp place {
+.teibp.terminal place {
   /* Empty Rule Set */
 }
-.teibp placeName {
+.teibp.terminal placeName {
   /* Empty Rule Set */
 }
-.teibp population {
+.teibp.terminal population {
   /* dunno with this one */
 }
-.teibp pos {
+.teibp.terminal pos {
   /* Empty Rule Set */
 }
-.teibp postBox {
+.teibp.terminal postBox {
   /* Empty Rule Set */
 }
-.teibp postCode {
+.teibp.terminal postCode {
   /* Empty Rule Set */
 }
-.teibp postscript {
+.teibp.terminal postscript {
   display: block;
   margin-top: 2em;
 }
-.teibp precision {
+.teibp.terminal precision {
   /* Empty Rule Set */
 }
-.teibp preparedness {
+.teibp.terminal preparedness {
   /* Empty Rule Set */
 }
-.teibp principal {
+.teibp.terminal principal {
   font-weight: bold;
 }
-.teibp principal:before {
+.teibp.terminal principal:before {
   font-weight: bold;
   content: "Principal: ";
 }
-.teibp profileDesc {
+.teibp.terminal profileDesc {
   display: none;
 }
-.teibp projectDesc {
+.teibp.terminal projectDesc {
   /* Empty Rule Set */
 }
-.teibp prologue {
+.teibp.terminal prologue {
   /* Empty Rule Set */
 }
-.teibp pron {
+.teibp.terminal pron {
   /* Empty Rule Set */
 }
-.teibp provenance {
+.teibp.terminal provenance {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp ptr {
+.teibp.terminal ptr {
   /* dunno */
 }
-.teibp pubPlace {
+.teibp.terminal pubPlace {
   /* Empty Rule Set */
 }
-.teibp publicationStmt > * {
+.teibp.terminal publicationStmt > * {
   display: none;
 }
-.teibp publicationStmt {
+.teibp.terminal publicationStmt {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp publicationStmt > date {
+.teibp.terminal publicationStmt > date {
   display: none;
 }
-.teibp publicationStmt > publisher {
+.teibp.terminal publicationStmt > publisher {
   display: none;
 }
-.teibp purpose {
+.teibp.terminal purpose {
   /* Empty Rule Set */
 }
-.teibp q {
+.teibp.terminal q {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp q:before {
+.teibp.terminal q:before {
   content: open-quote;
 }
-.teibp q:after {
+.teibp.terminal q:after {
   content: close-quote;
 }
-.teibp q[next]:after {
+.teibp.terminal q[next]:after {
   content: "" !important;
 }
-.teibp q[prev]:before {
+.teibp.terminal q[prev]:before {
   content: "" !important;
 }
-.teibp quotation {
+.teibp.terminal quotation {
   /* Empty Rule Set */
 }
-.teibp quote {
+.teibp.terminal quote {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp quote:before {
+.teibp.terminal quote:before {
   content: open-quote;
 }
-.teibp quote:after {
+.teibp.terminal quote:after {
   content: close-quote;
 }
-.teibp quote[next]:after {
+.teibp.terminal quote[next]:after {
   content: "" !important;
 }
-.teibp quote[prev]:before {
+.teibp.terminal quote[prev]:before {
   content: "" !important;
 }
-.teibp rdg {
+.teibp.terminal rdg {
   /*perhaps choice */
 }
-.teibp rdgGrp {
+.teibp.terminal rdgGrp {
   /* Empty Rule Set */
 }
-.teibp re {
+.teibp.terminal re {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp recordHist {
+.teibp.terminal recordHist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp recording {
+.teibp.terminal recording {
   /* not sure here, only in header? */
 }
-.teibp recordingStmt {
+.teibp.terminal recordingStmt {
   /* Empty Rule Set */
 }
-.teibp ref {
+.teibp.terminal ref {
   /*include link if target */
 }
-.teibp region {
+.teibp.terminal region {
   /* Empty Rule Set */
 }
-.teibp relatedItem {
+.teibp.terminal relatedItem {
   /* Empty Rule Set */
 }
-.teibp relation {
+.teibp.terminal relation {
   /* Don't Know*/
 }
-.teibp relationGrp {
+.teibp.terminal relationGrp {
   /* Empty Rule Set */
 }
-.teibp remarks {
+.teibp.terminal remarks {
   font-weight: bold;
 }
-.teibp remarks:before {
+.teibp.terminal remarks:before {
   font-weight: bold;
   content: "remarks: ";
 }
-.teibp rendition {
+.teibp.terminal rendition {
   /*Don't remember what we decided to do with this*/
 }
-.teibp repository {
+.teibp.terminal repository {
   /* Empty Rule Set */
 }
-.teibp residence {
+.teibp.terminal residence {
   /* Empty Rule Set */
 }
-.teibp resp {
+.teibp.terminal resp {
   /* Empty Rule Set */
 }
-.teibp respStmt {
+.teibp.terminal respStmt {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp restore {
+.teibp.terminal restore {
   /* footnote or sidenote perhaps*/
 }
-.teibp revisionDesc {
+.teibp.terminal revisionDesc {
   display: none;
 }
-.teibp rhyme {
+.teibp.terminal rhyme {
   /* Empty Rule Set */
 }
-.teibp role {
+.teibp.terminal role {
   /* put on same line as roledesc? */
 }
-.teibp roleDesc {
+.teibp.terminal roleDesc {
   /* put on same line as role */
 }
-.teibp roleName {
+.teibp.terminal roleName {
   /* Empty Rule Set */
 }
-.teibp root {
+.teibp.terminal root {
   /* don't know */
 }
-.teibp row {
+.teibp.terminal row {
   display: table-row;
 }
-.teibp rs {
+.teibp.terminal rs {
   /* Empty Rule Set */
 }
-.teibp s {
+.teibp.terminal s {
   text-decoration: none;
 }
-.teibp said {
+.teibp.terminal said {
   /* Empty Rule Set */
 }
-.teibp salute {
+.teibp.terminal salute {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp samplingDecl {
+.teibp.terminal samplingDecl {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp schemaSpec {
+.teibp.terminal schemaSpec {
   /*NOT SURE, talk over with group */
 }
-.teibp scriptDesc {
+.teibp.terminal scriptDesc {
   /*NOT SURE, talk over with group */
 }
-.teibp scriptNote {
+.teibp.terminal scriptNote {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp scriptStmt {
+.teibp.terminal scriptStmt {
   /* not sure */
 }
-.teibp seal {
+.teibp.terminal seal {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp seal:before {
+.teibp.terminal seal:before {
   font-weight: bold;
   content: "Seal: ";
 }
-.teibp sealDesc {
+.teibp.terminal sealDesc {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp secFol:before {
+.teibp.terminal secFol:before {
   font-weight: bold;
   content: "Second Folio: ";
 }
-.teibp seg {
+.teibp.terminal seg {
   /* Empty Set Rule */
 }
-.teibp segmentation {
+.teibp.terminal segmentation {
   /* Empty Rule Set */
 }
-.teibp sense {
+.teibp.terminal sense {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp series {
+.teibp.terminal series {
   /* treat same as seriesstmt? */
 }
-.teibp seriesStmt {
+.teibp.terminal seriesStmt {
   display: none;
 }
-.teibp set {
+.teibp.terminal set {
   /* Empty Set Rule */
 }
-.teibp setting {
+.teibp.terminal setting {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp settingDesc {
+.teibp.terminal settingDesc {
   /* Empty Set Rule */
 }
-.teibp settlement {
+.teibp.terminal settlement {
   /* Empty Set Rule */
 }
-.teibp sex {
+.teibp.terminal sex {
   /* Empty Rule Set */
 }
-.teibp shift {
+.teibp.terminal shift {
   /* seems a bit to complex to do anything with */
 }
-.teibp sic {
+.teibp.terminal sic {
   /* rend as choice when contained within a choice tag, perhaps as label with parenthesis after when alone */
 }
-.teibp signatures {
+.teibp.terminal signatures {
   /* DON't KNOW, look again later */
 }
-.teibp signed {
+.teibp.terminal signed {
   display: block;
   margin-top: 2em;
   /*should make name a block when contained within  */
 }
-.teibp soCalled {
+.teibp.terminal soCalled {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp soCalled:before {
+.teibp.terminal soCalled:before {
   content: open-quote;
 }
-.teibp soCalled:after {
+.teibp.terminal soCalled:after {
   content: close-quote;
 }
-.teibp soCalled[next]:after {
+.teibp.terminal soCalled[next]:after {
   content: "" !important;
 }
-.teibp soCalled[prev]:before {
+.teibp.terminal soCalled[prev]:before {
   content: "" !important;
 }
-.teibp socecStatus {
+.teibp.terminal socecStatus {
   /* Empty Set Rule */
 }
-.teibp sound {
+.teibp.terminal sound {
   font-style: italic;
 }
-.teibp source {
+.teibp.terminal source {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp sourceDesc {
+.teibp.terminal sourceDesc {
   display: none;
 }
-.teibp sp {
+.teibp.terminal sp {
   /*empty rule set*/
 }
-.teibp space:before {
+.teibp.terminal space:before {
   font-weight: bold;
   content: "";
 }
-.teibp TEI span {
+.teibp.terminal TEI span {
   display: none;
 }
-.teibp TEI egXML span {
+.teibp.terminal TEI egXML span {
   display: inline;
 }
-.teibp spanGrp {
+.teibp.terminal spanGrp {
   /* NOT SURE, look back on */
 }
-.teibp speaker {
+.teibp.terminal speaker {
   font-weight: bold;
   margin-right: 0;
 }
-.teibp specDesc {
+.teibp.terminal specDesc {
   /* NOT SURE, look back on */
 }
-.teibp specGrp {
+.teibp.terminal specGrp {
   /* NOT SURE, look back on */
 }
-.teibp specGrpRef {
+.teibp.terminal specGrpRef {
   /* NOT SURE, look back on */
 }
-.teibp specList {
+.teibp.terminal specList {
   /* Empty Set Rule */
 }
-.teibp sponsor {
+.teibp.terminal sponsor {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
   /* Block element, maybe labeled  */
 }
-.teibp sponsor:before {
+.teibp.terminal sponsor:before {
   font-weight: bold;
   content: "Sponsor:";
 }
-.teibp stage {
+.teibp.terminal stage {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   font-style: italic;
 }
-.teibp stamp {
+.teibp.terminal stamp {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp stamp:before {
+.teibp.terminal stamp:before {
   font-weight: bold;
   content: "Stamped: ";
 }
-.teibp state {
+.teibp.terminal state {
   /* Empty Set Rule */
 }
-.teibp stdVals {
+.teibp.terminal stdVals {
   /* Empty Set Rule */
 }
-.teibp street {
+.teibp.terminal street {
   /* Empty Set Rule */
 }
-.teibp stress {
+.teibp.terminal stress {
   /* Empty Set Rule */
 }
-.teibp string {
+.teibp.terminal string {
   /* Empty Set Rule */
 }
-.teibp stringVal {
+.teibp.terminal stringVal {
   /* doesn't seem to be part of tei 5 */
 }
-.teibp subc {
+.teibp.terminal subc {
   /* Empty Set Rule */
 }
-.teibp subst {
+.teibp.terminal subst {
   /* Empty Set Rule */
 }
-.teibp summary {
+.teibp.terminal summary {
   /* Empty Set Rule */
 }
-.teibp superEntry {
+.teibp.terminal superEntry {
   /* Block with space above and below, maybe have no block and space for <entry> when contained by this element */
 }
-.teibp supplied {
+.teibp.terminal supplied {
   /* not sure on this one, seems like we should indicate somehow. Is there a standard way to do this? */
 }
-.teibp support {
+.teibp.terminal support {
   /* Empty Set Rule */
 }
-.teibp supportDesc {
+.teibp.terminal supportDesc {
   /* do nothing with or maybe block */
 }
-.teibp surface {
+.teibp.terminal surface {
   /* choice */
 }
-.teibp surname {
+.teibp.terminal surname {
   /* Empty Set Rule */
 }
-.teibp surplus {
+.teibp.terminal surplus {
   display: none;
 }
-.teibp surrogates {
+.teibp.terminal surrogates {
   /*Empty Rule Set */
 }
-.teibp syll {
+.teibp.terminal syll {
   /* Empty Set Rule */
 }
-.teibp symbol {
+.teibp.terminal symbol {
   /* Empty Set Rule */
 }
-.teibp TEI {
+.teibp.terminal TEI {
   display: block;
 }
-.teibp table {
+.teibp.terminal table {
   border-collapse: separate;
   border-spacing: 2px;
 }
-.teibp TEI table {
+.teibp.terminal TEI table {
   display: block;
   margin-top: 2em;
   margin-bottom: 2em;
   font-size: 12pt;
 }
-.teibp table > head {
+.teibp.terminal table > head {
   text-align: center;
 }
-.teibp teiHeader {
+.teibp.terminal teiHeader {
   display: block;
   /*
 	border-radius: 15px;
@@ -1628,7 +1618,7 @@
   margin-bottom: 2em;
   border-bottom: 1px solid #999;
 }
-.teibp TEI > text {
+.teibp.terminal TEI > text {
   display: block;
   /*
 	border-radius: 15px;
@@ -1637,139 +1627,135 @@
 	*/
   line-height: 1.5;
 }
-.teibp textClass {
+.teibp.terminal textClass {
   display: none;
 }
-.teibp textDesc {
+.teibp.terminal textDesc {
   display: none;
 }
-.teibp TEI title {
+.teibp.terminal TEI title {
   display: inline;
 }
-.teibp TEI title[level=a] {
+.teibp.terminal TEI title[level=a] {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp TEI title[level=a]:before {
+.teibp.terminal TEI title[level=a]:before {
   content: open-quote;
 }
-.teibp TEI title[level=a]:after {
+.teibp.terminal TEI title[level=a]:after {
   content: close-quote;
 }
-.teibp TEI title[level=a][next]:after {
+.teibp.terminal TEI title[level=a][next]:after {
   content: "" !important;
 }
-.teibp TEI title[level=a][prev]:before {
+.teibp.terminal TEI title[level=a][prev]:before {
   content: "" !important;
 }
-.teibp title[level=m] {
+.teibp.terminal title[level=m] {
   font-style: italic;
 }
-.teibp titleStmt > title {
+.teibp.terminal titleStmt > title {
   display: block;
   font-family: Monaco, "Andale Mono", Courier, monospace;
   font-weight: normal;
   font-weight: bold !important;
   font-size: 150%;
 }
-.teibp titleStmt > editor:before {
+.teibp.terminal titleStmt > editor:before {
   content: "Edited by ";
 }
-.teibp typeDesc {
+.teibp.terminal typeDesc {
   display: none;
 }
-.teibp u:before {
+.teibp.terminal u:before {
   content: "-";
 }
-.teibp unicodeName {
+.teibp.terminal unicodeName {
   /* Empty Rule Set */
 }
-.teibp usg {
+.teibp.terminal usg {
   /* Empty Rule Set */
 }
-.teibp vAlt {
+.teibp.terminal vAlt {
   /* Empty Rule Set */
 }
-.teibp vColl {
+.teibp.terminal vColl {
   /* Empty Rule Set */
 }
-.teibp vDefault {
+.teibp.terminal vDefault {
   /* Empty Rule Set */
 }
-.teibp vLabel {
+.teibp.terminal vLabel {
   /* Empty Rule Set */
 }
-.teibp vMerge {
+.teibp.terminal vMerge {
   /* Empty Rule Set */
 }
-.teibp vNot {
+.teibp.terminal vNot {
   /* Empty Rule Set */
 }
-.teibp vRange {
+.teibp.terminal vRange {
   /* Empty Rule Set */
 }
-.teibp val {
+.teibp.terminal val {
   /* Empty Rule Set */
 }
-.teibp valDesc {
+.teibp.terminal valDesc {
   /* Empty Rule Set */
 }
-.teibp valItem {
+.teibp.terminal valItem {
   /* Empty Rule Set */
 }
-.teibp valList {
+.teibp.terminal valList {
   /* Empty Rule Set */
 }
-.teibp value {
+.teibp.terminal value {
   /* Empty Rule Set */
 }
-.teibp variantEncoding {
+.teibp.terminal variantEncoding {
   /* Empty Rule Set */
 }
-.teibp view {
+.teibp.terminal view {
   font-style: italic;
 }
-.teibp vocal {
+.teibp.terminal vocal {
   /* Empty Rule Set */
 }
-.teibp w {
+.teibp.terminal w {
   /* Empty Rule Set */
 }
-.teibp watermark {
+.teibp.terminal watermark {
   /* Empty Rule Set */
 }
-.teibp width {
+.teibp.terminal width {
   /* Empty Rule Set */
 }
-.teibp wit {
+.teibp.terminal wit {
   /* Empty Rule Set */
 }
-.teibp witDetail {
+.teibp.terminal witDetail {
   /* Empty Rule Set */
 }
-.teibp witEnd {
+.teibp.terminal witEnd {
   /* Empty Rule Set */
 }
-.teibp witStart {
+.teibp.terminal witStart {
   /* Empty Rule Set */
 }
-.teibp witness {
+.teibp.terminal witness {
   /* Empty Rule Set */
 }
-.teibp writing {
+.teibp.terminal writing {
   /* Empty Rule Set */
 }
-.teibp xr {
+.teibp.terminal xr {
   /* Empty Rule Set */
 }
-.teibp zone {
+.teibp.terminal zone {
   /* Empty Rule Set */
 }
-/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
-html > body {
-  margin: 0;
-  padding: 0;
-}
-html {
+/* styles for .teibp shell and html elements in TEI (e.g.,<a> and <img>) */
+.teibp.terminal {
   margin: 0;
   padding: 0;
   margin-left: 2em;
@@ -1780,31 +1766,29 @@ html {
   background-color: #000000;
   color: #00fd00;
   width: 33em;
-}
-.teibp {
   /* xml-serialization */
   /* loading animation */
 }
-.teibp img {
+.teibp.terminal img {
   border: 1px solid #444444;
 }
-.teibp #footer {
+.teibp.terminal #footer {
   margin-top: 1em;
   border-top: 1px solid #00fd00;
   padding-top: .5em;
   font-size: 12pt;
 }
-.teibp a:link,
-.teibp a:visited,
-.teibp a:active {
+.teibp.terminal a:link,
+.teibp.terminal a:visited,
+.teibp.terminal a:active {
   color: #1cc0fa;
   text-decoration: none;
 }
-.teibp a:hover {
+.teibp.terminal a:hover {
   color: #1cc0fa;
   text-decoration: underline;
 }
-.teibp #teibpToolbox {
+.teibp.terminal #teibpToolbox {
   left: 56em;
   top: 25px;
   position: fixed;
@@ -1821,31 +1805,31 @@ html {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   width: 12em;
 }
-.teibp #teibpToolbox h1 {
+.teibp.terminal #teibpToolbox h1 {
   font-weight: bold;
   font-size: 115%;
   margin-top: 0;
   margin-bottom: .5em;
   border-bottom: 1px solid #444444;
 }
-.teibp .eg-element {
+.teibp.terminal .eg-element {
   color: #0165c8;
 }
-.teibp .eg-comment {
+.teibp.terminal .eg-comment {
   color: gray;
 }
-.teibp .eg-att,
-.teibp .eg-nsdecl {
+.teibp.terminal .eg-att,
+.teibp.terminal .eg-nsdecl {
   color: #f58650;
 }
-.teibp .eg-attvalue,
-.teibp .eg-ns {
+.teibp.terminal .eg-attvalue,
+.teibp.terminal .eg-ns {
   color: #993300;
 }
-.teibp .eg-text {
+.teibp.terminal .eg-text {
   color: #00fd00;
 }
-.teibp #loading {
+.teibp.terminal #loading {
   display: none;
   position: fixed;
   left: 0;
@@ -1855,7 +1839,3 @@ html {
   background-image: url("../images/transparentbg.png");
 }
 /* Terminal Theme */
-.teibp .head-font {
-  font-family: Monaco, "Andale Mono", Courier, monospace;
-  font-weight: normal;
-}

@@ -5,7 +5,12 @@
 /* @namespace with prefix, as below, throws and error in less. */
 /* @namespace html "http://www.w3.org/1999/xhtml"; */
 /* Less variables */
-.teibp {
+.box-shadow {
+  -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+.teibp.sleepy {
   /* US Style Quotes */
   /* UK-Style Quotes */
   /* Choice elements */
@@ -67,7 +72,7 @@
   /* x */
   /* z */
 }
-.teibp .note-like {
+.teibp.sleepy .note-like {
   display: block;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
@@ -85,330 +90,315 @@
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-.teibp .quotesUS {
+.teibp.sleepy .quotesUS {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp .quotesUK {
+.teibp.sleepy .quotesUK {
   quotes: "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019";
 }
-.teibp .quotes {
+.teibp.sleepy .quotes {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp .block-margins {
+.teibp.sleepy .block-margins {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp .box-shadow {
-  -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-}
-.teibp .hide {
+.teibp.sleepy .hide {
   display: none;
 }
-.teibp .mono {
+.teibp.sleepy .mono {
   font-family: Courier,monospace;
 }
-.teibp .page-setup {
-  margin-left: 2em;
-  margin-right: 4em;
-  padding: 2.5em;
-  font-family: Cochin, Georgia, Serif;
-  font-size: 14pt;
-  background-color: #000000;
-  color: #ffffff;
-  width: 33em;
-}
-.teibp .table-border {
+.teibp.sleepy .table-border {
   /*
 	border-left: 2px solid @border-color;
 	border-top:2px solid @border-color;
 	*/
   border: 1px dotted #444444;
 }
-.teibp choice abbr + expan:before,
-.teibp choice expan + abbr:before,
-.teibp choice sic + corr:before,
-.teibp choice corr + sic:before,
-.teibp choice orig + reg:before,
-.teibp choice reg + orig:before {
+.teibp.sleepy choice abbr + expan:before,
+.teibp.sleepy choice expan + abbr:before,
+.teibp.sleepy choice sic + corr:before,
+.teibp.sleepy choice corr + sic:before,
+.teibp.sleepy choice orig + reg:before,
+.teibp.sleepy choice reg + orig:before {
   content: " (";
 }
-.teibp choice abbr + expan:after,
-.teibp choice expan + abbr:after,
-.teibp choice sic + corr:after,
-.teibp choice corr + sic:after,
-.teibp choice orig + reg:after,
-.teibp choice reg + orig:after {
+.teibp.sleepy choice abbr + expan:after,
+.teibp.sleepy choice expan + abbr:after,
+.teibp.sleepy choice sic + corr:after,
+.teibp.sleepy choice corr + sic:after,
+.teibp.sleepy choice orig + reg:after,
+.teibp.sleepy choice reg + orig:after {
   content: ")";
 }
-.teibp ab {
+.teibp.sleepy ab {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp accMat {
+.teibp.sleepy accMat {
   display: block;
 }
-.teibp accMat:before {
+.teibp.sleepy accMat:before {
   content: "accompanying materials: ";
 }
-.teibp acquisition {
+.teibp.sleepy acquisition {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp acquisition:before {
+.teibp.sleepy acquisition:before {
   font-weight: bold;
   content: "acquisition";
 }
-.teibp activity {
+.teibp.sleepy activity {
   display: block;
 }
-.teibp activity:before {
+.teibp.sleepy activity:before {
   content: "activity: ";
 }
-.teibp actor {
+.teibp.sleepy actor {
   /* Empty Rule Set */
 }
-.teibp add {
+.teibp.sleepy add {
   vertical-align: super;
 }
-.teibp add[place=below] {
+.teibp.sleepy add[place=below] {
   vertical-align: sub;
 }
-.teibp addName {
+.teibp.sleepy addName {
   /* Empty Rule Set */
 }
-.teibp addSpan {
+.teibp.sleepy addSpan {
   /* Empty Rule Set */
 }
-.teibp additional {
+.teibp.sleepy additional {
   display: block;
 }
-.teibp additions {
+.teibp.sleepy additions {
   display: block;
 }
-.teibp additions:before {
+.teibp.sleepy additions:before {
   content: "Significant additions within the document: ";
 }
-.teibp addrLine {
+.teibp.sleepy addrLine {
   display: block;
 }
-.teibp address {
+.teibp.sleepy address {
   /* Empty Rule Set */
 }
-.teibp address[rend~="block"],
-.teibp addresss[rendition~="#block"] {
+.teibp.sleepy address[rend~="block"],
+.teibp.sleepy addresss[rendition~="#block"] {
   display: block;
 }
-.teibp adminInfo {
+.teibp.sleepy adminInfo {
   display: block;
 }
-.teibp affiliation {
+.teibp.sleepy affiliation {
   /* Empty Rule Set */
 }
-.teibp age {
+.teibp.sleepy age {
   /* Empty Rule Set */
 }
-.teibp alt {
+.teibp.sleepy alt {
   /* Empty Rule Set */
 }
-.teibp altGrp {
+.teibp.sleepy altGrp {
   /* Empty Rule Set */
 }
-.teibp altIdent {
+.teibp.sleepy altIdent {
   /* Empty Rule Set */
 }
-.teibp altIdentifier {
+.teibp.sleepy altIdentifier {
   display: block;
 }
-.teibp altIdentifier:before {
+.teibp.sleepy altIdentifier:before {
   content: "Alternate ID: ";
 }
-.teibp am {
+.teibp.sleepy am {
   /* Empty Rule Set */
 }
-.teibp analytic {
+.teibp.sleepy analytic {
   /* Empty Rule Set */
 }
-.teibp anchor {
+.teibp.sleepy anchor {
   /* Empty Rule Set */
 }
-.teibp app {
+.teibp.sleepy app {
   display: block;
 }
-.teibp appInfo {
+.teibp.sleepy appInfo {
   display: block;
 }
-.teibp appInfo:before {
+.teibp.sleepy appInfo:before {
   content: "Application information: ";
 }
-.teibp application {
+.teibp.sleepy application {
   display: block;
 }
-.teibp application:after {
+.teibp.sleepy application:after {
   content: " " attr(version);
 }
-.teibp arc {
+.teibp.sleepy arc {
   /* Empty Rule Set */
 }
-.teibp argument {
+.teibp.sleepy argument {
   display: block;
 }
-.teibp att {
+.teibp.sleepy att {
   font-family: Courier,monospace;
 }
-.teibp att:before {
+.teibp.sleepy att:before {
   content: "@";
 }
-.teibp attDef {
+.teibp.sleepy attDef {
   /* Empty Rule Set */
 }
-.teibp attList {
+.teibp.sleepy attList {
   /* Empty Rule Set */
 }
-.teibp attRef {
+.teibp.sleepy attRef {
   /* Empty Rule Set */
 }
-.teibp author {
+.teibp.sleepy author {
   /* Empty Rule Set */
 }
-.teibp titleStmt > author {
+.teibp.sleepy titleStmt > author {
   display: block;
   margin-bottom: 1em;
 }
-.teibp authority {
+.teibp.sleepy authority {
   /* Empty Rule Set */
 }
-.teibp publicationStmt > availability {
+.teibp.sleepy publicationStmt > availability {
   font-size: 80%;
 }
-.teibp publicationStmt > availability:before {
+.teibp.sleepy publicationStmt > availability:before {
   font-weight: bold;
   content: "Availability: ";
 }
-.teibp publicationStmt > availability[status]:before {
+.teibp.sleepy publicationStmt > availability[status]:before {
   font-weight: bold;
   content: "Availability (" attr(status) "): ";
 }
-.teibp back {
+.teibp.sleepy back {
   display: block;
 }
-.teibp bibl {
+.teibp.sleepy bibl {
   /* Empty Rule Set */
 }
-.teibp bibl[rend~="block"],
-.teibp bibl[rendition~="#block"] {
+.teibp.sleepy bibl[rend~="block"],
+.teibp.sleepy bibl[rendition~="#block"] {
   display: block;
   padding-left: 2em;
   text-indent: -2em;
 }
-.teibp biblFull {
+.teibp.sleepy biblFull {
   display: block;
 }
-.teibp biblScope {
+.teibp.sleepy biblScope {
   /* Empty Rule Set */
 }
-.teibp biblStruct {
+.teibp.sleepy biblStruct {
   /* Empty Rule Set */
 }
-.teibp bicond {
+.teibp.sleepy bicond {
   /* Empty Rule Set */
 }
-.teibp binary {
+.teibp.sleepy binary {
   /* Empty Rule Set */
 }
-.teibp binaryObject {
+.teibp.sleepy binaryObject {
   /* Empty Rule Set */
 }
-.teibp binding {
+.teibp.sleepy binding {
   display: block;
 }
-.teibp binding:before {
+.teibp.sleepy binding:before {
   content: "Binding: \a";
   white-space: pre-wrap;
 }
-.teibp binding[contemporary]:before {
+.teibp.sleepy binding[contemporary]:before {
   content: "Binding: \A" "Contemporary: " attr(contemporary) "\A";
   white-space: pre-wrap;
 }
-.teibp bindingDesc {
+.teibp.sleepy bindingDesc {
   display: block;
 }
-.teibp bindngDesc:before {
+.teibp.sleepy bindngDesc:before {
   content: "Binding Description: \A";
 }
-.teibp birth {
+.teibp.sleepy birth {
   display: block;
 }
-.teibp birth:before {
+.teibp.sleepy birth:before {
   content: "Birth: ";
 }
-.teibp bloc {
+.teibp.sleepy bloc {
   /* Empty Rule Set */
 }
-.teibp broadcast {
+.teibp.sleepy broadcast {
   /* Empty Rule Set */
 }
-.teibp byline {
+.teibp.sleepy byline {
   /* Empty Rule Set */
 }
-.teibp c {
+.teibp.sleepy c {
   /* Empty Rule Set */
 }
-.teibp cRefPattern {
+.teibp.sleepy cRefPattern {
   display: none;
 }
-.teibp caesura {
+.teibp.sleepy caesura {
   /* Empty Rule Set */
 }
-.teibp camera {
+.teibp.sleepy camera {
   /* Empty Rule Set */
 }
-.teibp caption {
+.teibp.sleepy caption {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp case[value]:before {
+.teibp.sleepy case[value]:before {
   font-weight: bold;
   content: attr(value) " ";
 }
-.teibp castGroup {
+.teibp.sleepy castGroup {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp castItem {
+.teibp.sleepy castItem {
   display: list-item;
   list-style-type: none;
 }
-.teibp castList {
+.teibp.sleepy castList {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   margin-left: 2em;
 }
-.teibp catDesc {
+.teibp.sleepy catDesc {
   /* Empty Rule Set */
 }
-.teibp catRef {
+.teibp.sleepy catRef {
   /* Empty Rule Set */
 }
-.teibp category {
+.teibp.sleepy category {
   /* Empty Rule Set */
 }
-.teibp cb {
+.teibp.sleepy cb {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp cb:before {
+.teibp.sleepy cb:before {
   content: "[column break]";
 }
-.teibp cell {
+.teibp.sleepy cell {
   display: table-cell;
   padding: 1em 1.5em 1em 1em;
   /*
@@ -418,150 +408,150 @@
   border: 1px dotted #444444;
   width: 100%;
 }
-.teibp [role=label] {
+.teibp.sleepy [role=label] {
   font-weight: bold;
 }
-.teibp certainty {
+.teibp.sleepy certainty {
   /* Empty Rule Set */
 }
-.teibp change {
+.teibp.sleepy change {
   /* Empty Rule Set */
 }
-.teibp channel {
+.teibp.sleepy channel {
   /* Empty Rule Set */
 }
-.teibp charDecl {
+.teibp.sleepy charDecl {
   /* Empty Rule Set */
 }
-.teibp charName {
+.teibp.sleepy charName {
   /* Empty Rule Set */
 }
-.teibp charProp {
+.teibp.sleepy charProp {
   /* Empty Rule Set */
 }
-.teibp choice {
+.teibp.sleepy choice {
   /* Empty Rule Set */
 }
-.teibp cit {
+.teibp.sleepy cit {
   /* Empty Rule Set */
 }
-.teibp cl {
+.teibp.sleepy cl {
   /* Empty Rule Set */
 }
-.teibp classCode {
+.teibp.sleepy classCode {
   /* Empty Rule Set */
 }
-.teibp classDecl {
+.teibp.sleepy classDecl {
   /* Empty Rule Set */
 }
-.teibp classRef {
+.teibp.sleepy classRef {
   /* Empty Rule Set */
 }
-.teibp classSpec {
+.teibp.sleepy classSpec {
   /* Empty Rule Set */
 }
-.teibp classes {
+.teibp.sleepy classes {
   /* Empty Rule Set */
 }
-.teibp climate {
+.teibp.sleepy climate {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp climate:before {
+.teibp.sleepy climate:before {
   font-weight: bold;
   content: "Climate: ";
 }
-.teibp closer {
+.teibp.sleepy closer {
   /* Empty Rule Set */
 }
-.teibp code {
+.teibp.sleepy code {
   font-family: Courier,monospace;
 }
-.teibp collation {
+.teibp.sleepy collation {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp collection {
+.teibp.sleepy collection {
   /* Empty Rule Set */
 }
-.teibp colloc {
+.teibp.sleepy colloc {
   /* Empty Rule Set */
 }
-.teibp colophon {
+.teibp.sleepy colophon {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp cond {
+.teibp.sleepy cond {
   /* Empty Rule Set */
 }
-.teibp condition {
+.teibp.sleepy condition {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution {
+.teibp.sleepy constitution {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution:before {
+.teibp.sleepy constitution:before {
   font-weight: bold;
   content: "Constitution: ";
 }
-.teibp constitution[type] {
+.teibp.sleepy constitution[type] {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution[type]:before {
+.teibp.sleepy constitution[type]:before {
   font-weight: bold;
   content: "Constitution (" attr(type) "): ";
 }
-.teibp constitution[type=frags] {
+.teibp.sleepy constitution[type=frags] {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp constitution[type=frags]:before {
+.teibp.sleepy constitution[type=frags]:before {
   font-weight: bold;
   content: "Constitution (fragments): ";
 }
-.teibp constraint {
+.teibp.sleepy constraint {
   /* Empty Rule Set */
 }
-.teibp constraintSpec {
+.teibp.sleepy constraintSpec {
   /* Empty Rule Set */
 }
-.teibp content {
+.teibp.sleepy content {
   /* Empty Rule Set */
 }
-.teibp corr {
+.teibp.sleepy corr {
   /* Empty Rule Set */
 }
-.teibp correction {
+.teibp.sleepy correction {
   /* Empty Rule Set */
 }
-.teibp country {
+.teibp.sleepy country {
   /* Empty Rule Set */
 }
-.teibp creation {
+.teibp.sleepy creation {
   /* Empty Rule Set */
 }
-.teibp custEvent {
+.teibp.sleepy custEvent {
   display: list-item;
 }
-.teibp custodialHist {
+.teibp.sleepy custodialHist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp date[when]:empty:before {
+.teibp.sleepy date[when]:empty:before {
   content: attr(when);
 }
-.teibp egXML {
+.teibp.sleepy egXML {
   display: block;
   font-size: 80%;
   margin-left: 1em;
@@ -574,125 +564,125 @@
   font-family: monospace;
   white-space: pre;
 }
-.teibp encodingDesc {
+.teibp.sleepy encodingDesc {
   display: none;
 }
-.teibp epigraph {
+.teibp.sleepy epigraph {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp fileDesc > extent {
+.teibp.sleepy fileDesc > extent {
   display: none;
 }
-.teibp figure {
+.teibp.sleepy figure {
   display: block;
   text-align: center;
   margin-left: auto;
   margin-right: auto;
 }
-.teibp g {
+.teibp.sleepy g {
   /* Empty Rule Set */
 }
-.teibp gap {
+.teibp.sleepy gap {
   /* GLS: Depending upon how we handle gap and lacuna, we may want to enclose in [] */
 }
-.teibp gb {
+.teibp.sleepy gb {
   /* Empty Rule Set */
 }
-.teibp gen {
+.teibp.sleepy gen {
   /* Empty Rule Set */
 }
-.teibp genName {
+.teibp.sleepy genName {
   /* Empty Rule Set */
 }
-.teibp geo {
+.teibp.sleepy geo {
   /* Empty Rule Set */
 }
-.teibp geoDecl {
+.teibp.sleepy geoDecl {
   /* Empty Rule Set */
 }
-.teibp geogFeat {
+.teibp.sleepy geogFeat {
   /* Empty Rule Set */
 }
-.teibp geogName {
+.teibp.sleepy geogName {
   /* Empty Rule Set */
 }
-.teibp gi {
+.teibp.sleepy gi {
   font-family: Courier,monospace;
 }
-.teibp gi:before {
+.teibp.sleepy gi:before {
   content: "<";
 }
-.teibp gi:after {
+.teibp.sleepy gi:after {
   content: ">";
 }
-.teibp gloss {
+.teibp.sleepy gloss {
   /* Empty Rule Set */
 }
-.teibp glyph {
+.teibp.sleepy glyph {
   /* Empty Rule Set */
 }
-.teibp glyphName {
+.teibp.sleepy glyphName {
   /* Empty Rule Set */
 }
-.teibp gram {
+.teibp.sleepy gram {
   /* Empty Rule Set */
 }
-.teibp gramGrp {
+.teibp.sleepy gramGrp {
   /* Empty Rule Set */
 }
-.teibp graph {
+.teibp.sleepy graph {
   /* Empty for now */
 }
-.teibp graphic {
+.teibp.sleepy graphic {
   display: none;
 }
-.teibp group {
+.teibp.sleepy group {
   /* Empty Rule Set */
 }
-.teibp handDesc {
+.teibp.sleepy handDesc {
   /* Empty Rule Set */
 }
-.teibp handNote {
+.teibp.sleepy handNote {
   /* Empty Rule Set */
 }
-.teibp handNotes {
+.teibp.sleepy handNotes {
   /* Empty Rule Set */
 }
-.teibp handShift {
+.teibp.sleepy handShift {
   /* Empty Rule Set */
 }
-.teibp TEI head {
+.teibp.sleepy TEI head {
   display: block;
   font-family: Arvo, sans-serif;
   font-weight: normal;
 }
-.teibp body > head {
+.teibp.sleepy body > head {
   font-size: 180%;
   text-indent: -0.5em;
 }
-.teibp div > head {
+.teibp.sleepy div > head {
   font-size: 170%;
   text-indent: -0.5em;
 }
-.teibp div > div > head {
+.teibp.sleepy div > div > head {
   font-size: 155%;
 }
-.teibp div > div > div > head {
+.teibp.sleepy div > div > div > head {
   font-size: 140%;
 }
-.teibp div > div > div > div > head,
-.teibp list > head {
+.teibp.sleepy div > div > div > div > head,
+.teibp.sleepy list > head {
   font-size: 130%;
 }
-.teibp div > div > div > div > div > head {
+.teibp.sleepy div > div > div > div > div > head {
   font-size: 120%;
 }
-.teibp div > div > div > div > div > div head {
+.teibp.sleepy div > div > div > div > div > div head {
   font-size: 110%;
 }
-.teibp figure > head {
+.teibp.sleepy figure > head {
   display: block;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
@@ -713,324 +703,324 @@
   font-family: Cochin, Georgia, Serif;
   font-size: 14pt;
 }
-.teibp headItem {
+.teibp.sleepy headItem {
   /* Empty Rule Set */
 }
-.teibp headLabel {
+.teibp.sleepy headLabel {
   /* Empty Rule Set */
 }
-.teibp height {
+.teibp.sleepy height {
   /* Empty Rule Set */
 }
-.teibp heraldry {
+.teibp.sleepy heraldry {
   /* Empty Rule Set */
 }
-.teibp hi {
+.teibp.sleepy hi {
   /* GLS: do we want to bold this or change the background color? */
 }
-.teibp history {
+.teibp.sleepy history {
   /* Empty Rule Set */
 }
-.teibp hom {
+.teibp.sleepy hom {
   /* Empty Rule Set */
 }
-.teibp hyph {
+.teibp.sleepy hyph {
   /* Empty Rule Set */
 }
-.teibp hyphenation {
+.teibp.sleepy hyphenation {
   /* Empty Rule Set */
 }
-.teibp iNode {
+.teibp.sleepy iNode {
   /* Empty Rule Set */
 }
-.teibp iType {
+.teibp.sleepy iType {
   /* Empty Rule Set */
 }
-.teibp ident {
+.teibp.sleepy ident {
   font-family: Courier,monospace;
 }
-.teibp idno {
+.teibp.sleepy idno {
   /* Empty Rule Set */
 }
-.teibp if {
+.teibp.sleepy if {
   /* Empty Rule Set */
 }
-.teibp iff {
+.teibp.sleepy iff {
   /* Empty Rule Set */
 }
-.teibp imprimatur {
+.teibp.sleepy imprimatur {
   /* Empty Rule Set */
 }
-.teibp imprint {
+.teibp.sleepy imprint {
   /* Empty Rule Set */
 }
-.teibp incident {
+.teibp.sleepy incident {
   /* Empty Rule Set */
 }
-.teibp incipit {
+.teibp.sleepy incipit {
   /* Empty Rule Set */
 }
-.teibp index {
+.teibp.sleepy index {
   /* Empty Rule Set */
 }
-.teibp institution {
+.teibp.sleepy institution {
   /* Empty Rule Set */
 }
-.teibp interaction {
+.teibp.sleepy interaction {
   /* Empty Rule Set */
 }
-.teibp interpGrp {
+.teibp.sleepy interpGrp {
   /* Empty Rule Set */
 }
-.teibp interpretation {
+.teibp.sleepy interpretation {
   /* Empty Rule Set */
 }
-.teibp item {
+.teibp.sleepy item {
   display: list-item;
   margin-left: 1em;
 }
-.teibp cell item {
+.teibp.sleepy cell item {
   margin-left: 1em;
 }
-.teibp list[type="gloss"] > item {
+.teibp.sleepy list[type="gloss"] > item {
   margin-left: 2em;
 }
-.teibp join {
+.teibp.sleepy join {
   /* Empty Rule Set */
 }
-.teibp joinGrp {
+.teibp.sleepy joinGrp {
   /* Empty Rule Set */
 }
-.teibp keywords {
+.teibp.sleepy keywords {
   /* Empty Rule Set */
 }
-.teibp kinesic {
+.teibp.sleepy kinesic {
   /* Empty Rule Set */
 }
-.teibp l {
+.teibp.sleepy l {
   display: block;
   padding-left: 2em;
   text-indent: -2em;
 }
-.teibp list[type="gloss"] > label {
+.teibp.sleepy list[type="gloss"] > label {
   display: block;
   margin-top: 0.25em;
   margin-bottom: 0.25em;
   font-weight: bold;
 }
-.teibp lacunaEnd {
+.teibp.sleepy lacunaEnd {
   /* Empty Rule Set */
 }
-.teibp lacunaStart {
+.teibp.sleepy lacunaStart {
   /* Empty Rule Set */
 }
-.teibp lang {
+.teibp.sleepy lang {
   /* Empty Rule Set */
 }
-.teibp langKnowledge {
+.teibp.sleepy langKnowledge {
   /* Empty Rule Set */
 }
-.teibp langKnown {
+.teibp.sleepy langKnown {
   /* Empty Rule Set */
 }
-.teibp langUsage {
+.teibp.sleepy langUsage {
   /* Empty Rule Set */
 }
-.teibp language {
+.teibp.sleepy language {
   /* Empty Rule Set */
 }
-.teibp layout {
+.teibp.sleepy layout {
   /* Empty Rule Set */
 }
-.teibp layoutDesc {
+.teibp.sleepy layoutDesc {
   /* Empty Rule Set */
 }
-.teibp lb {
+.teibp.sleepy lb {
   /* Empty Rule Set */
 }
-.teibp lb:after {
+.teibp.sleepy lb:after {
   content: '\a';
   white-space: pre;
 }
-.teibp lbl {
+.teibp.sleepy lbl {
   /* Empty Rule Set */
 }
-.teibp leaf {
+.teibp.sleepy leaf {
   /* Empty Rule Set */
 }
-.teibp lem {
+.teibp.sleepy lem {
   /* Empty Rule Set */
 }
-.teibp lg {
+.teibp.sleepy lg {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp link {
+.teibp.sleepy link {
   /* Empty Rule Set */
 }
-.teibp linkGrp {
+.teibp.sleepy linkGrp {
   /* Empty Rule Set */
 }
-.teibp list {
+.teibp.sleepy list {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp item > list {
+.teibp.sleepy item > list {
   margin-top: 0;
 }
-.teibp text list[type=simple] {
+.teibp.sleepy text list[type=simple] {
   list-style-type: none;
 }
-.teibp text list[type=bulleted] {
+.teibp.sleepy text list[type=bulleted] {
   list-style-type: disc;
 }
-.teibp text list[type=ordered] {
+.teibp.sleepy text list[type=ordered] {
   list-style-type: none;
   counter-reset: items 0;
 }
-.teibp text list[type=ordered] > item {
+.teibp.sleepy text list[type=ordered] > item {
   display: list-item;
   margin-left: 0;
 }
-.teibp item > list[type=ordered] {
+.teibp.sleepy item > list[type=ordered] {
   margin-left: 1em;
 }
-.teibp text list[type=ordered] > item:before {
+.teibp.sleepy text list[type=ordered] > item:before {
   counter-increment: items 1;
   content: counter(items, decimal) ". ";
 }
-.teibp text list[type=gloss] {
+.teibp.sleepy text list[type=gloss] {
   list-style-type: none;
 }
-.teibp item > list[type=ordered] {
+.teibp.sleepy item > list[type=ordered] {
   margin-left: 1em;
 }
-.teibp localName {
+.teibp.sleepy localName {
   /* Empty Rule Set */
 }
-.teibp locale {
+.teibp.sleepy locale {
   /* Empty Rule Set */
 }
-.teibp location {
+.teibp.sleepy location {
   /* Empty Rule Set */
 }
-.teibp locus {
+.teibp.sleepy locus {
   /* Empty Rule Set */
 }
-.teibp locusGrp {
+.teibp.sleepy locusGrp {
   /* Empty Rule Set */
 }
-.teibp m {
+.teibp.sleepy m {
   /* Empty Rule Set */
 }
-.teibp macroRef {
+.teibp.sleepy macroRef {
   /* Empty Rule Set NOT SURE WHAT EXACTLY*/
 }
-.teibp macroSpec {
+.teibp.sleepy macroSpec {
   /* dunno */
 }
-.teibp mapping {
+.teibp.sleepy mapping {
   /* not sure, maybe create rends for a few standard types, maybe hide */
 }
-.teibp material {
+.teibp.sleepy material {
   /* Empty Rule Set */
 }
-.teibp measure {
+.teibp.sleepy measure {
   /* Empty Rule Set */
 }
-.teibp measureGrp {
+.teibp.sleepy measureGrp {
   /* probably want to display attributes, at least units and type */
 }
-.teibp meeting {
+.teibp.sleepy meeting {
   /*Block */
 }
-.teibp memberOf {
+.teibp.sleepy memberOf {
   /* Empty Rule Set */
 }
-.teibp mentioned {
+.teibp.sleepy mentioned {
   /* think do nothing, not real clear on function, maybe hide? */
 }
-.teibp metDecl {
+.teibp.sleepy metDecl {
   /* Empty Rule Set */
 }
-.teibp metSym {
+.teibp.sleepy metSym {
   /* Empty Rule Set */
 }
-.teibp milestone {
+.teibp.sleepy milestone {
   display: block;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
 }
-.teibp milestone:before {
+.teibp.sleepy milestone:before {
   content: "* * * * *";
 }
-.teibp moduleRef {
+.teibp.sleepy moduleRef {
   /* probably hide, not sure how we want to deal */
 }
-.teibp moduleSpec {
+.teibp.sleepy moduleSpec {
   /* probably hide, not sure how we want to deal */
 }
-.teibp monogr {
+.teibp.sleepy monogr {
   /* block with space above, below */
 }
-.teibp mood {
+.teibp.sleepy mood {
   /* Empty Rule Set */
 }
-.teibp move {
+.teibp.sleepy move {
   /* not sure, block, maybe just ital, maybe in parenths*/
 }
-.teibp msContents .block-margins {
+.teibp.sleepy msContents .block-margins {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp msDesc {
+.teibp.sleepy msDesc {
   /* block with space above, below */
 }
-.teibp msIdentifier {
+.teibp.sleepy msIdentifier {
   /* block */
 }
-.teibp msItem {
+.teibp.sleepy msItem {
   /* block */
 }
-.teibp msItemStruct {
+.teibp.sleepy msItemStruct {
   /* block */
 }
-.teibp msName {
+.teibp.sleepy msName {
   /* Empty Rule Set */
 }
-.teibp msPart {
+.teibp.sleepy msPart {
   /* not sure, think block */
 }
-.teibp musicNotation {
+.teibp.sleepy musicNotation {
   font-weight: bold;
 }
-.teibp musicNotation:before {
+.teibp.sleepy musicNotation:before {
   font-weight: bold;
   content: "Musical Notation: ";
 }
-.teibp name {
+.teibp.sleepy name {
   /* Empty Rule Set */
 }
-.teibp nameLink {
+.teibp.sleepy nameLink {
   /* Empty Rule Set */
 }
-.teibp namespace {
+.teibp.sleepy namespace {
   /* not sure, hide? */
 }
-.teibp nationality {
+.teibp.sleepy nationality {
   /* Empty Rule Set */
 }
-.teibp node {
+.teibp.sleepy node {
   display: none;
 }
-.teibp normalization {
+.teibp.sleepy normalization {
   /* Empty Rule Set */
 }
-.teibp note {
+.teibp.sleepy note {
   display: block;
   margin: 1.5em auto 1.5em auto;
   padding: .5em 1.5em 1.5em 1.5em;
@@ -1048,87 +1038,87 @@
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-.teibp notesStmt {
+.teibp.sleepy notesStmt {
   /* do we want to box each individual <note> if they're in a <notesStmt>? */
   display: none;
 }
-.teibp num {
+.teibp.sleepy num {
   /* Empty Rule Set */
 }
-.teibp number {
+.teibp.sleepy number {
   /* Empty Rule Set */
 }
-.teibp numeric {
+.teibp.sleepy numeric {
   /* not sure, depends how we're dealing with <f>'s */
 }
-.teibp nym {
+.teibp.sleepy nym {
   /* not really sure here */
 }
-.teibp oRef {
+.teibp.sleepy oRef {
   /* not sure, think do nothing */
 }
-.teibp oVar {
+.teibp.sleepy oVar {
   font-style: italic;
 }
-.teibp objectDesc {
+.teibp.sleepy objectDesc {
   /* Empty Rule Set */
 }
-.teibp objectType {
+.teibp.sleepy objectType {
   /* Empty Rule Set */
 }
-.teibp occupation {
+.teibp.sleepy occupation {
   /* Empty Rule Set */
 }
-.teibp offset {
+.teibp.sleepy offset {
   /* Empty Rule Set */
 }
-.teibp opener {
+.teibp.sleepy opener {
   /* Empty Rule Set */
 }
-.teibp org {
+.teibp.sleepy org {
   /* Empty Rule Set */
 }
-.teibp orgName {
+.teibp.sleepy orgName {
   /* Empty Rule Set */
 }
-.teibp origDate {
+.teibp.sleepy origDate {
   /* Empty Rule Set */
 }
-.teibp origPlace {
+.teibp.sleepy origPlace {
   font-weight: bold;
 }
-.teibp origPlace:before {
+.teibp.sleepy origPlace:before {
   font-weight: bold;
   content: "Place of Origin: ";
 }
-.teibp origin {
+.teibp.sleepy origin {
   /* Empty Rule Set */
 }
-.teibp p {
+.teibp.sleepy p {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   text-align: justify;
 }
-.teibp *[rendition~="#center"] p {
+.teibp.sleepy *[rendition~="#center"] p {
   text-align: center;
 }
-.teibp availability > p:first-child {
+.teibp.sleepy availability > p:first-child {
   margin-top: 0em;
 }
-.teibp pRef {
+.teibp.sleepy pRef {
   /* rend attribute target */
 }
-.teibp pVar {
+.teibp.sleepy pVar {
   /* rend attribute target */
 }
-.teibp particDesc {
+.teibp.sleepy particDesc {
   /* Empty Rule Set */
 }
-.teibp pause {
+.teibp.sleepy pause {
   /* Empty Rule Set*/
 }
-.teibp pb {
+.teibp.sleepy pb {
   display: block;
   width: 100%;
   text-align: right;
@@ -1136,488 +1126,488 @@
   margin: 2em 0 2em 0;
   font-size: 11pt;
 }
-.teibp pc {
+.teibp.sleepy pc {
   /* Empty Rule Set */
 }
-.teibp per {
+.teibp.sleepy per {
   /* don't know, check back */
 }
-.teibp performance {
+.teibp.sleepy performance {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp persName {
+.teibp.sleepy persName {
   /* Empty Rule Set */
 }
-.teibp person {
+.teibp.sleepy person {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp personGrp {
+.teibp.sleepy personGrp {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp phr {
+.teibp.sleepy phr {
   /* Empty Rule Set */
 }
-.teibp physDesc {
+.teibp.sleepy physDesc {
   /* Empty Rule Set */
 }
-.teibp place {
+.teibp.sleepy place {
   /* Empty Rule Set */
 }
-.teibp placeName {
+.teibp.sleepy placeName {
   /* Empty Rule Set */
 }
-.teibp population {
+.teibp.sleepy population {
   /* dunno with this one */
 }
-.teibp pos {
+.teibp.sleepy pos {
   /* Empty Rule Set */
 }
-.teibp postBox {
+.teibp.sleepy postBox {
   /* Empty Rule Set */
 }
-.teibp postCode {
+.teibp.sleepy postCode {
   /* Empty Rule Set */
 }
-.teibp postscript {
+.teibp.sleepy postscript {
   display: block;
   margin-top: 2em;
 }
-.teibp precision {
+.teibp.sleepy precision {
   /* Empty Rule Set */
 }
-.teibp preparedness {
+.teibp.sleepy preparedness {
   /* Empty Rule Set */
 }
-.teibp principal {
+.teibp.sleepy principal {
   font-weight: bold;
 }
-.teibp principal:before {
+.teibp.sleepy principal:before {
   font-weight: bold;
   content: "Principal: ";
 }
-.teibp profileDesc {
+.teibp.sleepy profileDesc {
   display: none;
 }
-.teibp projectDesc {
+.teibp.sleepy projectDesc {
   /* Empty Rule Set */
 }
-.teibp prologue {
+.teibp.sleepy prologue {
   /* Empty Rule Set */
 }
-.teibp pron {
+.teibp.sleepy pron {
   /* Empty Rule Set */
 }
-.teibp provenance {
+.teibp.sleepy provenance {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp ptr {
+.teibp.sleepy ptr {
   /* dunno */
 }
-.teibp pubPlace {
+.teibp.sleepy pubPlace {
   /* Empty Rule Set */
 }
-.teibp publicationStmt > * {
+.teibp.sleepy publicationStmt > * {
   display: none;
 }
-.teibp publicationStmt {
+.teibp.sleepy publicationStmt {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp publicationStmt > date {
+.teibp.sleepy publicationStmt > date {
   display: none;
 }
-.teibp publicationStmt > publisher {
+.teibp.sleepy publicationStmt > publisher {
   display: none;
 }
-.teibp purpose {
+.teibp.sleepy purpose {
   /* Empty Rule Set */
 }
-.teibp q {
+.teibp.sleepy q {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp q:before {
+.teibp.sleepy q:before {
   content: open-quote;
 }
-.teibp q:after {
+.teibp.sleepy q:after {
   content: close-quote;
 }
-.teibp q[next]:after {
+.teibp.sleepy q[next]:after {
   content: "" !important;
 }
-.teibp q[prev]:before {
+.teibp.sleepy q[prev]:before {
   content: "" !important;
 }
-.teibp quotation {
+.teibp.sleepy quotation {
   /* Empty Rule Set */
 }
-.teibp quote {
+.teibp.sleepy quote {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp quote:before {
+.teibp.sleepy quote:before {
   content: open-quote;
 }
-.teibp quote:after {
+.teibp.sleepy quote:after {
   content: close-quote;
 }
-.teibp quote[next]:after {
+.teibp.sleepy quote[next]:after {
   content: "" !important;
 }
-.teibp quote[prev]:before {
+.teibp.sleepy quote[prev]:before {
   content: "" !important;
 }
-.teibp rdg {
+.teibp.sleepy rdg {
   /*perhaps choice */
 }
-.teibp rdgGrp {
+.teibp.sleepy rdgGrp {
   /* Empty Rule Set */
 }
-.teibp re {
+.teibp.sleepy re {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp recordHist {
+.teibp.sleepy recordHist {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp recording {
+.teibp.sleepy recording {
   /* not sure here, only in header? */
 }
-.teibp recordingStmt {
+.teibp.sleepy recordingStmt {
   /* Empty Rule Set */
 }
-.teibp ref {
+.teibp.sleepy ref {
   /*include link if target */
 }
-.teibp region {
+.teibp.sleepy region {
   /* Empty Rule Set */
 }
-.teibp relatedItem {
+.teibp.sleepy relatedItem {
   /* Empty Rule Set */
 }
-.teibp relation {
+.teibp.sleepy relation {
   /* Don't Know*/
 }
-.teibp relationGrp {
+.teibp.sleepy relationGrp {
   /* Empty Rule Set */
 }
-.teibp remarks {
+.teibp.sleepy remarks {
   font-weight: bold;
 }
-.teibp remarks:before {
+.teibp.sleepy remarks:before {
   font-weight: bold;
   content: "remarks: ";
 }
-.teibp rendition {
+.teibp.sleepy rendition {
   /*Don't remember what we decided to do with this*/
 }
-.teibp repository {
+.teibp.sleepy repository {
   /* Empty Rule Set */
 }
-.teibp residence {
+.teibp.sleepy residence {
   /* Empty Rule Set */
 }
-.teibp resp {
+.teibp.sleepy resp {
   /* Empty Rule Set */
 }
-.teibp respStmt {
+.teibp.sleepy respStmt {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp restore {
+.teibp.sleepy restore {
   /* footnote or sidenote perhaps*/
 }
-.teibp revisionDesc {
+.teibp.sleepy revisionDesc {
   display: none;
 }
-.teibp rhyme {
+.teibp.sleepy rhyme {
   /* Empty Rule Set */
 }
-.teibp role {
+.teibp.sleepy role {
   /* put on same line as roledesc? */
 }
-.teibp roleDesc {
+.teibp.sleepy roleDesc {
   /* put on same line as role */
 }
-.teibp roleName {
+.teibp.sleepy roleName {
   /* Empty Rule Set */
 }
-.teibp root {
+.teibp.sleepy root {
   /* don't know */
 }
-.teibp row {
+.teibp.sleepy row {
   display: table-row;
 }
-.teibp rs {
+.teibp.sleepy rs {
   /* Empty Rule Set */
 }
-.teibp s {
+.teibp.sleepy s {
   text-decoration: none;
 }
-.teibp said {
+.teibp.sleepy said {
   /* Empty Rule Set */
 }
-.teibp salute {
+.teibp.sleepy salute {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp samplingDecl {
+.teibp.sleepy samplingDecl {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp schemaSpec {
+.teibp.sleepy schemaSpec {
   /*NOT SURE, talk over with group */
 }
-.teibp scriptDesc {
+.teibp.sleepy scriptDesc {
   /*NOT SURE, talk over with group */
 }
-.teibp scriptNote {
+.teibp.sleepy scriptNote {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp scriptStmt {
+.teibp.sleepy scriptStmt {
   /* not sure */
 }
-.teibp seal {
+.teibp.sleepy seal {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp seal:before {
+.teibp.sleepy seal:before {
   font-weight: bold;
   content: "Seal: ";
 }
-.teibp sealDesc {
+.teibp.sleepy sealDesc {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp secFol:before {
+.teibp.sleepy secFol:before {
   font-weight: bold;
   content: "Second Folio: ";
 }
-.teibp seg {
+.teibp.sleepy seg {
   /* Empty Set Rule */
 }
-.teibp segmentation {
+.teibp.sleepy segmentation {
   /* Empty Rule Set */
 }
-.teibp sense {
+.teibp.sleepy sense {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp series {
+.teibp.sleepy series {
   /* treat same as seriesstmt? */
 }
-.teibp seriesStmt {
+.teibp.sleepy seriesStmt {
   display: none;
 }
-.teibp set {
+.teibp.sleepy set {
   /* Empty Set Rule */
 }
-.teibp setting {
+.teibp.sleepy setting {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp settingDesc {
+.teibp.sleepy settingDesc {
   /* Empty Set Rule */
 }
-.teibp settlement {
+.teibp.sleepy settlement {
   /* Empty Set Rule */
 }
-.teibp sex {
+.teibp.sleepy sex {
   /* Empty Rule Set */
 }
-.teibp shift {
+.teibp.sleepy shift {
   /* seems a bit to complex to do anything with */
 }
-.teibp sic {
+.teibp.sleepy sic {
   /* rend as choice when contained within a choice tag, perhaps as label with parenthesis after when alone */
 }
-.teibp signatures {
+.teibp.sleepy signatures {
   /* DON't KNOW, look again later */
 }
-.teibp signed {
+.teibp.sleepy signed {
   display: block;
   margin-top: 2em;
   /*should make name a block when contained within  */
 }
-.teibp soCalled {
+.teibp.sleepy soCalled {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp soCalled:before {
+.teibp.sleepy soCalled:before {
   content: open-quote;
 }
-.teibp soCalled:after {
+.teibp.sleepy soCalled:after {
   content: close-quote;
 }
-.teibp soCalled[next]:after {
+.teibp.sleepy soCalled[next]:after {
   content: "" !important;
 }
-.teibp soCalled[prev]:before {
+.teibp.sleepy soCalled[prev]:before {
   content: "" !important;
 }
-.teibp socecStatus {
+.teibp.sleepy socecStatus {
   /* Empty Set Rule */
 }
-.teibp sound {
+.teibp.sleepy sound {
   font-style: italic;
 }
-.teibp source {
+.teibp.sleepy source {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
 }
-.teibp sourceDesc {
+.teibp.sleepy sourceDesc {
   display: none;
 }
-.teibp sp {
+.teibp.sleepy sp {
   /*empty rule set*/
 }
-.teibp space:before {
+.teibp.sleepy space:before {
   font-weight: bold;
   content: "";
 }
-.teibp TEI span {
+.teibp.sleepy TEI span {
   display: none;
 }
-.teibp TEI egXML span {
+.teibp.sleepy TEI egXML span {
   display: inline;
 }
-.teibp spanGrp {
+.teibp.sleepy spanGrp {
   /* NOT SURE, look back on */
 }
-.teibp speaker {
+.teibp.sleepy speaker {
   font-weight: bold;
   margin-right: 0;
 }
-.teibp specDesc {
+.teibp.sleepy specDesc {
   /* NOT SURE, look back on */
 }
-.teibp specGrp {
+.teibp.sleepy specGrp {
   /* NOT SURE, look back on */
 }
-.teibp specGrpRef {
+.teibp.sleepy specGrpRef {
   /* NOT SURE, look back on */
 }
-.teibp specList {
+.teibp.sleepy specList {
   /* Empty Set Rule */
 }
-.teibp sponsor {
+.teibp.sleepy sponsor {
   display: block;
   margin-top: 0;
   margin-bottom: 0;
   /* Block element, maybe labeled  */
 }
-.teibp sponsor:before {
+.teibp.sleepy sponsor:before {
   font-weight: bold;
   content: "Sponsor:";
 }
-.teibp stage {
+.teibp.sleepy stage {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
   font-style: italic;
 }
-.teibp stamp {
+.teibp.sleepy stamp {
   display: block;
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.teibp stamp:before {
+.teibp.sleepy stamp:before {
   font-weight: bold;
   content: "Stamped: ";
 }
-.teibp state {
+.teibp.sleepy state {
   /* Empty Set Rule */
 }
-.teibp stdVals {
+.teibp.sleepy stdVals {
   /* Empty Set Rule */
 }
-.teibp street {
+.teibp.sleepy street {
   /* Empty Set Rule */
 }
-.teibp stress {
+.teibp.sleepy stress {
   /* Empty Set Rule */
 }
-.teibp string {
+.teibp.sleepy string {
   /* Empty Set Rule */
 }
-.teibp stringVal {
+.teibp.sleepy stringVal {
   /* doesn't seem to be part of tei 5 */
 }
-.teibp subc {
+.teibp.sleepy subc {
   /* Empty Set Rule */
 }
-.teibp subst {
+.teibp.sleepy subst {
   /* Empty Set Rule */
 }
-.teibp summary {
+.teibp.sleepy summary {
   /* Empty Set Rule */
 }
-.teibp superEntry {
+.teibp.sleepy superEntry {
   /* Block with space above and below, maybe have no block and space for <entry> when contained by this element */
 }
-.teibp supplied {
+.teibp.sleepy supplied {
   /* not sure on this one, seems like we should indicate somehow. Is there a standard way to do this? */
 }
-.teibp support {
+.teibp.sleepy support {
   /* Empty Set Rule */
 }
-.teibp supportDesc {
+.teibp.sleepy supportDesc {
   /* do nothing with or maybe block */
 }
-.teibp surface {
+.teibp.sleepy surface {
   /* choice */
 }
-.teibp surname {
+.teibp.sleepy surname {
   /* Empty Set Rule */
 }
-.teibp surplus {
+.teibp.sleepy surplus {
   display: none;
 }
-.teibp surrogates {
+.teibp.sleepy surrogates {
   /*Empty Rule Set */
 }
-.teibp syll {
+.teibp.sleepy syll {
   /* Empty Set Rule */
 }
-.teibp symbol {
+.teibp.sleepy symbol {
   /* Empty Set Rule */
 }
-.teibp TEI {
+.teibp.sleepy TEI {
   display: block;
 }
-.teibp table {
+.teibp.sleepy table {
   border-collapse: separate;
   border-spacing: 2px;
 }
-.teibp TEI table {
+.teibp.sleepy TEI table {
   display: block;
   margin-top: 2em;
   margin-bottom: 2em;
   font-size: 12pt;
 }
-.teibp table > head {
+.teibp.sleepy table > head {
   text-align: center;
 }
-.teibp teiHeader {
+.teibp.sleepy teiHeader {
   display: block;
   /*
 	border-radius: 15px;
@@ -1628,7 +1618,7 @@
   margin-bottom: 2em;
   border-bottom: 1px solid #999;
 }
-.teibp TEI > text {
+.teibp.sleepy TEI > text {
   display: block;
   /*
 	border-radius: 15px;
@@ -1637,139 +1627,135 @@
 	*/
   line-height: 1.5;
 }
-.teibp textClass {
+.teibp.sleepy textClass {
   display: none;
 }
-.teibp textDesc {
+.teibp.sleepy textDesc {
   display: none;
 }
-.teibp TEI title {
+.teibp.sleepy TEI title {
   display: inline;
 }
-.teibp TEI title[level=a] {
+.teibp.sleepy TEI title[level=a] {
   quotes: "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d" "\2018" "\2019" "\201c" "\201d";
 }
-.teibp TEI title[level=a]:before {
+.teibp.sleepy TEI title[level=a]:before {
   content: open-quote;
 }
-.teibp TEI title[level=a]:after {
+.teibp.sleepy TEI title[level=a]:after {
   content: close-quote;
 }
-.teibp TEI title[level=a][next]:after {
+.teibp.sleepy TEI title[level=a][next]:after {
   content: "" !important;
 }
-.teibp TEI title[level=a][prev]:before {
+.teibp.sleepy TEI title[level=a][prev]:before {
   content: "" !important;
 }
-.teibp title[level=m] {
+.teibp.sleepy title[level=m] {
   font-style: italic;
 }
-.teibp titleStmt > title {
+.teibp.sleepy titleStmt > title {
   display: block;
   font-family: Arvo, sans-serif;
   font-weight: normal;
   font-weight: bold !important;
   font-size: 150%;
 }
-.teibp titleStmt > editor:before {
+.teibp.sleepy titleStmt > editor:before {
   content: "Edited by ";
 }
-.teibp typeDesc {
+.teibp.sleepy typeDesc {
   display: none;
 }
-.teibp u:before {
+.teibp.sleepy u:before {
   content: "-";
 }
-.teibp unicodeName {
+.teibp.sleepy unicodeName {
   /* Empty Rule Set */
 }
-.teibp usg {
+.teibp.sleepy usg {
   /* Empty Rule Set */
 }
-.teibp vAlt {
+.teibp.sleepy vAlt {
   /* Empty Rule Set */
 }
-.teibp vColl {
+.teibp.sleepy vColl {
   /* Empty Rule Set */
 }
-.teibp vDefault {
+.teibp.sleepy vDefault {
   /* Empty Rule Set */
 }
-.teibp vLabel {
+.teibp.sleepy vLabel {
   /* Empty Rule Set */
 }
-.teibp vMerge {
+.teibp.sleepy vMerge {
   /* Empty Rule Set */
 }
-.teibp vNot {
+.teibp.sleepy vNot {
   /* Empty Rule Set */
 }
-.teibp vRange {
+.teibp.sleepy vRange {
   /* Empty Rule Set */
 }
-.teibp val {
+.teibp.sleepy val {
   /* Empty Rule Set */
 }
-.teibp valDesc {
+.teibp.sleepy valDesc {
   /* Empty Rule Set */
 }
-.teibp valItem {
+.teibp.sleepy valItem {
   /* Empty Rule Set */
 }
-.teibp valList {
+.teibp.sleepy valList {
   /* Empty Rule Set */
 }
-.teibp value {
+.teibp.sleepy value {
   /* Empty Rule Set */
 }
-.teibp variantEncoding {
+.teibp.sleepy variantEncoding {
   /* Empty Rule Set */
 }
-.teibp view {
+.teibp.sleepy view {
   font-style: italic;
 }
-.teibp vocal {
+.teibp.sleepy vocal {
   /* Empty Rule Set */
 }
-.teibp w {
+.teibp.sleepy w {
   /* Empty Rule Set */
 }
-.teibp watermark {
+.teibp.sleepy watermark {
   /* Empty Rule Set */
 }
-.teibp width {
+.teibp.sleepy width {
   /* Empty Rule Set */
 }
-.teibp wit {
+.teibp.sleepy wit {
   /* Empty Rule Set */
 }
-.teibp witDetail {
+.teibp.sleepy witDetail {
   /* Empty Rule Set */
 }
-.teibp witEnd {
+.teibp.sleepy witEnd {
   /* Empty Rule Set */
 }
-.teibp witStart {
+.teibp.sleepy witStart {
   /* Empty Rule Set */
 }
-.teibp witness {
+.teibp.sleepy witness {
   /* Empty Rule Set */
 }
-.teibp writing {
+.teibp.sleepy writing {
   /* Empty Rule Set */
 }
-.teibp xr {
+.teibp.sleepy xr {
   /* Empty Rule Set */
 }
-.teibp zone {
+.teibp.sleepy zone {
   /* Empty Rule Set */
 }
-/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
-html > body {
-  margin: 0;
-  padding: 0;
-}
-html {
+/* styles for .teibp shell and html elements in TEI (e.g.,<a> and <img>) */
+.teibp.sleepy {
   margin: 0;
   padding: 0;
   margin-left: 2em;
@@ -1780,31 +1766,29 @@ html {
   background-color: #000000;
   color: #ffffff;
   width: 33em;
-}
-.teibp {
   /* xml-serialization */
   /* loading animation */
 }
-.teibp img {
+.teibp.sleepy img {
   border: 1px solid #444444;
 }
-.teibp #footer {
+.teibp.sleepy #footer {
   margin-top: 1em;
   border-top: 1px solid #ffffff;
   padding-top: .5em;
   font-size: 12pt;
 }
-.teibp a:link,
-.teibp a:visited,
-.teibp a:active {
+.teibp.sleepy a:link,
+.teibp.sleepy a:visited,
+.teibp.sleepy a:active {
   color: #1cc0fa;
   text-decoration: none;
 }
-.teibp a:hover {
+.teibp.sleepy a:hover {
   color: #1cc0fa;
   text-decoration: underline;
 }
-.teibp #teibpToolbox {
+.teibp.sleepy #teibpToolbox {
   left: 56em;
   top: 25px;
   position: fixed;
@@ -1821,31 +1805,31 @@ html {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   width: 12em;
 }
-.teibp #teibpToolbox h1 {
+.teibp.sleepy #teibpToolbox h1 {
   font-weight: bold;
   font-size: 115%;
   margin-top: 0;
   margin-bottom: .5em;
   border-bottom: 1px solid #444444;
 }
-.teibp .eg-element {
+.teibp.sleepy .eg-element {
   color: #0165c8;
 }
-.teibp .eg-comment {
+.teibp.sleepy .eg-comment {
   color: gray;
 }
-.teibp .eg-att,
-.teibp .eg-nsdecl {
+.teibp.sleepy .eg-att,
+.teibp.sleepy .eg-nsdecl {
   color: #f58650;
 }
-.teibp .eg-attvalue,
-.teibp .eg-ns {
+.teibp.sleepy .eg-attvalue,
+.teibp.sleepy .eg-ns {
   color: #993300;
 }
-.teibp .eg-text {
+.teibp.sleepy .eg-text {
   color: #ffffff;
 }
-.teibp #loading {
+.teibp.sleepy #loading {
   display: none;
   position: fixed;
   left: 0;
@@ -1855,7 +1839,3 @@ html {
   background-image: url("../images/transparentbg.png");
 }
 /* Sleepy Time Theme */
-.teibp .head-font {
-  font-family: Arvo, sans-serif;
-  font-weight: normal;
-}

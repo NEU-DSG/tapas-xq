@@ -9,11 +9,13 @@
 /* @namespace html "http://www.w3.org/1999/xhtml"; */
 
 /* Less variables */
+.box-shadow {
+-webkit-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
+-moz-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
+box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
+}
 
-
-
-
-.teibp {
+.teibp.@{class-name} {
 	.block(@margins: 0) {
 	display:block;
 	margin-top:@margins;
@@ -60,13 +62,6 @@
 	}
 
 
-
-	.box-shadow {
-	-webkit-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
-	-moz-box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
-	box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
-	}
-
 	.hide {
 	display:none;
 	}
@@ -93,17 +88,6 @@
 
 	.mono {
 	font-family:Courier,monospace;
-	}
-
-	.page-setup {
-	margin-left:2em;
-	margin-right:4em;
-	padding:2.5em;
-	font-family: @body-font-family;
-	font-size:@body-font-size;
-	background-color:@background-color;
-	color:@color;
-	width:33em;
 	}
 
 	.table-border {
@@ -654,7 +638,8 @@
 
 	TEI head {
 	display:block;
-	.teibp .head-font;
+	font-family: @head-font-family;
+	font-weight: normal;
 	}
 
 	body > head {
@@ -1302,7 +1287,8 @@
 
 	titleStmt > title {
 	display:block;
-	.teibp .head-font;
+	font-family: @head-font-family;
+	font-weight: normal;
 	font-weight:bold !important;
 	font-size:150%;
 	}
@@ -1368,19 +1354,19 @@
 	zone {/* Empty Rule Set */}
 }
 
-/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
-html > body {
-margin:0;
-padding:0;
-}
+/* styles for .teibp shell and html elements in TEI (e.g.,<a> and <img>) */
+.teibp.@{class-name}{
+	margin:0;
+	padding:0;
+	margin-left:2em;
+	margin-right:4em;
+	padding:2.5em;
+	font-family: @body-font-family;
+	font-size:@body-font-size;
+	background-color:@background-color;
+	color:@color;
+	width:33em;
 
-html {
-margin:0;
-padding:0;
-.teibp .page-setup;
-}
-
-.teibp{
 	img {
 	border:1px solid @border-color;
 	}
@@ -1416,7 +1402,7 @@ padding:0;
 		background: @note-background-color;
 		font-family: Arvo, Verdana, sans-serif;
 		text-align:justify;
-		.teibp .box-shadow;
+		.box-shadow;
 		width:12em;
 	}
 
