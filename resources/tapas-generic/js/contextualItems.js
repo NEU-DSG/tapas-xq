@@ -183,10 +183,11 @@ $(document).ready(function() {
    //Tapas.rewriteExternalRefs();
    Tapas.notes = notes;
    Tapas.refs = refs; // not sure yet if we'll need this data on the Tapas object
-   console.log("ready from contextualitems");
    Tapas.currentTheme = 'diplomatic';
    $(".tapas-generic").addClass('diplomatic');
    Tapas.showPbs = true;
    $("#tapas-ref-dialog").dialog({autoOpen: false}); //initialize the dialog, placing and data in it handled by Tapas.displayRefData
-  //  $("#viewBox").change(switchThemes);
+   $("#viewBox").change(function(e){
+     switchThemes(e);
+   });
 });

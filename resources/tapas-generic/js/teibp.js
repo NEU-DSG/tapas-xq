@@ -4,13 +4,6 @@ function clearPageBreaks(){
 }
 
 function addPageBreaks(){
-    // var viewBox = $('.tapas-generic select#viewBox');
-    // var cssFile = viewBox.val();
-    // if (cssFile.indexOf('tapasGdiplo') > -1) {
-    //     Tapas.currentTheme = 'diplomatic';
-    // } else {
-    //     Tapas.currentTheme = 'normalized';
-    // }
     if (Tapas.currentTheme == 'diplomatic') {
     	$(".tapas-generic pb").css("display","block");
     	$(".tapas-generic .-teibp-pb").css("display","block");
@@ -18,14 +11,10 @@ function addPageBreaks(){
     	$(".tapas-generic pb").css("display","inline");
     	$(".tapas-generic .-teibp-pb").css("display","inline");
     }
-		// console.log(Tapas.currentTheme);
-		// console.log($("#maincss").attr('href'));
 }
 
 function init(){
-	// $(".tapas-generic").addClass('diplomatic');
-	// Tapas.currentTheme = 'diplomatic';
-	$('#pbToggle').onclick = function(){
+	$('#pbToggle').click( function(){
 		if($(this).is(':checked')){
 			clearPageBreaks();
 			Tapas.showPbs = false;
@@ -33,37 +22,18 @@ function init(){
 			addPageBreaks();
 			Tapas.showPbs = true;
 		}
-	};
+	});
 	addPageBreaks();
 	$(this).checked = false;
 }
 
 $(document).ready(function(){
-	console.log("I'm ready");
 	init();
-	$("#viewBox").change(function(e){
-		switchThemes(e);
-	});
 });
 
-function switchThemes(event) { // This needs to be changed so TAPAS can include TEI as a div instead of an iframe
-// 	console.log("we are in switchThemes");
-//     var cssFile = jQuery(event.target).val();
-//     if (cssFile == '../css/tapasGdiplo.css') {
-//         Tapas.currentTheme = 'diplomatic';
-//     } else {
-//         Tapas.currentTheme = 'normalized';
-//     }
-//     if (Tapas.showPbs) {
-//         addPageBreaks();
-//     }
-// 	document.getElementById('maincss').href = jQuery(event.target).val();
-// 	console.log(Tapas.currentTheme);
-	$(".tapas-generic").removeClass('diplomatic').removeClass('normal').addClass($(this).val());
-	Tapas.currentTheme = $(this).val();
-	// switchThemes(e);
-	console.log("we changed");
-	console.log(Tapas.currentTheme);
+function switchThemes(event) {
+	$(".tapas-generic").removeClass('diplomatic').removeClass('normal').addClass($(event.target).val());
+	Tapas.currentTheme = $(event.target).val();
 }
 
 function showFacs(num, url, id) {
