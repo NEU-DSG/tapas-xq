@@ -1,42 +1,33 @@
-function getPageBreaks(){
-	return document.getElementsByClassName('teibp').getElementsByTagName('pb');
-}
-
 function clearPageBreaks(){
-	var pageBreaks = getPageBreaks();
-	for(pageBreak in pageBreaks){
-		pageBreaks[pageBreak].textContent = '';
-	}
+	$(".teibp pb").css("display","none");
+	$(".teibp .-teibp-pb").css("display","none");
 }
 
 function addPageBreaks(){
-	var pageBreaks = getPageBreaks();
-	for(pageBreak in pageBreaks){
-		if(null != pageBreaks[pageBreak].attributes.getNamedItem('n')
-			&& undefined != pageBreaks[pageBreak].attributes.getNamedItem('n')){
-			pageBreaks[pageBreak].textContent = "page: " 
-				+ pageBreaks[pageBreak].attributes.getNamedItem('n').value
-				+ "";
-		}else{pageBreaks[pageBreak].textContent = "page"}
-	}
+	$(".teibp pb").css("display","block");
+	$(".teibp .-teibp-pb").css("display","block");
 }
 
 function init(){
-	document.getElementsByClassName('teibp').getElementById('pbToggle').onclick = function(){
-		if(document.getElementsByClassName('teibp').getElementById('pbToggle').checked){
+	$(".teibp").addClass('default');
+	$('#pbToggle').onclick = function(){
+		if($('#pbToggle').checked){
 			clearPageBreaks();
 		}else{
 			addPageBreaks();
 		}
 	};
 	addPageBreaks();
-	document.getElementsByClassName('teibp').getElementById('pbToggle').checked = false;
+	$('#pbToggle').checked = false;
 }
 
 $(document).ready(function(){
 	init();
+	$("#themeBox").on('change', function(e){
+		switchThemes(e);
+	});
 });
 
-function switchThemes(theme){ // This needs to be fixed.
-	document.getElementById('maincss').href=theme.options[theme.selectedIndex].value;
+function switchThemes(theme){
+	$(".teibp").removeClass('sleepy').removeClass('terminal').removeClass('default').addClass($(theme.target).val());
 }
