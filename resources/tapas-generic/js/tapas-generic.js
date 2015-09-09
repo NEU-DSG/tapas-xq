@@ -1,3 +1,4 @@
+//This JS made possible by the great work done in teibp/js/teibp.js
 function clearPageBreaks(){
 	$(".tapas-generic pb").css("display","none");
 	$(".tapas-generic .-teibp-pb").css("display","none");
