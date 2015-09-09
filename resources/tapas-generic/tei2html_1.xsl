@@ -64,7 +64,7 @@
   <!-- JQuery is not being used at the moment, but we may be putting it back -->
   <xsl:param name="jqueryJS"   select="concat($filePrefix,'js/jquery/jquery.min.js')"/>
   <xsl:param name="jqueryBlockUIJS" select="concat($filePrefix,'js/jquery/plugins/jquery.blockUI.js')"/>
-  <xsl:param name="teibpJS"    select="concat($filePrefix,'js/teibp.js')"/>
+  <xsl:param name="teibpJS"    select="concat($filePrefix,'js/tapas-generic.js')"/>
   <xsl:variable name="htmlFooter">
     <div id="footer"> This is the <a href="{$tapasHome}">TAPAS</a> generic view.</div>
   </xsl:variable>
