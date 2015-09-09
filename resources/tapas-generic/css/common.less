@@ -2234,6 +2234,7 @@ margin: 0;
 
 	/* z */
 	zone {}
+}
 
 	/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
 	html > body {
@@ -2244,9 +2245,10 @@ margin: 0;
 	html {
 	margin:0;
 	padding:0;
-	.page-setup;
+	.tapas-generic .page-setup;
 	}
 
+.tapas-generic {
 	img {
 	border:1px solid @border-color;
 	}
@@ -2280,7 +2282,7 @@ margin: 0;
 	background: @note-background-color;
 	font-family: Arvo, Verdana, sans-serif;
 	text-align:justify;
-	.box-shadow;
+	.tapas-generic .box-shadow;
 	width:12em;
 	}
 

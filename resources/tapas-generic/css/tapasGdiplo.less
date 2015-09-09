@@ -21,7 +21,15 @@
 @greybackground: #CCCCCC;
 @boxpadding: 5px;
 
+
 .tapas-generic {
+  .head-font {
+    font-family: @body-font-family;
+    font-weight: normal;
+  }
+}
+
+.tapas-generic.diplomatic{
   add {
   background: @highlightyellow;
   }
@@ -83,11 +91,6 @@
 
   gap:after {
   content: "(Unclear text)]";
-  }
-
-  .head-font {
-  font-family: @body-font-family;
-  font-weight: normal;
   }
 
   lb:after {

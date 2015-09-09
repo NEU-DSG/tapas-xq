@@ -71,10 +71,6 @@ body {
   /* w */
   /* x */
   /* z */
-  /* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
-  /* xml-serialization */
-  /* loading animation */
-  /* facsViewer */
 }
 .tapas-generic .block {
   display: block;
@@ -1447,11 +1443,12 @@ body {
 .tapas-generic view {
   font-style: italic;
 }
-.tapas-generic html > body {
+/* styles for html shell and html elements in TEI (e.g.,<a> and <img>) */
+html > body {
   margin: 0;
   padding: 0;
 }
-.tapas-generic html {
+html {
   margin: 0;
   padding: 0;
   margin-left: 2em;
@@ -1463,6 +1460,11 @@ body {
   background-color: #edf3fa;
   color: #232936;
   width: 33em;
+}
+.tapas-generic {
+  /* xml-serialization */
+  /* loading animation */
+  /* facsViewer */
 }
 .tapas-generic img {
   border: 1px solid #4d88cd;
@@ -1567,74 +1569,74 @@ body {
   font-family: Georgia, Baskerville, Palatino, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
   font-weight: normal;
 }
-.tapas-generic choice reg,
-.tapas-generic choice corr,
-.tapas-generic choice expan {
+.tapas-generic.normal choice reg,
+.tapas-generic.normal choice corr,
+.tapas-generic.normal choice expan {
   border-bottom: 1px dotted #000000;
 }
-.tapas-generic choice orig,
-.tapas-generic choice sic,
-.tapas-generic choice abbr {
+.tapas-generic.normal choice orig,
+.tapas-generic.normal choice sic,
+.tapas-generic.normal choice abbr {
   display: none;
   border: 1px solid #cccccc;
   padding: 5px;
   background: #ffffff;
 }
-.tapas-generic choice:hover orig,
-.tapas-generic choice:hover sic,
-.tapas-generic choice:hover abbr,
-.tapas-generic gap:hover {
+.tapas-generic.normal choice:hover orig,
+.tapas-generic.normal choice:hover sic,
+.tapas-generic.normal choice:hover abbr,
+.tapas-generic.normal gap:hover {
   display: inline;
 }
-.tapas-generic choice abbr + expan:after,
-.tapas-generic choice expan + abbr:after,
-.tapas-generic choice sic + corr:after,
-.tapas-generic choice corr + sic:after,
-.tapas-generic choice orig + reg:after,
-.tapas-generic choice reg + orig:after,
-.tapas-generic choice abbr + expan:before,
-.tapas-generic choice expan + abbr:before,
-.tapas-generic choice sic + corr:before,
-.tapas-generic choice corr + sic:before,
-.tapas-generic choice orig + reg:before,
-.tapas-generic choice reg + orig:before {
+.tapas-generic.normal choice abbr + expan:after,
+.tapas-generic.normal choice expan + abbr:after,
+.tapas-generic.normal choice sic + corr:after,
+.tapas-generic.normal choice corr + sic:after,
+.tapas-generic.normal choice orig + reg:after,
+.tapas-generic.normal choice reg + orig:after,
+.tapas-generic.normal choice abbr + expan:before,
+.tapas-generic.normal choice expan + abbr:before,
+.tapas-generic.normal choice sic + corr:before,
+.tapas-generic.normal choice corr + sic:before,
+.tapas-generic.normal choice orig + reg:before,
+.tapas-generic.normal choice reg + orig:before {
   content: "";
 }
-.tapas-generic del,
-.tapas-generic subst del {
+.tapas-generic.normal del,
+.tapas-generic.normal subst del {
   display: none;
 }
-.tapas-generic fw {
+.tapas-generic.normal fw {
   display: none;
 }
-.tapas-generic gap {
+.tapas-generic.normal gap {
   border-bottom: 1px dotted #000000;
 }
-.tapas-generic gap:before {
+.tapas-generic.normal gap:before {
   content: "[";
 }
-.tapas-generic gap:after {
+.tapas-generic.normal gap:after {
   content: "]";
 }
-.tapas-generic gap[reason]:after,
-.tapas-generic gap[extent]:after,
-.tapas-generic gap[quantity]:after,
-.tapas-generic gap:after {
+.tapas-generic.normal gap[reason]:after,
+.tapas-generic.normal gap[extent]:after,
+.tapas-generic.normal gap[quantity]:after,
+.tapas-generic.normal gap:after {
   font-style: italic;
 }
-.tapas-generic gap[reason]:after {
+.tapas-generic.normal gap[reason]:after {
   content: "(Gap reason: " attr(reason) ")]";
 }
-.tapas-generic gap[extent]:after {
+.tapas-generic.normal gap[extent]:after {
   content: "(Gap of " attr(extent) " " attr(unit) "; reason: " attr(reason) ")]";
 }
-.tapas-generic gap[quantity]:after {
+.tapas-generic.normal gap[quantity]:after {
   content: "(Gap of " attr(quantity) " " attr(unit) "; reason: " attr(reason) ")]";
 }
-.tapas-generic gap:after {
+.tapas-generic.normal gap:after {
   content: "(Unclear text)]";
 }
-.tapas-generic .-teibp-pb a {
+.tapas-generic.normal .-teibp-pb a {
   font-family: "sans-serif";
   display: inline;
   margin: 0;
@@ -1643,12 +1645,12 @@ body {
   color: gray;
   border-bottom: 0;
 }
-.tapas-generic .-teibp-pb a:before {
+.tapas-generic.normal .-teibp-pb a:before {
   font-family: "Segoe UI Symbol", "Arial Unicode MS", "DejaVu Sans", "Meiryo UI", "MS UI Gothic", "Everson Mono Unicode", Meiryo, "MS Gothic", "MS Mincho", "MS PGothic", "MS PMincho", "Meslo LG L", "Meslo LG L DZ", "Meslo M L", "Meslo M L DZ", "Meslo S L", "Meslo S L DZ", "Symbola", "DejaVu Sans Condensed", "DejaVu Sans Mono", Code2000, "Everson Mono", Quivira, sans-serif;
   content: "\002119";
   padding: 0 .5em 0 0;
   float: left;
 }
-.tapas-generic .-teibp-pb a:hover:before {
+.tapas-generic.normal .-teibp-pb a:hover:before {
   content: "\002119 " attr(data-tapas-n);
 }
