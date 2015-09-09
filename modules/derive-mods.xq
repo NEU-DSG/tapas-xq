@@ -40,11 +40,7 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
 declare variable $parameters := map {
-                                      "title" : 'xs:string?',
-                                      "authors" : 'xs:string?',
-                                      "contributors" : 'xs:string?',
-                                      "timeline-date" : 'xs:string?',
-                                      "file" : 'node()?'
+                                      "file" : 'node()'
                                     };
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 200;

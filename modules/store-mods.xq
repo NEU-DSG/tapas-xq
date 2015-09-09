@@ -43,11 +43,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 declare variable $method := "POST";
 declare variable $parameters := map {
                                       "doc-id" : "xs:string",
-                                      "proj-id" : "xs:string",
-                                      "title" : 'xs:string?',
-                                      "authors" : 'xs:string?',
-                                      "contributors" : 'xs:string?',
-                                      "timeline-date" : 'xs:string?'
+                                      "proj-id" : "xs:string"
                                     };
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 201;
