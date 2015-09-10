@@ -3,14 +3,13 @@ xquery version "3.0";
 import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
 
-import module namespace transform="http://exist-db.org/xquery/transform";
+import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `POST exist/apps/tapas-xq/derive-mods` 
- : Derive MODS production file from a TEI document.
+ : `POST exist/apps/tapas-xq/:proj-id/:doc-id/mods` 
+ : Derive MODS production file from a TEI document and store it in the database.
  : 
- : Returns an XML-encoded file of the MODS record with status code 200. eXist 
- : does not store any files as a result of this request.
+ : Returns an XML-encoded file of the MODS record with status code 201.
  : 
  : <ul>
  :  <lh>Request Expectations</lh>
@@ -18,15 +17,18 @@ import module namespace transform="http://exist-db.org/xquery/transform";
  :  <li>Content-Type: multipart/form-data</li>
  :  <ul>
  :    <lh>Parameters</lh>
- :    <li>file: The TEI-encoded XML document to be transformed.</li>
+ :    <li>doc-id: A unique identifier for the document record attached to the 
+ : original TEI document and its derivatives (MODS, TFE).</li>
+ :    <li>proj-id: The unique identifier of the project which owns the work.</li>
  :    <ul>
- :      <lh>Optional parameters</lh>
+ :    <lh>Optional parameters</lh>
  :      <li>title: The title of the item as it appears on TAPAS.</li>
  :      <li>authors: A string with each author's name concatenated by a '|'.</li>
  :      <li>contributors: A string with each contributor's name concatenated by a '|'.</li>
  :      <li>timeline-date: The date corresponding to the item in the TAPAS 
  : timeline. xs:date format preferred. 
  : (see http://www.w3schools.com/schema/schema_dtypes_date.asp)</li>
+ :      <li>file: The TEI-encoded XML document to be transformed.</li>
  :    </ul>
  :  </ul>
  : </ul>
@@ -40,15 +42,22 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
 declare variable $parameters := map {
-                                      "file" : 'node()'
+                                      "doc-id" : "xs:string",
+                                      "proj-id" : "xs:string"
                                     };
 (: Variables corresponding to the expected response structure. :)
-declare variable $successCode := 200;
+declare variable $successCode := 201;
 declare variable $contentType := "application/xml";
 
-let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $projID := txq:get-param('proj-id')
+let $docID := txq:get-param('doc-id')
+let $docURI := concat("/db/tapas-data/",$projID,"/",$docID,"/",$docID,".xml")
+let $estimateCode :=  if ( $projID eq '' or not(doc-available($docURI)) ) then
+                        500
+                      else
+                        txq:test-request($method, $parameters, $successCode)
 let $responseBody :=  if ( $estimateCode = $successCode ) then
-                        let $teiXML := txq:get-param-xml('file')
+                        let $teiXML := doc($docURI)
                         let $title := txq:get-param('title')
                         let $authors := txq:get-param('authors')
                         let $contributors := txq:get-param('contributors')
@@ -70,6 +79,10 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                             }
                                           </parameters>
                         let $mods := transform:transform($teiXML, doc("../resources/tapas2mods.xsl"), $XSLparams)
-                        return $mods
+                        let $isStored := xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID),"/mods.xml",$mods)
+                        return 
+                            if ( empty($isStored) ) then
+                              500
+                            else $mods
                       else tgen:get-error($estimateCode)
 return txq:build-response($estimateCode, $contentType, $responseBody)
