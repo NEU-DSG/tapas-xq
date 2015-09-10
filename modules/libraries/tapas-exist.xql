@@ -8,6 +8,7 @@ import module namespace response="http://exist-db.org/xquery/response";
 import module namespace transform="http://exist-db.org/xquery/transform";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 import module namespace util="http://exist-db.org/xquery/util";
+import module namespace validate="http://exist-db.org/xquery/validation";
 import module namespace functx="http://www.functx.com";
 import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 
@@ -33,17 +34,34 @@ declare function txq:get-param-xml($param-name as xs:string) {
 
 (: Get the body of the request (should only be XML). :)
 declare function txq:get-body-xml() {
-  request:get-data()
+  txq:get-file-content(request:get-data())
 };
 
 (: Clean data to get XML, replacing any instances of U+FEFF that might make 
  : eXist consider the XML "invalid." :)
 declare function txq:get-file-content($file) {
   typeswitch($file)
-    case node() return $file
+    case node() return txq:validate($file)
     case xs:string return parse-xml(replace($file,'﻿',''))
     case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
     default return 400
+};
+
+(: Check if the document is well-formed and valid TEI. :)
+declare function txq:validate($document) {
+  let $wellformednessReport := validate:jing-report($document, doc('../../resources/well-formed.rng'))
+  return
+    if ( $wellformednessReport//status/text() eq "valid" ) then
+      let $isTEI := <results>
+                      {
+                        transform:transform($document,doc('../../resources/isTEI.xsl'),<parameters/>)
+                      }
+                    </results>
+      return
+        if ( $isTEI/* ) then
+          400
+        else $document
+    else 400
 };
 
 (: Make sure that the incoming request matches the XQuery's expectations. :)
@@ -71,7 +89,7 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
   return
     (: Test HTTP method. :)
     if ( request:get-method() eq $method-type ) then
-      if ( not(some $i in $requestParams satisfies false()) ) then
+      if ( every $i in $requestParams satisfies $i = true() ) then
         (: xd: If the request includes the appropriate key, log in that user. :)
           (: If the current user has access to the 'tapas-data' folder, then return a success code. :)
           if ( sm:has-access(xs:anyURI('/db/tapas-data'),'rwx') ) then

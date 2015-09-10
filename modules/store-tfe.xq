@@ -7,7 +7,7 @@ declare namespace tapas="http://www.wheatoncollege.edu/TAPAS/1.0";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `POST exist/db/apps/tapas-xq/:doc-id/tfe` 
+ : `POST exist/db/apps/tapas-xq/:proj-id/:doc-id/tfe` 
  : Store 'TAPAS-friendly-eXist' metadata in eXist.
  : 
  : Triggers the generation of a small XML file containing useful information 
@@ -24,8 +24,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  :  <ul>
  :    <lh>Parameters</lh>
  :    <li>doc-id: A unique identifier for the document record attached to the 
- : original TEI document and its derivatives (MODS, TFE). Currently maps to the 
- : Drupal identifier ('did').</li>
+ : original TEI document and its derivatives (MODS, TFE).</li>
  :    <li>proj-id: The unique identifier of the project which owns the work.</li>
  :    <li>collections: Comma-separated list of collection identifiers with 
  : which the work should be associated.</li>
@@ -53,16 +52,21 @@ declare variable $parameters := map {
 declare variable $successCode := 201;
 declare variable $contentType := "application/xml";
 
-let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $projID := txq:get-param('proj-id')
+let $docID := txq:get-param('doc-id')
+let $docURI := concat("/db/tapas-data/",$projID,"/",$docID,"/",$docID,".xml")
+let $estimateCode :=  if ( $projID eq '' or not(doc-available($docURI)) ) then
+                        500
+                      else
+                        txq:test-request($method, $parameters, $successCode)
 let $responseBody :=  if ( $estimateCode = $successCode ) then
-                        let $docID := txq:get-param('doc-id')
                         let $collections := <tapas:collections>{ 
                                               for $n in tokenize(txq:get-param('collections'),',')
                                               return <tapas:collection>{ $n }</tapas:collection>
                                             }</tapas:collections>
                         let $tfe := <tapas:metadata xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0">
                                       <tapas:owners>
-                                        <tapas:project>{ txq:get-param('proj-id') }</tapas:project>
+                                        <tapas:project>{ $projID }</tapas:project>
                                         <tapas:document>{ $docID }</tapas:document>
                                         { $collections }
                                       </tapas:owners>
@@ -70,7 +74,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                     </tapas:metadata>
                         (: xmldb:store() returns the path to the new resource, 
                          : or, on failure, an empty sequence. :)
-                        let $isStored := xmldb:store(concat("/db/tapas-data/",$docID),"/tfe.xml",$tfe)
+                        let $isStored := xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID),"/tfe.xml",$tfe)
                         return 
                             if ( empty($isStored) ) then
                               500
