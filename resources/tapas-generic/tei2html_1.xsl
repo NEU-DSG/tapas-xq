@@ -17,6 +17,14 @@
       javascript and other features from the html/browser
       environment. Originally named <tt>genericTEI2genericXHTML5.xslt</tt>.</xd:p>
       <xd:p><xd:b>change log:</xd:b></xd:p>
+      <xd:p><xd:i>2015-09-06</xd:i> by Syd:
+        <xd:ul>
+          <xd:li>don't output empty <tt>&lt;html:a></tt> elements, as Firefox considers
+          the rest of the document (at least, up to next <tt>&lt;html:a></tt>) the link</xd:li>
+          <xd:li>add heuristics to ascertain whether a <tt>&lt;tei:q></tt> or <tt>&lt;tei:quote></tt>
+          (that does not have a styling attr) should be block level or inline</xd:li>
+        </xd:ul>
+      </xd:p>
       <xd:p><xd:i>2015-09-05</xd:i> by Syd: 
       <xd:ul>
         <xd:li>Alter paths to css/ and js/ assets to match new world order</xd:li>
@@ -340,6 +348,7 @@
   </xd:doc>
   <xsl:template match="tei:q[not(@style|@rend|@rendition)]
                  | tei:quote[not(@style|@rend|@rendition)]">
+    <!-- BUG: should also be checking of a default <rendition> applies -->
     <xsl:variable name="gi" select="local-name(.)"/>
     <xsl:variable name="pre"
       select="(preceding-sibling::text()|preceding-sibling::*)
