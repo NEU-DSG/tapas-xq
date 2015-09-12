@@ -17,6 +17,7 @@
       javascript and other features from the html/browser
       environment. Originally named <tt>genericTEI2genericXHTML5.xslt</tt>.</xd:p>
       <xd:p><xd:b>change log:</xd:b></xd:p>
+      <xd:p><xd:i>2015-09-12</xd:i> by Syd: improved sex processing; output XML instead of HTML</xd:p>
       <xd:p><xd:i>2015-09-06</xd:i> by Syd:
         <xd:ul>
           <xd:li>don't output empty <tt>&lt;html:a></tt> elements, as Firefox considers
@@ -58,7 +59,7 @@
 
   <!-- xsl:include href="xml-to-string.xsl"/ -->
 
-  <xsl:output encoding="UTF-8" method="html" omit-xml-declaration="yes" indent="yes"/>
+  <xsl:output encoding="UTF-8" method="xml" indent="yes"/>
 
   <xsl:param name="teibpHome"  select="'http://dcl.slis.indiana.edu/teibp/'"/>
   <xsl:param name="tapasHome"  select="'http://tapasproject.org/'"/>
@@ -1164,36 +1165,50 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="tei:sex" mode="genCon">
+  <xsl:template match="tei:sex|@sex" mode="genCon">
     <p data-tapas-label="sex">
       <span>
         <xsl:choose>
-          <xsl:when test="normalize-space(.)!=''">
+          <xsl:when test="not( self::tei:sex )">
+            <!-- this is an attribute -->
+            <xsl:call-template name="getSex">
+              <xsl:with-param name="sexCode" select="normalize-space(.)"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:when test="normalize-space(.) != ''">
+            <!-- this is an element with content, use the content -->
             <xsl:apply-templates select="." mode="string"/>
           </xsl:when>
           <xsl:when test="@value">
+            <!-- this is an element w/ a value= attr, use it -->
             <xsl:call-template name="getSex">
               <xsl:with-param name="sexCode" select="normalize-space(@value)"/>
             </xsl:call-template>
           </xsl:when>
+          <xsl:otherwise>
+            <xsl:comment>where am I supposed to find sex?</xsl:comment>
+            <xsl:call-template name="getSex">
+              <xsl:with-param name="sexCode" select="'?'"/>
+            </xsl:call-template>
+          </xsl:otherwise>
         </xsl:choose>
       </span>
     </p>
   </xsl:template>
   
-  <xsl:template name="getSex" match="@sex">
-    <xsl:param name="sexCode" select="normalize-space(.)"/>
+  <xsl:template name="getSex">
+    <xsl:param name="sexCode" select="translate( .,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
     <xsl:choose>
-      <xsl:when test=". = '0'">unknown</xsl:when>
-      <xsl:when test=". = 'U'">unknown</xsl:when>
-      <xsl:when test=". = '1'">male</xsl:when>
-      <xsl:when test=". = 'M'">male</xsl:when>
-      <xsl:when test=". = '2'">female</xsl:when>
-      <xsl:when test=". = 'F'">female</xsl:when>
-      <xsl:when test=". = 'O'">other</xsl:when>
-      <xsl:when test=". = '9'">not applicable</xsl:when>
-      <xsl:when test=". = 'N'">none or not applicable</xsl:when>
-      <xsl:otherwise><xsl:value-of select="."/></xsl:otherwise>
+      <xsl:when test="$sexCode = '0'">unknown</xsl:when>
+      <xsl:when test="$sexCode = 'u'">unknown</xsl:when>
+      <xsl:when test="$sexCode = '1'">male</xsl:when>
+      <xsl:when test="$sexCode = 'm'">male</xsl:when>
+      <xsl:when test="$sexCode = '2'">female</xsl:when>
+      <xsl:when test="$sexCode = 'f'">female</xsl:when>
+      <xsl:when test="$sexCode = 'O'">other</xsl:when>
+      <xsl:when test="$sexCode = '9'">not applicable</xsl:when>
+      <xsl:when test="$sexCode = 'n'">none or not applicable</xsl:when>
+      <xsl:otherwise><xsl:value-of select="$sexCode"/></xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
