@@ -375,6 +375,41 @@
       <xsl:apply-templates select="node()"/>
     </xsl:element>
   </xsl:template>
+
+  <xd:doc>
+    <xd:desc>Indicate which <xd:i>div</xd:i>s should be in TOC</xd:desc>
+  </xd:doc>
+  <xsl:template match="tei:div">
+    <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
+      <xsl:call-template name="addID"/>
+      <xsl:call-template name="addRend"/>
+      <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
+      <xsl:variable name="sibdivs" select="parent::*/tei:div"/>
+      <xsl:if test="$sibdivs/tei:p[ count(preceding-sibling::tei:p) > 5 ]">
+        <xsl:attribute name="data-tapas-tocme">
+          <xsl:value-of select="true()"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates select="node()"/>
+    </xsl:element>
+  </xsl:template>
+  <xd:doc>
+    <xd:desc>Indicate which <xd:i>lg</xd:i>s should be in TOC</xd:desc>
+  </xd:doc>
+  <xsl:template match="tei:lg">
+    <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
+      <xsl:call-template name="addID"/>
+      <xsl:call-template name="addRend"/>
+      <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
+      <xsl:variable name="siblgs" select="parent::*/tei:lg"/>
+      <xsl:if test="$siblgs[ count( descendant::tei:l[ not(@prev) and not(@part='M') and not(@part='F') ] ) > 40 ]">
+        <xsl:attribute name="data-tapas-tocme">
+          <xsl:value-of select="true()"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates select="node()"/>
+    </xsl:element>
+  </xsl:template>
   
   <xd:doc>
     <xd:desc>Insert an HTML note-anchor before each <tt>&lt;note></tt>, except those
