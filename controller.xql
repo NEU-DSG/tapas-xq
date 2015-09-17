@@ -39,8 +39,8 @@ else if (local:get-parent-dir() eq 'derive-reader' and local:get-extension($exis
       <add-parameter name="type" value="{$exist:resource}"/>
     </forward>
   </dispatch>
-else if (local:get-extension($exist:resource) eq '' and request:get-method() = 'DELETE') then
-  if ( local:get-proj-dir() eq '' ) then
+else if (request:get-method() = 'DELETE' and local:get-extension($exist:resource) eq '') then
+  if ( local:get-parent-dir() eq '' ) then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
       <forward url="{concat($exist:controller, '/modules/delete-by-projid.xq')}" method="{request:get-method()}">
         <add-parameter name="proj-id" value="{$exist:resource}"/>
@@ -50,7 +50,7 @@ else if (local:get-extension($exist:resource) eq '' and request:get-method() = '
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
       <forward url="{concat($exist:controller, '/modules/delete-by-docid.xq')}" method="{request:get-method()}">
         <add-parameter name="doc-id" value="{$exist:resource}"/>
-        <add-parameter name="proj-id" value="{local:get-proj-dir()}"/>
+        <add-parameter name="proj-id" value="{local:get-parent-dir()}"/>
       </forward>
     </dispatch>
 else if (local:get-extension($exist:resource) eq '') then
