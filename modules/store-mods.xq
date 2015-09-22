@@ -28,7 +28,6 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  :      <li>timeline-date: The date corresponding to the item in the TAPAS 
  : timeline. xs:date format preferred. 
  : (see http://www.w3schools.com/schema/schema_dtypes_date.asp)</li>
- :      <li>file: The TEI-encoded XML document to be transformed.</li>
  :    </ul>
  :  </ul>
  : </ul>
