@@ -23,7 +23,7 @@ Each request must contain _either_
 
 `POST exist/apps/tapas-xq/derive-mods`
 
-Content-type: application/xml
+Content-type: multipart/form-data
 
 Parameters:
 
@@ -35,10 +35,10 @@ Optional parameters:
 
 | Name | Description |
 | ------ | ------- |
-| displayTitle | The work's title as it should appear in TAPAS metadata. |
-| displayAuthors | '\|'-separated list of authors' names as they should appear in TAPAS metadata. |
-| displayContributors | '\|'-separated list of contributors' names as they should appear in TAPAS metadata. |
-| timelineDate | The date associated with this item in the TAPAS Timeline feature. |
+| title | The work's title as it should appear in TAPAS metadata. |
+| authors | '\|'-separated list of authors' names as they should appear in TAPAS metadata. |
+| contributors | '\|'-separated list of contributors' names as they should appear in TAPAS metadata. |
+| timeline-date | The date associated with this item in the TAPAS Timeline feature. |
 
 Returns an XML-encoded file of the MODS record with status code 200. eXist does not store any files as a result of this request.
 
@@ -83,10 +83,10 @@ Optional parameters:
 
 | Name | Description |
 | ------ | ------- |
-| displayTitle | The work's title as it should appear in TAPAS metadata. |
-| displayAuthors | '\|'-separated list of authors' names as they should appear in TAPAS metadata. |
-| displayContributors | '\|'-separated list of contributors' names as they should appear in TAPAS metadata. |
-| timelineDate | The date associated with this item in the TAPAS Timeline feature. |
+| title | The work's title as it should appear in TAPAS metadata. |
+| authors | '\|'-separated list of authors' names as they should appear in TAPAS metadata. |
+| contributors | '\|'-separated list of contributors' names as they should appear in TAPAS metadata. |
+| timeline-date | The date associated with this item in the TAPAS Timeline feature. |
 
 If no TEI document is associated with the given doc-id, the response will have a status code of 500. The TEI file must be stored _before_ any of its derivatives.
 
