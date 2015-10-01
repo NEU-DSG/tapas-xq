@@ -1,0 +1,3 @@
+[submodule "resources/tapas-generic"]
+	path = resources/tapas-generic
+	url = https://github.com/NEU-DSG/tapas-generic.git
