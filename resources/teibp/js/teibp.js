@@ -1,49 +1,33 @@
-function getPageBreaks(){
-	return document.getElementsByTagName('pb');
-}
-
 function clearPageBreaks(){
-	var pageBreaks = getPageBreaks();
-	for(pageBreak in pageBreaks){
-		pageBreaks[pageBreak].textContent = '';
-	}
+	$(".teibp pb").css("display","none");
+	$(".teibp .-teibp-pb").css("display","none");
 }
 
 function addPageBreaks(){
-	var pageBreaks = getPageBreaks();
-	for(pageBreak in pageBreaks){
-		if(null != pageBreaks[pageBreak].attributes.getNamedItem('n')
-			&& undefined != pageBreaks[pageBreak].attributes.getNamedItem('n')){
-			pageBreaks[pageBreak].textContent = "page: " 
-				+ pageBreaks[pageBreak].attributes.getNamedItem('n').value
-				+ "";
-		}else{pageBreaks[pageBreak].textContent = "page"}
-	}
+	$(".teibp pb").css("display","block");
+	$(".teibp .-teibp-pb").css("display","block");
 }
 
 function init(){
-	document.getElementById('pbToggle').onclick = function(){
-		if(document.getElementById('pbToggle').checked){
+	$(".teibp").addClass('default');
+	$('#pbToggle').onclick = function(){
+		if($('#pbToggle').checked){
 			clearPageBreaks();
 		}else{
 			addPageBreaks();
 		}
 	};
 	addPageBreaks();
-	document.getElementById('pbToggle').checked = false;
+	$('#pbToggle').checked = false;
 }
 
-//If W3C event model used, prefer that. Window events are fallbacks
-if(document.addEventListener){
-	//W3C event model used
-	document.addEventListener("DOMContentLoaded", init, false);
-	window.addEventListener("load", init, false);
-} else if(document.attachEvent){
-	//IE event model used
-	document.attachEvent( "onreadystatechange", init);
-	window.attachEvent( "onload", init);
-}
+$(document).ready(function(){
+	init();
+	$("#themeBox").on('change', function(e){
+		switchThemes(e);
+	});
+});
 
 function switchThemes(theme){
-	document.getElementById('maincss').href=theme.options[theme.selectedIndex].value;
+	$(".teibp").removeClass('sleepy').removeClass('terminal').removeClass('default').addClass($(theme.target).val());
 }

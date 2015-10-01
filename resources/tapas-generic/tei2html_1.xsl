@@ -17,6 +17,7 @@
       javascript and other features from the html/browser
       environment. Originally named <tt>genericTEI2genericXHTML5.xslt</tt>.</xd:p>
       <xd:p><xd:b>change log:</xd:b></xd:p>
+      <xd:p><xd:i>2015-09-12</xd:i> by Syd: improved sex processing; output XML instead of HTML</xd:p>
       <xd:p><xd:i>2015-09-06</xd:i> by Syd:
         <xd:ul>
           <xd:li>don't output empty <tt>&lt;html:a></tt> elements, as Firefox considers
@@ -58,7 +59,7 @@
 
   <!-- xsl:include href="xml-to-string.xsl"/ -->
 
-  <xsl:output encoding="UTF-8" method="xml" omit-xml-declaration="yes" indent="yes"/>
+  <xsl:output encoding="UTF-8" method="xml" indent="yes"/>
 
   <xsl:param name="teibpHome"  select="'http://dcl.slis.indiana.edu/teibp/'"/>
   <xsl:param name="tapasHome"  select="'http://tapasproject.org/'"/>
@@ -72,7 +73,7 @@
   <!-- JQuery is not being used at the moment, but we may be putting it back -->
   <xsl:param name="jqueryJS"   select="concat($filePrefix,'js/jquery/jquery.min.js')"/>
   <xsl:param name="jqueryBlockUIJS" select="concat($filePrefix,'js/jquery/plugins/jquery.blockUI.js')"/>
-  <xsl:param name="teibpJS"    select="concat($filePrefix,'js/teibp.js')"/>
+  <xsl:param name="teibpJS"    select="concat($filePrefix,'js/tapas-generic.js')"/>
   <xsl:variable name="htmlFooter">
     <div id="footer"> This is the <a href="{$tapasHome}">TAPAS</a> generic view.</div>
   </xsl:variable>
@@ -110,11 +111,13 @@
     <html>
       <xsl:call-template name="htmlHead"/>
       <body>
-        <xsl:call-template name="toolbox"/>
-        <xsl:call-template name="dialog"/>
-        <xsl:call-template name="wrapper"/>
-        <xsl:call-template name="contextual"/>
-        <!-- commented out 2014-09-28 by Syd xsl:copy-of select="$htmlFooter"/ -->
+        <div class="tapas-generic">
+          <xsl:call-template name="toolbox"/>
+          <xsl:call-template name="dialog"/>
+          <xsl:call-template name="wrapper"/>
+          <xsl:call-template name="contextual"/>
+          <!-- commented out 2014-09-28 by Syd xsl:copy-of select="$htmlFooter"/ -->
+        </div>
       </body>
     </html>
   </xsl:template>
@@ -123,22 +126,22 @@
     <div id="tapasToolbox">
       <div id="tapasToolbox-pb">
         <label for="pbToggle">Hide page breaks</label>
-        <input type="checkbox" id="pbToggle" />
+        <input type="checkbox" id="pbToggle"></input>
       </div>
       <div id="tapasToolbox-views">
         <label for="viewBox">Views</label>
         <select id="viewBox">
           <!-- this <select> used to have on[cC]hange="switchThemes(this);", but -->
           <!-- that was incorporated into the javascript 2014-04-20 by PMJ. -->
-          <option value="{$view.diplo}" selected="selected">diplomatic</option>
-          <option value="{$view.norma}">normalized</option>
+          <option value="diplomatic" selected="selected">diplomatic</option>
+          <option value="normal">normalized</option>
         </select>
       </div>
     </div>
   </xsl:template>
 
   <xsl:template name="dialog">
-    <div id="tapas-ref-dialog"/>
+    <div id="tapas-ref-dialog"></div>
   </xsl:template>
 
   <xsl:template name="wrapper">
@@ -373,6 +376,41 @@
       <xsl:apply-templates select="node()"/>
     </xsl:element>
   </xsl:template>
+
+  <xd:doc>
+    <xd:desc>Indicate which <xd:i>div</xd:i>s should be in TOC</xd:desc>
+  </xd:doc>
+  <xsl:template match="tei:div">
+    <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
+      <xsl:call-template name="addID"/>
+      <xsl:call-template name="addRend"/>
+      <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
+      <xsl:variable name="sibdivs" select="parent::*/tei:div"/>
+      <xsl:if test="$sibdivs/tei:p[ count(preceding-sibling::tei:p) > 5 ]">
+        <xsl:attribute name="data-tapas-tocme">
+          <xsl:value-of select="true()"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates select="node()"/>
+    </xsl:element>
+  </xsl:template>
+  <xd:doc>
+    <xd:desc>Indicate which <xd:i>lg</xd:i>s should be in TOC</xd:desc>
+  </xd:doc>
+  <xsl:template match="tei:lg">
+    <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
+      <xsl:call-template name="addID"/>
+      <xsl:call-template name="addRend"/>
+      <xsl:apply-templates select="@*[not( starts-with(local-name(.),'rend') ) and not( local-name(.)='style' )]"/>
+      <xsl:variable name="siblgs" select="parent::*/tei:lg"/>
+      <xsl:if test="$siblgs[ count( descendant::tei:l[ not(@prev) and not(@part='M') and not(@part='F') ] ) > 40 ]">
+        <xsl:attribute name="data-tapas-tocme">
+          <xsl:value-of select="true()"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates select="node()"/>
+    </xsl:element>
+  </xsl:template>
   
   <xd:doc>
     <xd:desc>Insert an HTML note-anchor before each <tt>&lt;note></tt>, except those
@@ -421,7 +459,7 @@
     <xsl:element name="{local-name(.)}">
       <xsl:apply-templates select="@*"/>
       <xsl:call-template name="addID"/>
-      <img alt="{normalize-space(tei:figDesc)}" src="{tei:graphic/@url}"/>
+      <img alt="{normalize-space(tei:figDesc)}" src="{tei:graphic/@url}"></img>
       <xsl:apply-templates select="*[ not( self::tei:graphic | self::tei:figDesc ) ]"/>
     </xsl:element>
   </xsl:template>
@@ -585,14 +623,14 @@
 
   <xsl:template name="htmlHead">
     <head>
-      <meta charset="UTF-8"/>
+      <meta charset="UTF-8"></meta>
       <xsl:choose>
         <xsl:when test="$lessSide='client'">
-          <link rel="stylesheet/less" type="text/css" href="{$less}"/>
-          <script src="less.js" type="text/javascript"/>
+          <link rel="stylesheet/less" type="text/css" href="{$less}"></link>
+          <script src="less.js" type="text/javascript"></script>
         </xsl:when>
         <xsl:otherwise>
-          <link id="maincss" rel="stylesheet" type="text/css" href="{$view.diplo}"/>
+          <link id="maincss" rel="stylesheet" type="text/css" href="{$view.diplo}"></link>
         </xsl:otherwise>
       </xsl:choose>
       <xsl:call-template name="javascript"/>
@@ -604,17 +642,11 @@
   </xsl:template>
 
   <xsl:template name="javascript">
-    <script type="text/javascript" src="{$filePrefix}js/jquery/jquery.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}js/jquery-ui/ui/minified/jquery-ui.min.js"/>
-    <script type="text/javascript" src="{$filePrefix}js/contextualItems.js"/>
-    <link rel="stylesheet" href="{$filePrefix}css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"/>
-    <script type="text/javascript" src="{$teibpJS}"/>
-    <script type="text/javascript">
-      jQuery(document).ready(function() {
-      $("html > head > title").text($("TEI > teiHeader > fileDesc > titleStmt > title:first").text());
-      $.unblockUI();
-      });
-    </script>
+    <script type="text/javascript" src="{$filePrefix}js/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="{$filePrefix}js/jquery-ui/ui/minified/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="{$filePrefix}js/contextualItems.js"></script>
+    <link rel="stylesheet" href="{$filePrefix}css/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css"></link>
+    <script type="text/javascript" src="{$teibpJS}"></script>
   </xsl:template>
 
   <xsl:template name="css">
@@ -669,7 +701,7 @@
             <xsl:value-of select="@n"/>
           </xsl:attribute>
         </xsl:if>
-        <xsl:text>&#xA0;</xsl:text>
+        <xsl:text> </xsl:text>
       </a>
       <xsl:if test="@facs">
         <span class="-teibp-pbFacs">
@@ -1133,36 +1165,50 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="tei:sex" mode="genCon">
+  <xsl:template match="tei:sex|@sex" mode="genCon">
     <p data-tapas-label="sex">
       <span>
         <xsl:choose>
-          <xsl:when test="normalize-space(.)!=''">
+          <xsl:when test="not( self::tei:sex )">
+            <!-- this is an attribute -->
+            <xsl:call-template name="getSex">
+              <xsl:with-param name="sexCode" select="normalize-space(.)"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:when test="normalize-space(.) != ''">
+            <!-- this is an element with content, use the content -->
             <xsl:apply-templates select="." mode="string"/>
           </xsl:when>
           <xsl:when test="@value">
+            <!-- this is an element w/ a value= attr, use it -->
             <xsl:call-template name="getSex">
               <xsl:with-param name="sexCode" select="normalize-space(@value)"/>
             </xsl:call-template>
           </xsl:when>
+          <xsl:otherwise>
+            <xsl:comment>where am I supposed to find sex?</xsl:comment>
+            <xsl:call-template name="getSex">
+              <xsl:with-param name="sexCode" select="'?'"/>
+            </xsl:call-template>
+          </xsl:otherwise>
         </xsl:choose>
       </span>
     </p>
   </xsl:template>
   
-  <xsl:template name="getSex" match="@sex">
-    <xsl:param name="sexCode" select="normalize-space(.)"/>
+  <xsl:template name="getSex">
+    <xsl:param name="sexCode" select="translate( .,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
     <xsl:choose>
-      <xsl:when test=". = '0'">unknown</xsl:when>
-      <xsl:when test=". = 'U'">unknown</xsl:when>
-      <xsl:when test=". = '1'">male</xsl:when>
-      <xsl:when test=". = 'M'">male</xsl:when>
-      <xsl:when test=". = '2'">female</xsl:when>
-      <xsl:when test=". = 'F'">female</xsl:when>
-      <xsl:when test=". = 'O'">other</xsl:when>
-      <xsl:when test=". = '9'">not applicable</xsl:when>
-      <xsl:when test=". = 'N'">none or not applicable</xsl:when>
-      <xsl:otherwise><xsl:value-of select="."/></xsl:otherwise>
+      <xsl:when test="$sexCode = '0'">unknown</xsl:when>
+      <xsl:when test="$sexCode = 'u'">unknown</xsl:when>
+      <xsl:when test="$sexCode = '1'">male</xsl:when>
+      <xsl:when test="$sexCode = 'm'">male</xsl:when>
+      <xsl:when test="$sexCode = '2'">female</xsl:when>
+      <xsl:when test="$sexCode = 'f'">female</xsl:when>
+      <xsl:when test="$sexCode = 'O'">other</xsl:when>
+      <xsl:when test="$sexCode = '9'">not applicable</xsl:when>
+      <xsl:when test="$sexCode = 'n'">none or not applicable</xsl:when>
+      <xsl:otherwise><xsl:value-of select="$sexCode"/></xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 

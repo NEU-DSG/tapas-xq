@@ -1,61 +1,40 @@
+//This JS made possible by the great work done in teibp/js/teibp.js
 function clearPageBreaks(){
-	$("pb").css("display","none");
-	$(".-teibp-pb").css("display","none");
+	$(".tapas-generic pb").css("display","none");
+	$(".tapas-generic .-teibp-pb").css("display","none");
 }
 
 function addPageBreaks(){
-    var viewBox = $('select#viewBox');
-    var cssFile = viewBox.val();
-    if (cssFile.indexOf('tapasGdiplo') > -1) {
-        Tapas.currentTheme = 'diplomatic';
-    } else {
-        Tapas.currentTheme = 'normalized';
-    }    
     if (Tapas.currentTheme == 'diplomatic') {
-    	$("pb").css("display","block");	
-    	$(".-teibp-pb").css("display","block");        
+    	$(".tapas-generic pb").css("display","block");
+    	$(".tapas-generic .-teibp-pb").css("display","block");
     } else {
-    	$("pb").css("display","inline");	
-    	$(".-teibp-pb").css("display","inline");        
+    	$(".tapas-generic pb").css("display","inline");
+    	$(".tapas-generic .-teibp-pb").css("display","inline");
     }
 }
 
 function init(){
-	document.getElementById('pbToggle').onclick = function(){
-		if(document.getElementById('pbToggle').checked){
+	$('#pbToggle').click( function(){
+		if($(this).is(':checked')){
 			clearPageBreaks();
 			Tapas.showPbs = false;
 		}else{
 			addPageBreaks();
 			Tapas.showPbs = true;
 		}
-	};
+	});
 	addPageBreaks();
-	document.getElementById('pbToggle').checked = false;
+	$(this).checked = false;
 }
 
-//If W3C event model used, prefer that. Window events are fallbacks
-if(document.addEventListener){
-	//W3C event model used
-	document.addEventListener("DOMContentLoaded", init, false);
-	window.addEventListener("load", init, false);
-} else if(document.attachEvent){
-	//IE event model used
-	document.attachEvent( "onreadystatechange", init);
-	window.attachEvent( "onload", init);
-}
+$(document).ready(function(){
+	init();
+});
 
 function switchThemes(event) {
-    var cssFile = jQuery(event.target).val();
-    if (cssFile == '../css/tapasGdiplo.css') {
-        Tapas.currentTheme = 'diplomatic';
-    } else {
-        Tapas.currentTheme = 'normalized';
-    }
-    if (Tapas.showPbs) {
-        addPageBreaks();
-    }
-	document.getElementById('maincss').href = jQuery(event.target).val();
+	$(".tapas-generic").removeClass('diplomatic').removeClass('normal').addClass($(event.target).val());
+	Tapas.currentTheme = $(event.target).val();
 }
 
 function showFacs(num, url, id) {
@@ -82,7 +61,7 @@ function showFacs(num, url, id) {
 	facsWindow.document.write($("teiHeader")[0].outerHTML)
 	//facsWindow.document.write("<teiHeader>" + $("teiHeader")[0].html() + "</teiHeader>")
 	//facsWindow.document.write($('<teiHeader>').append($('teiHeader').clone()).html();)
-	
+
 	//facsWindow.document.write($("teiHeader")[0].outerHTML)
 	facsWindow.document.write("<div id='resizable'>")
 	facsWindow.document.write("<div class='facsImage'>")
@@ -92,7 +71,7 @@ function showFacs(num, url, id) {
 	facsWindow.document.write("</div>")
 	facsWindow.document.write("</div>")
 	facsWindow.document.write($("footer")[0].outerHTML)
-	
+
 	facsWindow.document.write("</body>")
 	facsWindow.document.write("</html>")
 	facsWindow.document.close()

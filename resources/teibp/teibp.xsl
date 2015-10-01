@@ -21,7 +21,7 @@
 	</xd:doc>
 	<xsl:include href="xml-to-string.xsl"/>
 
-	<xsl:output encoding="UTF-8" method="xml" omit-xml-declaration="yes"/>
+	<xsl:output encoding="UTF-8" method="html" omit-xml-declaration="yes"/>
 	
 	<xsl:param name="teibpHome" select="'http://dcl.slis.indiana.edu/teibp/'"/>
 	<xsl:param name="inlineCSS" select="true()"/>
@@ -64,7 +64,9 @@
 					<xsl:call-template name="teibpToolbox"/>
 				</xsl:if>
 				<div id="tei_wrapper">
-					<xsl:apply-templates/>
+				  <div class="teibp">
+					 <xsl:apply-templates/>
+				  </div>
 				</div>
 				<xsl:copy-of select="$htmlFooter"/>
 			</body>
@@ -256,13 +258,13 @@
 	</xd:doc>
 	<xsl:template name="htmlHead">
 		<head>
-			<meta charset="UTF-8"/>
+			<meta charset="UTF-8"></meta>
 
-			<link id="maincss" rel="stylesheet" type="text/css" href="{$teibpCSS}"/>
-			<link rel="stylesheet" type="text/css" href="{$customCSS}"/>
-			<script type="text/javascript" src="{$jqueryJS}"/>
-			<script type="text/javascript" src="{$jqueryBlockUIJS}"/>
-			<script type="text/javascript" src="{$teibpJS}"/>
+			<link id="maincss" rel="stylesheet" type="text/css" href="{$teibpCSS}"></link>
+			<link rel="stylesheet" type="text/css" href="{$customCSS}"></link>
+			<script type="text/javascript" src="{$jqueryJS}"></script>
+			<script type="text/javascript" src="{$jqueryBlockUIJS}"></script>
+			<script type="text/javascript" src="{$teibpJS}"></script>
 			
 			<script type="text/javascript">
 				$(document).ready(function() {
@@ -309,7 +311,7 @@
 				href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0
 				Unported License</a>. <a href="http://creativecommons.org/licenses/by/3.0/"><img
 					alt="Creative Commons License" style="border-width:0;"
-					src="http://i.creativecommons.org/l/by/3.0/80x15.png"/></a>
+					src="http://i.creativecommons.org/l/by/3.0/80x15.png"></img></a>
 		</div>
 	</xsl:variable>
 
@@ -317,14 +319,14 @@
 		<div id="teibpToolbox">
 			<h1>Toolbox</h1>
 			<label for="pbToggle">Hide page breaks</label>
-			<input type="checkbox" id="pbToggle" /> 
+			<input type="checkbox" id="pbToggle" ></input> 
 			<div>
 				<h3>Themes:</h3>
 
 				<select id="themeBox" onchange="switchThemes(this);">
-					<option value="{$theme.default}" >Default</option>
-					<option value="{$theme.sleepytime}">Sleepy Time</option>
-					<option value="{$theme.terminal}">Terminal</option>
+					<option value="default" >Default</option>
+					<option value="sleepytime">Sleepy Time</option>
+					<option value="terminal">Terminal</option>
 				</select>			</div>
 		</div>
 	</xsl:template>

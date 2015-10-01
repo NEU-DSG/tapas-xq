@@ -3,7 +3,7 @@
 function getAllElementsWithAttribute(attribute)
 {
   var matchingElements = [];
-  var allElements = document.getElementsByTagName('*');
+  var allElements = document.getElementsByTagName('.tapas-generic *');
   for (var i = 0; i < allElements.length; i++)
   {
     if (allElements[i].getAttribute(attribute))
