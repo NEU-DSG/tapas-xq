@@ -90,12 +90,14 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
     (: Test HTTP method. :)
     if ( request:get-method() eq $method-type ) then
       if ( every $i in $requestParams satisfies $i = true() ) then
-        (: xd: If the request includes the appropriate key, log in that user. :)
-          (: If the current user has access to the 'tapas-data' folder, then return a success code. :)
-          if ( sm:has-access(xs:anyURI('/db/tapas-data'),'rwx') ) then
-            $success-code
-          (: Return an error if login fails. :)
-          else 401
+        (: If the request will affect what is stored in eXist, check the user's permissions. :)
+          if ($method-type eq 'DELETE' or $success-code = 201) then 
+            (: If the current user has access to the 'tapas-data' folder, then return a success code. :)
+            if ( sm:has-access(xs:anyURI('/db/tapas-data'),'rwx') ) then
+              $success-code
+            (: Return an error if login fails. :)
+            else 401
+          else $success-code
       (: Return an error if 1+ of the parameters does not match the expected type. :)
       else 400
     (: Return an error for any unsupported HTTP methods. :)

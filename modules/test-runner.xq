@@ -8,6 +8,15 @@ import module namespace inspect="http://exist-db.org/xquery/inspection";
  : @version 1.0
 :)
 
-test:suite(
-  inspect:module-functions(xs:anyURI("libraries/testsuite-ingest.xql"))
-)
+let $exreq := doc('xmldb:exist://db/apps/tapas-xq/resources/testdocs/exhttpSkeleton.xml')
+let $baseURL := replace(request:get-url(),'/modules/test-runner\.xq','')
+let $setup := 
+    if (contains(request:get-url(),'eXide')) then
+      ()
+    else if ( $exreq/http:request[not(@href)] or $exreq/http:request/@href ne $baseURL ) then
+      update insert attribute href { $baseURL } into $exreq/http:request
+    else ()
+return
+    test:suite(
+      inspect:module-functions(xs:anyURI("libraries/testsuite-ingest.xql"))
+    )

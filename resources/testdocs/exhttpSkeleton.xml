@@ -1,0 +1,5 @@
+<http:request xmlns:http="http://expath.org/ns/http-client" 
+  auth-method="digest" send-authorization="true" http-version="1.0"> 
+  <!-- Request headers/body goes here. See http://expath.org/spec/http-client. -->
+  
+</http:request>
