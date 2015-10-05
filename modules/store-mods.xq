@@ -82,7 +82,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $isStored := xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID),"mods.xml",$mods)
                         return 
                             if ( empty($isStored) ) then
-                              500
+                              (500, "The MODS file could not be stored; check user permissions")
                             else $mods
                       else if ( $reqEstimate instance of item()* ) then
                         tgen:set-error($reqEstimate[2])

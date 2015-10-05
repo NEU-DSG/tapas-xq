@@ -63,7 +63,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                           doc("../resources/tapas-generic/tei2html_2.xsl"), ())
                                       (: If the $type keyword doesn't match the 
                                        : expected values, return an error. :)
-                                      else 400
+                                      else (400, "':type' must have a value of 'teibp' or 'tapas-generic'")
                         return $xhtml
                       else if ( $reqEstimate instance of item()* ) then
                         tgen:set-error($reqEstimate[2])
