@@ -55,10 +55,11 @@ declare variable $contentType := "application/xml";
 let $projID := txq:get-param('proj-id')
 let $docID := txq:get-param('doc-id')
 let $docURI := concat("/db/tapas-data/",$projID,"/",$docID,"/",$docID,".xml")
-let $estimateCode :=  if ( $projID eq '' or not(doc-available($docURI)) ) then
-                        500
+let $reqEstimate := if ( $projID eq '' or not(doc-available($docURI)) ) then
+                        (500, "TEI file must be available in database before TFE storage")
                       else
                         txq:test-request($method, $parameters, $successCode)
+let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $collections := <tapas:collections>{ 
                                               for $n in tokenize(txq:get-param('collections'),',')
@@ -79,5 +80,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                             if ( empty($isStored) ) then
                               500
                             else <p>{$isStored}</p>
-                      else $estimateCode
+                      else if ( $reqEstimate instance of item()* ) then
+                        tgen:set-error($reqEstimate[2])
+                      else tgen:get-error($estimateCode)
 return txq:build-response($estimateCode, $contentType, $responseBody)

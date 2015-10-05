@@ -26,7 +26,14 @@ declare function local:get-proj-dir() as xs:string {
   return $proj
 };
 
-if ($exist:resource = 'tei' or $exist:resource = 'mods' or $exist:resource = 'tfe') then
+if ($exist:resource = 'tei') then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/store-', $exist:resource, '.xq')}" method="{request:get-method()}">
+      <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>
+      <add-parameter name="proj-id" value="{local:get-proj-dir()}"/>
+    </forward>
+  </dispatch>
+else if ($exist:resource = 'mods' or $exist:resource = 'tfe') then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/store-', $exist:resource, '.xq')}" method="{request:get-method()}">
       <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>

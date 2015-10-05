@@ -44,7 +44,8 @@ declare variable $parameters := map {
 declare variable $successCode := 200;
 declare variable $contentType := "text/html";
 
-let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $reqEstimate := txq:test-request($method, $parameters, $successCode) 
+let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $teiXML := txq:get-param-xml('file')
                         let $XSLparams := <parameters>
@@ -64,5 +65,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                        : expected values, return an error. :)
                                       else 400
                         return $xhtml
+                      else if ( $reqEstimate instance of item()* ) then
+                        tgen:set-error($reqEstimate[2])
                       else tgen:get-error($estimateCode)
 return txq:build-response($estimateCode, $contentType, $responseBody)

@@ -26,13 +26,13 @@ import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 (: Get a request parameter. :)
 declare function txq:get-param($param-name as xs:string) {
   let $param := request:get-parameter($param-name, 400)
-  return if ( $param = 400 ) then (400, concat("Parameter '",$param-name,"' must be present")) else $param 
+  return if ( $param instance of xs:integer and $param = 400 ) then (400, concat("Parameter '",$param-name,"' must be present")) else $param 
 };
 
 (: Get a request parameter whose value is expected to be XML. :)
 declare function txq:get-param-xml($param-name as xs:string) {
   let $value := txq:get-param($param-name)
-  return if ( $value instance of item()* ) then $value else txq:get-file-content($value)
+  return if ( $value[1] instance of xs:integer ) then $value else txq:get-file-content($value)
 };
 
 (: Get the body of the request (should only be XML). :)
@@ -63,31 +63,30 @@ declare function txq:validate($document) {
       return
         if ( $isTEI/* ) then
           (400, "Provided file must be valid TEI")
-        else ()
+        else $isTEI
     else (400, "Provided file must be well-formed XML")
 };
 
 declare function txq:test-param($param-name as xs:string, $param-type as xs:string) {
-  
-  (: If the expected type is XML, then try to turn the param value into XML. :)
-  if ( $param-type eq 'node()' ) then
-    txq:get-param-xml($param-name)
-  else
-    let $paramVal :=  (: If the expected type is boolean, then try to turn the 
-                       : param value into a boolean. :)
-                      if ( $param-type eq 'xs:boolean' ) then
-                        if ( txq:get-param($param-name) castable as xs:boolean ) then
-                          txq:get-param($param-name) cast as xs:boolean
-                        else 400
-                      (: Otherwise, just get the param value. :)
-                      else txq:get-param($param-name)
-    (: Get the datatype of the param value. :)
-    let $valType := functx:atomic-type($paramVal) 
-    (: Check to make sure the datatype is correct :)
-    return
-      if ( $paramVal instance of item()* ) then $paramVal
-      else if ( $valType eq $param-type ) then ()
-      else (400, concat("Parameter '",$param-name,"' must be of type ",$param-type))
+  let $paramVal :=  (: If the expected type is XML, then try to turn the param 
+                     : value into XML. :)
+                    if ( $param-type eq 'node()' ) then
+                      txq:get-param-xml($param-name)
+                    (: If the expected type is boolean, then try to turn the 
+                     : param value into a boolean. :)
+                    else if ( $param-type eq 'xs:boolean' ) then
+                      if ( txq:get-param($param-name) castable as xs:boolean ) then
+                        txq:get-param($param-name) cast as xs:boolean
+                      else 400
+                    (: Otherwise, just get the param value. :)
+                    else txq:get-param($param-name)
+  (: Get the datatype of the param value. :)
+  let $valType := functx:atomic-type($paramVal) 
+  (: Check to make sure the datatype is correct :)
+  return
+    if ( $paramVal instance of item()* ) then $paramVal
+    else if ( $valType eq $param-type ) then ()
+    else (400, concat("Parameter '",$param-name,"' must be of type ",$param-type))
 };
 
 (: Make sure that the incoming request matches the XQuery's expectations. :)
@@ -98,8 +97,8 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
                           let $param-type := map:get($params, $param-name)
                           let $testResult := txq:test-param($param-name,$param-type)
                           return 
-                            if ( empty($testResult) ) then ()
-                            else map:entry($param-name,$testResult)
+                            if ( empty($testResult) ) then map:entry($param-name,$testResult)
+                            else ()
                         )
   let $numErrors := count(map:keys($badParams))
   return
