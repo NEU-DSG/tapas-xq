@@ -5,6 +5,9 @@ xquery version "3.0";
  : 
  : @author Ashley M. Clark
  : @version 1.0
+ :
+ : 2015/10/05: Added set-error().
+ :
 :)
 
 module namespace tapas-xq="http://tapasproject.org/tapas-xq/general";
@@ -17,4 +20,12 @@ declare function tapas-xq:get-error($code as xs:integer) {
     case 405 return <p>Error: unsupported HTTP method</p>
     case 500 return <p>Error: unable to access resource</p>
     default return <p>Error</p>
+};
+
+(:  :)
+declare function tapas-xq:set-error($content) {
+  typeswitch ($content)
+    case xs:string return <p>{$content}</p>
+    case node() return $content
+    default return $content
 };
