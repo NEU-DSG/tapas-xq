@@ -43,7 +43,7 @@ declare variable $contentType := "application/xml";
 
 let $projID := txq:get-param('proj-id')
 let $reqEstimate := if ( $projID eq '' or $projID eq '/' ) then
-                        (500, "Parameter 'proj-id' must be present")
+                        (400, "Parameter 'proj-id' must be present for document deletion")
                       else
                         txq:test-request($method, $parameters, $successCode) 
 let $estimateCode := $reqEstimate[1]
@@ -62,4 +62,6 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                       else if ( $reqEstimate instance of item()* ) then
                         tgen:set-error($reqEstimate[2])
                       else tgen:get-error($estimateCode)
-return txq:build-response($estimateCode, $contentType, $responseBody)
+return 
+  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  else txq:build-response($estimateCode, $contentType, $responseBody)

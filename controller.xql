@@ -47,7 +47,7 @@ else if (local:get-parent-dir() eq 'derive-reader' and local:get-extension($exis
     </forward>
   </dispatch>
 else if (request:get-method() = 'DELETE' and local:get-extension($exist:resource) eq '') then
-  if ( local:get-parent-dir() eq '' ) then
+  if ( local:get-parent-dir() eq '/' ) then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
       <forward url="{concat($exist:controller, '/modules/delete-by-projid.xq')}" method="{request:get-method()}">
         <add-parameter name="proj-id" value="{$exist:resource}"/>
