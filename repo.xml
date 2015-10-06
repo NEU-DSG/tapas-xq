@@ -10,5 +10,5 @@
   <target>tapas-xq</target>
   <prepare>modules/exist-install/pre-install.xq</prepare>
   <finish/>
-  <permissions user="admin" password="" group="tapas" mode="rwxr-xr--"/>
+  <permissions user="admin" password="" group="tapas" mode="rwxrwxr--"/>
 </meta>
