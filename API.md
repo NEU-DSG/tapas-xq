@@ -67,11 +67,15 @@ __`:doc-id`__: A unique identifier for the document record attached to the origi
 
 ### Store TEI in eXist
 
-`PUT exist/db/apps/tapas-xq/:proj-id/:doc-id/tei`
+`POST exist/db/apps/tapas-xq/:proj-id/:doc-id/tei`
 
-Content-type: application/xml
+Content-type: multipart/form-data
 
-Request body must be a TEI-encoded XML document.
+Parameters:
+
+| Name | Description |
+| ------ | ------- |
+| file | An XML-encoded TEI document. |
 
 ### Store MODS metadata in eXist (and return the new XML file)
 

@@ -44,7 +44,8 @@ declare variable $parameters := map {
 declare variable $successCode := 200;
 declare variable $contentType := "text/html";
 
-let $estimateCode := txq:test-request($method, $parameters, $successCode) 
+let $reqEstimate := txq:test-request($method, $parameters, $successCode) 
+let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $teiXML := txq:get-param-xml('file')
                         let $XSLparams := <parameters>
@@ -62,7 +63,11 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                           doc("../resources/tapas-generic/tei2html_2.xsl"), ())
                                       (: If the $type keyword doesn't match the 
                                        : expected values, return an error. :)
-                                      else 400
+                                      else (400, "':type' must have a value of 'teibp' or 'tapas-generic'")
                         return $xhtml
+                      else if ( $reqEstimate instance of item()* ) then
+                        tgen:set-error($reqEstimate[2])
                       else tgen:get-error($estimateCode)
-return txq:build-response($estimateCode, $contentType, $responseBody)
+return 
+  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  else txq:build-response($estimateCode, $contentType, $responseBody)

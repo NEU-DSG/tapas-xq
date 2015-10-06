@@ -13,10 +13,11 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  : 
  : <ul>
  :  <lh>Request Expectations</lh>
- :  <li>Method: PUT</li>
- :  <li>Content-Type: application/xml</li>
+ :  <li>Method: POST</li>
+ :  <li>Content-Type: multipart/form-data</li>
  :  <ul>
  :    <lh>Parameters</lh>
+ :    <li>file: The TEI-encoded XML document to be stored.</li>
  :    <li>doc-id: A unique identifier for the document record attached to the 
  : original TEI document and its derivatives (MODS, TFE).</li>
  :    <li>proj-id: The unique identifier of the project which owns the work.</li>
@@ -30,23 +31,22 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 :)
 
 (: Variables corresponding to the expected request structure. :)
-declare variable $method := "PUT";
+declare variable $method := "POST";
 declare variable $parameters := map {
                                   "doc-id" : 'xs:string',
-                                  "proj-id" : 'xs:string'
+                                  "proj-id" : 'xs:string',
+                                  "file" : 'node()'
                                 };
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 201;
 declare variable $contentType := "application/xml";
 
-let $projID := txq:get-param('proj-id')
-let $estimateCode :=  if ( $projID eq '' ) then
-                        500
-                      else
-                        txq:test-request($method, $parameters, $successCode) 
+let $reqEstimate := txq:test-request($method, $parameters, $successCode)
+let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
+                        let $projID := txq:get-param('proj-id')
                         let $docID := txq:get-param('doc-id')
-                        let $teiXML := txq:get-body-xml()
+                        let $teiXML := txq:get-param-xml('file')
                         let $dataPath := concat("/db/tapas-data/",$projID,"/",$docID)
                         (: Create the project/document directory if this is not just
                          : a replacement version of the TEI, but a new resource. :)
@@ -61,7 +61,11 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $isStored := xmldb:store($dataPath,concat($docID,".xml"),$teiXML)
                         return 
                             if ( empty($isStored) ) then
-                              500
+                              (500, "The TEI file could not be stored; check user permissions")
                             else <p>{$isStored}</p>
-                      else $estimateCode
-return txq:build-response($estimateCode, $contentType, $responseBody)
+                      else if ( $reqEstimate instance of item()* ) then
+                        tgen:set-error($reqEstimate[2])
+                      else tgen:get-error($estimateCode)
+return 
+  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  else txq:build-response($estimateCode, $contentType, $responseBody)

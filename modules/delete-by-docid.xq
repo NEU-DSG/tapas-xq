@@ -42,10 +42,11 @@ declare variable $successCode := 200;
 declare variable $contentType := "application/xml";
 
 let $projID := txq:get-param('proj-id')
-let $estimateCode := if ( $projID eq '' or $projID eq '/' ) then
-                        500
+let $reqEstimate := if ( $projID eq '' or $projID eq '/' ) then
+                        (400, "Parameter 'proj-id' must be present for document deletion")
                       else
-                        txq:test-request($method, $parameters, $successCode)
+                        txq:test-request($method, $parameters, $successCode) 
+let $estimateCode := $reqEstimate[1]
 let $docID := txq:get-param('doc-id')
 let $delDir := concat("/db/tapas-data/",$projID,"/",$docID)
 let $responseBody :=  if ( $estimateCode = $successCode ) then
@@ -56,7 +57,11 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                : so check to make sure the collection is gone. :)
                               if ( not(xmldb:collection-available($delDir)) ) then
                                 <p>Deleted document collection at {$delDir}.</p>
-                              else 500
-                        else 500
+                              else (500, concat("Document collection '",$delDir,"' could not be deleted; check user permissions"))
+                        else (500, concat("Document collection '",$delDir,"' does not exist"))
+                      else if ( $reqEstimate instance of item()* ) then
+                        tgen:set-error($reqEstimate[2])
                       else tgen:get-error($estimateCode)
-return txq:build-response($estimateCode, $contentType, $responseBody)
+return 
+  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  else txq:build-response($estimateCode, $contentType, $responseBody)

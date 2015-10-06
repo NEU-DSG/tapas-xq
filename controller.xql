@@ -26,7 +26,14 @@ declare function local:get-proj-dir() as xs:string {
   return $proj
 };
 
-if ($exist:resource = 'tei' or $exist:resource = 'mods' or $exist:resource = 'tfe') then
+if ($exist:resource = 'tei') then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/store-', $exist:resource, '.xq')}" method="{request:get-method()}">
+      <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>
+      <add-parameter name="proj-id" value="{local:get-proj-dir()}"/>
+    </forward>
+  </dispatch>
+else if ($exist:resource = 'mods' or $exist:resource = 'tfe') then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/store-', $exist:resource, '.xq')}" method="{request:get-method()}">
       <add-parameter name="doc-id" value="{local:get-parent-dir()}"/>
@@ -40,7 +47,7 @@ else if (local:get-parent-dir() eq 'derive-reader' and local:get-extension($exis
     </forward>
   </dispatch>
 else if (request:get-method() = 'DELETE' and local:get-extension($exist:resource) eq '') then
-  if ( local:get-parent-dir() eq '' ) then
+  if ( local:get-parent-dir() eq '/' ) then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
       <forward url="{concat($exist:controller, '/modules/delete-by-projid.xq')}" method="{request:get-method()}">
         <add-parameter name="proj-id" value="{$exist:resource}"/>
