@@ -55,12 +55,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                       if ( txq:get-param('type') eq 'teibp' ) then 
                                         transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams)
                                       else if ( txq:get-param('type') eq 'tapas-generic' ) then
-                                        (: The tapas-generic Reader is generated 
-                                         : with two stylesheets, so their 
-                                         : transforms are chained here. :)
-                                        transform:transform(
-                                          transform:transform($teiXML, doc("../resources/tapas-generic/tei2html_1.xsl"), $XSLparams), 
-                                          doc("../resources/tapas-generic/tei2html_2.xsl"), ())
+                                        transform:transform($teiXML, doc("../resources/tapas-generic/tei2html.xsl"), $XSLparams)
                                       (: If the $type keyword doesn't match the 
                                        : expected values, return an error. :)
                                       else (400, "':type' must have a value of 'teibp' or 'tapas-generic'")
