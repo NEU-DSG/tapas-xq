@@ -55,7 +55,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                       if ( txq:get-param('type') eq 'teibp' ) then 
                                         transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams)
                                       else if ( txq:get-param('type') eq 'tapas-generic' ) then
-                                        transform:transform($teiXML, doc("../resources/tapas-generic/tei2html.xsl"), $XSLparams)
+                                        transform:transform($teiXML, doc("../resources/tapas-generic/tei2html.xslt"), $XSLparams)
                                       (: If the $type keyword doesn't match the 
                                        : expected values, return an error. :)
                                       else (400, "':type' must have a value of 'teibp' or 'tapas-generic'")
