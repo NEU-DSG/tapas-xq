@@ -49,11 +49,15 @@ let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $teiXML := txq:get-param-xml('file')
                         let $XSLparams := <parameters>
-                                            <param name="filePrefix" value="{txq:get-param('assets-base')}"/>
+                                            <param name="filePrefix" value="{ txq:get-param('assets-base') }"/>
                                           </parameters>
                         let $xhtml := (: Apply the appropriate Reader transform. :)
                                       if ( txq:get-param('type') eq 'teibp' ) then 
-                                        transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams)
+                                        let $allHTML := transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams)
+                                        return
+                                          <div xmlns="http://www.w3.org/1999/xhtml" class="teibp">
+                                            { $allHTML//body/* }
+                                          </div>
                                       else if ( txq:get-param('type') eq 'tapas-generic' ) then
                                         (: The tapas-generic Reader is generated 
                                          : with two stylesheets, so their 
