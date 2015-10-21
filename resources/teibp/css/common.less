@@ -1358,14 +1358,15 @@ box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
 .teibp.@{class-name}{
 	margin:0;
 	padding:0;
-	margin-left:2em;
-	margin-right:4em;
-	padding:2.5em;
+	margin-left:0;
+	margin-right:0;
+	padding-left:2.5em;
+	padding-right:2.5em;
 	font-family: @body-font-family;
 	font-size:@body-font-size;
 	background-color:@background-color;
 	color:@color;
-	width:33em;
+	width:auto;
 
 	img {
 	border:1px solid @border-color;
@@ -1391,9 +1392,9 @@ box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
 	}
 
 	#teibpToolbox {
-		left: 56em;
-		top: 25px;
-		position: fixed;
+		left: 75%;
+    top: 0;
+    position: relative;
 		font-size: 70%;
 		margin-right:1em;
 		padding:1em;
@@ -1403,7 +1404,7 @@ box-shadow: 0px 1px 3px rgba(0,0,0,0.25);
 		font-family: Arvo, Verdana, sans-serif;
 		text-align:justify;
 		.box-shadow;
-		width:12em;
+		width:14em;
 	}
 
 	#teibpToolbox h1 {

@@ -1,33 +1,33 @@
 function clearPageBreaks(){
-	$(".teibp pb").css("display","none");
-	$(".teibp .-teibp-pb").css("display","none");
+	jQuery(".teibp pb").css("display","none");
+	jQuery(".teibp .-teibp-pb").css("display","none");
 }
 
 function addPageBreaks(){
-	$(".teibp pb").css("display","block");
-	$(".teibp .-teibp-pb").css("display","block");
+	jQuery(".teibp pb").css("display","block");
+	jQuery(".teibp .-teibp-pb").css("display","block");
 }
 
 function init(){
-	$(".teibp").addClass('default');
-	$('#pbToggle').onclick = function(){
-		if($('#pbToggle').checked){
+	jQuery(".teibp").addClass('default');
+	jQuery('#pbToggle').onclick = function(){
+		if(jQuery('#pbToggle').checked){
 			clearPageBreaks();
 		}else{
 			addPageBreaks();
 		}
 	};
 	addPageBreaks();
-	$('#pbToggle').checked = false;
+	jQuery('#pbToggle').checked = false;
 }
 
-$(document).ready(function(){
+jQuery(document).ready(function(){
 	init();
-	$("#themeBox").on('change', function(e){
+	jQuery("#themeBox").on('change', function(e){
 		switchThemes(e);
 	});
 });
 
 function switchThemes(theme){
-	$(".teibp").removeClass('sleepy').removeClass('terminal').removeClass('default').addClass($(theme.target).val());
+	jQuery(".teibp").removeClass('sleepytime').removeClass('terminal').removeClass('default').addClass(jQuery(theme.target).val());
 }
