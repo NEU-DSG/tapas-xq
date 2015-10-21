@@ -1758,14 +1758,15 @@
 .teibp.terminal {
   margin: 0;
   padding: 0;
-  margin-left: 2em;
-  margin-right: 4em;
-  padding: 2.5em;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 2.5em;
+  padding-right: 2.5em;
   font-family: Monaco, "Andale Mono", Courier, monospace;
   font-size: 14pt;
   background-color: #000000;
   color: #00fd00;
-  width: 33em;
+  width: auto;
   /* xml-serialization */
   /* loading animation */
 }
@@ -1789,9 +1790,9 @@
   text-decoration: underline;
 }
 .teibp.terminal #teibpToolbox {
-  left: 56em;
-  top: 25px;
-  position: fixed;
+  left: 75%;
+  top: 0;
+  position: relative;
   font-size: 70%;
   margin-right: 1em;
   padding: 1em;
@@ -1803,7 +1804,7 @@
   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  width: 12em;
+  width: 14em;
 }
 .teibp.terminal #teibpToolbox h1 {
   font-weight: bold;
