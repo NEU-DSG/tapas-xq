@@ -56,7 +56,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                         let $allHTML := transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams)
                                         return
                                           <div xmlns="http://www.w3.org/1999/xhtml" class="teibp">
-                                            { $allHTML//body/* }
+                                            { $allHTML/body/* }
                                           </div>
                                       else if ( txq:get-param('type') eq 'tapas-generic' ) then
                                         transform:transform($teiXML, doc("../resources/tapas-generic/tei2html.xslt"), $XSLparams)
