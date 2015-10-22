@@ -33,6 +33,9 @@ import module namespace transform="http://exist-db.org/xquery/transform";
  : @version 1.0
 :)
 
+(: Declaring the serialization method to be XHTML keeps tags from self-closing. :)
+declare option exist:serialize "method=xhtml";
+
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
 declare variable $parameters := map {
