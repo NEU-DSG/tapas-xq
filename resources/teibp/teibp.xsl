@@ -152,6 +152,26 @@
 			<xsl:value-of select="."/>
 		</xsl:attribute>
 	</xsl:template>
+  
+  <xd:doc>
+    <xd:desc>
+      <xd:p>Copied from tapas-generic. Syd's original commentary below.</xd:p>
+      <xd:p>A hack because JavaScript was doing weird things with
+        &lt;title>, probably due to confusion with HTML title. There is
+        no TEI namespace in the TEI Boilerplate output because
+        JavaScript, or at least JQuery, cannot manipulate the TEI
+        elements/attributes if they are in the TEI namespace, so the TEI
+        namespace is stripped from the output. As far as I know,
+        &lt;title> elsewhere does not cause any problems, but we may
+        need to extend this to other occurrences of &lt;title> outside
+        the Header.</xd:p>
+    </xd:desc>
+  </xd:doc>
+  <xsl:template match="tei:teiHeader//tei:title">
+    <tei-title>
+      <xsl:apply-templates select="@*|node()" mode="#current"/>
+    </tei-title>
+  </xsl:template>
 
 	<xd:doc xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl">
 		<xd:desc>
