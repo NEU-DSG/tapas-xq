@@ -29,21 +29,21 @@
 	<xsl:param name="includeAnalytics" select="true()"/>
 	
 	<!-- parameters for file paths or URLs -->
-	<!-- modify filePrefix to point to files on your own server, 
+	<!-- modify assetsPrefix to point to files on your own server, 
 		or to specify a relatie path, e.g.:
-		<xsl:param name="filePrefix" select="'http://dcl.slis.indiana.edu/teibp'"/>
+		<xsl:param name="assetsPrefix" select="'http://dcl.slis.indiana.edu/teibp'"/>
 		
 	-->
-	<xsl:param name="filePrefix" select="'/sites/all/modules/tapas_transform/transforms'"/>
+	<xsl:param name="assetsPrefix" select="'/sites/all/modules/tapas_transform/transforms'"/>
 	
-	<xsl:param name="teibpCSS" select="concat($filePrefix,'/teibp/css/teibp.css')"/>
-	<xsl:param name="customCSS" select="concat($filePrefix,'/teibp/css/custom.css')"/>
-	<xsl:param name="jqueryJS" select="concat($filePrefix,'/teibp/js/jquery/jquery.min.js')"/>
-	<xsl:param name="jqueryBlockUIJS" select="concat($filePrefix,'/teibp/js/jquery/plugins/jquery.blockUI.js')"/>
-	<xsl:param name="teibpJS" select="concat($filePrefix,'/teibp/js/teibp.js')"/>
-	<xsl:param name="theme.default" select="concat($filePrefix,'/teibp/css/teibp.css')"/>
-	<xsl:param name="theme.sleepytime" select="concat($filePrefix,'/teibp/css/sleepy.css')"/>
-	<xsl:param name="theme.terminal" select="concat($filePrefix,'/teibp/css/terminal.css')"/>
+	<xsl:param name="teibpCSS" select="concat($assetsPrefix,'/teibp/css/teibp.css')"/>
+	<xsl:param name="customCSS" select="concat($assetsPrefix,'/teibp/css/custom.css')"/>
+	<xsl:param name="jqueryJS" select="concat($assetsPrefix,'/teibp/js/jquery/jquery.min.js')"/>
+	<xsl:param name="jqueryBlockUIJS" select="concat($assetsPrefix,'/teibp/js/jquery/plugins/jquery.blockUI.js')"/>
+	<xsl:param name="teibpJS" select="concat($assetsPrefix,'/teibp/js/teibp.js')"/>
+	<xsl:param name="theme.default" select="concat($assetsPrefix,'/teibp/css/teibp.css')"/>
+	<xsl:param name="theme.sleepytime" select="concat($assetsPrefix,'/teibp/css/sleepy.css')"/>
+	<xsl:param name="theme.terminal" select="concat($assetsPrefix,'/teibp/css/terminal.css')"/>
 	
 	
 
