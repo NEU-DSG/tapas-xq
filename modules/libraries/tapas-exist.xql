@@ -38,8 +38,16 @@ declare function txq:get-param($param-name as xs:string) {
 declare function txq:get-param-xml($param-name as xs:string) {
   let $value := txq:get-param($param-name)
   return 
-    if ( $value[1] instance of xs:integer ) then $value 
-    else txq:get-file-content($value)
+    if ( $value[1] instance of xs:integer ) then
+      $value
+    else 
+      (: If the parameter exists, run a validation check on the file. :)
+      let $file := txq:get-file-content($value)
+      let $isXML := txq:validate($file)
+      return 
+        if ( $isXML[1] instance of xs:integer ) then
+          $isXML
+        else $file
 };
 
 (: Get the body of the request (should only be XML). :)
@@ -51,7 +59,7 @@ declare function txq:get-body-xml() {
  : eXist consider the XML "invalid." :)
 declare function txq:get-file-content($file) {
   typeswitch($file)
-    case node() return txq:validate($file)
+    case node() return $file
     case xs:string return try { txq:get-file-content(parse-xml(replace($file,'﻿',''))) }
                           catch * { (422,"Provided file must be TEI-encoded XML") }
     case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
@@ -113,7 +121,7 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
   (: HTTP 400 errors occur when the API call is wrong in some way. :)
   let $all400s := map:for-each-entry($badParams, 
                     function ($key, $value) {
-                      if ( $value[1] = 400 ) then
+                      if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 400 ) then
                         $key
                       else ()
                     }
@@ -123,7 +131,7 @@ declare function txq:test-request($method-type as xs:string, $params as map, $su
     request is not actionable. :)
   let $all422s := map:for-each-entry($badParams, 
                     function ($key, $value) {
-                      if ( $value[1] = 422 ) then
+                      if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 422 ) then
                         $key
                       else ()
                     }
