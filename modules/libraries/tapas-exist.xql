@@ -70,7 +70,9 @@ declare function txq:validate($document) {
                     </results>
       return
         if ( $isTEI/* ) then
-          (422, "Provided file must be valid TEI")
+          (422, for $error in $isTEI/p 
+                let $text := $error/text()
+                return concat(upper-case(substring($text,1,1)),substring($text,2)) )
         else $isTEI
     else (422, "Provided file must be well-formed XML")
 };
