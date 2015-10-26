@@ -21,18 +21,25 @@ import module namespace map="http://www.w3.org/2005/xpath-functions/map";
  : @version 1.0
  : 
  : 2015-10-05: Rearranged function logic to accommodate complex error messages. 
+ : 2015-10-26: Expanded XML validation and classified errors from that process
+ :   as HTTP 422s.
 :)
 
 (: Get a request parameter. :)
 declare function txq:get-param($param-name as xs:string) {
   let $param := request:get-parameter($param-name, 400)
-  return if ( $param instance of xs:integer and $param = 400 ) then (400, concat("Parameter '",$param-name,"' must be present")) else $param 
+  return 
+    if ( $param instance of xs:integer and $param = 400 ) then 
+      (400, concat("Parameter '",$param-name,"' must be present")) 
+    else $param
 };
 
 (: Get a request parameter whose value is expected to be XML. :)
 declare function txq:get-param-xml($param-name as xs:string) {
   let $value := txq:get-param($param-name)
-  return if ( $value[1] instance of xs:integer ) then $value else txq:get-file-content($value)
+  return 
+    if ( $value[1] instance of xs:integer ) then $value 
+    else txq:get-file-content($value)
 };
 
 (: Get the body of the request (should only be XML). :)
@@ -45,9 +52,10 @@ declare function txq:get-body-xml() {
 declare function txq:get-file-content($file) {
   typeswitch($file)
     case node() return txq:validate($file)
-    case xs:string return parse-xml(replace($file,'﻿',''))
+    case xs:string return try { txq:get-file-content(parse-xml(replace($file,'﻿',''))) }
+                          catch * { (422,"Provided file must be TEI-encoded XML") }
     case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
-    default return (400,"Provided file must be TEI-encoded XML")
+    default return (422,"Provided file must be TEI-encoded XML")
 };
 
 (: Check if the document is well-formed and valid TEI. :)
@@ -62,9 +70,9 @@ declare function txq:validate($document) {
                     </results>
       return
         if ( $isTEI/* ) then
-          (400, "Provided file must be valid TEI")
+          (422, "Provided file must be valid TEI")
         else $isTEI
-    else (400, "Provided file must be well-formed XML")
+    else (422, "Provided file must be well-formed XML")
 };
 
 declare function txq:test-param($param-name as xs:string, $param-type as xs:string) {
@@ -93,28 +101,62 @@ declare function txq:test-param($param-name as xs:string, $param-type as xs:stri
 declare function txq:test-request($method-type as xs:string, $params as map, $success-code as xs:integer) as item()* {
   (: Test each parameter against a map with expected datatypes.:)
   let $badParams := map:new(
-                          for $param-name in map:keys($params)
-                          let $param-type := map:get($params, $param-name)
-                          let $testResult := txq:test-param($param-name,$param-type)
-                          return 
-                            if ( empty($testResult) ) then map:entry($param-name,$testResult)
-                            else ()
-                        )
-  let $numErrors := count(map:keys($badParams))
+                        for $param-name in map:keys($params)
+                        let $param-type := map:get($params, $param-name)
+                        let $testResult := txq:test-param($param-name,$param-type)
+                        return 
+                          if ( $testResult instance of item()* ) then map:entry($param-name,$testResult)
+                          else ()
+                      )
+  (: HTTP 400 errors occur when the API call is wrong in some way. :)
+  let $all400s := map:for-each-entry($badParams, 
+                    function ($key, $value) {
+                      if ( $value[1] = 400 ) then
+                        $key
+                      else ()
+                    }
+                  )
+  let $num400s := count($all400s)
+  (: HTTP 422 errors occur when the API call is correct, but part of the 
+    request is not actionable. :)
+  let $all422s := map:for-each-entry($badParams, 
+                    function ($key, $value) {
+                      if ( $value[1] = 422 ) then
+                        $key
+                      else ()
+                    }
+                  )
   return
     (: Return an error for any unsupported HTTP methods. :)
     if ( request:get-method() ne $method-type ) then
       (405, concat("Expected HTTP method ",$method-type))
     else
       (: Return an error if 1+ of the parameters does not match the expected type. :)
-      if ( $numErrors > 0 ) then
+      if ( $num400s > 0 ) then
         (400, 
         <div>
-          <p>{$numErrors} parameter{ if ( $numErrors > 1 ) then "s don't" else " doesn't" } match expectations:</p>
+          <p>{$num400s} parameter{ if ( $num400s > 1 ) then "s don't" else " doesn't" } match expectations:</p>
           <ul>
             {
-              for $error in map:keys($badParams)
+              for $error in $all400s
               return <li>{ map:get($badParams,$error)[2] }</li>
+            }
+          </ul>
+        </div>)
+    else
+      (: Return an error if XML files are not valid or well-formed. :)
+      if ( count($all422s) > 0 ) then
+        (422, 
+        <div>
+          <p>Errors produced during XML validation:</p>
+          <ul>
+            {
+              for $file in $all422s
+              let $errors := map:get($badParams,$file)
+              let $report := subsequence($errors,2,count($errors))
+              return 
+                for $error in $report
+                return <li>{ $error }</li>
             }
           </ul>
         </div>)
