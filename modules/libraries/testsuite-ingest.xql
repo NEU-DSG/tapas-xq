@@ -38,9 +38,9 @@ function txqt:testdoc() {
 
 declare
   %test:name("Derive MODS")
-(:  %test:args('GET','false'):)
-(:      %test:assertExists:)
-(:      %test:assertXPath("$result[1]/@status eq '405'"):)
+  %test:args('GET','false')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '405'")
   %test:args('POST','false')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '400'")
@@ -68,7 +68,7 @@ declare %private function txqt:set-http-request($method as xs:string, $href as x
       $txqt:exreq/http:request/@* except $txqt:exreq/http:request/@href, 
       attribute username { "tapas-tester" },
       attribute password { "freesample" },
-      attribute method { "POST" }, 
+      attribute method { $method }, 
       attribute href { xs:anyURI(concat($txqt:host,"/derive-mods")) }, 
       $txqt:exreq/http:request/*,
       $partSeq
