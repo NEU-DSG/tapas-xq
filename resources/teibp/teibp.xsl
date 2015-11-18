@@ -167,9 +167,9 @@
         the Header.</xd:p>
     </xd:desc>
   </xd:doc>
-  <xsl:template match="tei:teiHeader//tei:title">
+  <xsl:template match="tei:title">
     <tei-title>
-      <xsl:apply-templates select="@*|node()" mode="#current"/>
+      <xsl:apply-templates select="@*|node()"/>
     </tei-title>
   </xsl:template>
 
