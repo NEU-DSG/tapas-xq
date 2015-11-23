@@ -9,12 +9,11 @@
   <p>Written 2014-03-16 by Syd Bauman for TAPAS. Copyleft.</p>
   <p>Re-written 2015-08-19 by Syd w/ Ashley</p>
   
-  <pattern name="one">
+  <pattern name="TAPAS00-in-TEI-namespace">
     <rule context="/*[namespace-uri(.) != 'http://www.tei-c.org/ns/1.0']">
       <assert test="true()">outermost element is not a TEI element (i.e., is not in the TEI namespace)</assert>
     </rule>
   </pattern>
-  
   
   <pattern name="TAPAS01-outermost-element">
     <rule context="/*" role="fatal">
