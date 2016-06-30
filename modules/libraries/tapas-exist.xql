@@ -12,6 +12,8 @@ import module namespace validate="http://exist-db.org/xquery/validation";
 import module namespace functx="http://www.functx.com";
 import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 
+declare namespace xi="http://www.w3.org/2001/XInclude";
+
 (:~
  : This library contains functions for carrying out requests in eXist-db. It 
  : heavily relies upon the request and response modules, in conjunction with
@@ -68,21 +70,47 @@ declare function txq:get-file-content($file) {
 
 (: Check if the document is well-formed and valid TEI. :)
 declare function txq:validate($document) {
-  let $wellformednessReport := validate:jing-report($document, doc('../../resources/well-formed.rng'))
+  let $statusCode := 422
+  let $xiReport := txq:validate-xincludes($document)
   return
-    if ( $wellformednessReport//status/text() eq "valid" ) then
-      let $isTEI := <results>
-                      {
-                        transform:transform($document,doc('../../resources/isTEI.xsl'),<parameters/>)
-                      }
-                    </results>
+    if ( empty($xiReport) ) then
+      let $wellformednessReport := validate:jing-report($document, doc('../../resources/well-formed.rng'))
       return
-        if ( $isTEI/* ) then
-          (422, for $error in $isTEI/p 
-                let $text := $error/text()
-                return concat(upper-case(substring($text,1,1)),substring($text,2)) )
-        else $isTEI
-    else (422, "Provided file must be well-formed XML")
+        if ( $wellformednessReport//status/text() eq "valid" ) then
+          let $params := <parameters/>
+          let $isTEI := <results>
+                          {
+                            transform:transform($document,doc('../../resources/isTEI-compiled.xsl'),$params,(),"expand-xincludes=no")
+                          }
+                        </results>
+          return
+            if ( $isTEI/* ) then
+              ($statusCode, for $error in $isTEI/p 
+                            let $text := $error/text()
+                            return concat(upper-case(substring($text,1,1)),substring($text,2)) )
+            else $document
+        else ($statusCode, $wellformednessReport//text()(:"Provided file must be well-formed XML":))
+    else ($statusCode, $xiReport)
+};
+
+(: Check XIncludes for potentially malicious filepaths and XPaths. :)
+declare function txq:validate-xincludes($file) {
+  if ( $file//xi:* ) then
+    let $xincludes := $file//xi:*
+    let $dbAccess := 
+      if ( $xincludes/@href[matches(.,'^/')] ) then
+        "An XInclude's @href must not begin with '/'"
+      else ()
+    let $docFunctionUsage := 
+      if ( $xincludes/@xpointer[contains(.,'doc(')] ) then
+        "An XInclude's @xpointer must not contain the 'doc()' XPath function"
+      else ()
+    let $collectionFunctionUsage := 
+      if ( $xincludes/@xpointer[contains(.,'collection(')] ) then
+        "An XInclude's @xpointer must not contain the 'collection()' XPath function"
+      else ()
+    return ($dbAccess, $docFunctionUsage, $collectionFunctionUsage)
+  else ()
 };
 
 declare function txq:test-param($param-name as xs:string, $param-type as xs:string) {

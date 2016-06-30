@@ -16,7 +16,6 @@
     </rule>
   </pattern>
   
-  
   <pattern name="TAPAS01-outermost-element">
     <rule context="/*" role="fatal">
       <assert test="namespace-uri(.) = 'http://www.tei-c.org/ns/1.0'">outermost element is not a TEI element (i.e., is not in the TEI namespace)</assert>
