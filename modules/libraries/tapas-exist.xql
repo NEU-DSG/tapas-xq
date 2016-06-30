@@ -88,7 +88,7 @@ declare function txq:validate($document) {
               ($statusCode, for $error in $isTEI/p 
                             let $text := $error/text()
                             return concat(upper-case(substring($text,1,1)),substring($text,2)) )
-            else $document
+            else $isTEI
         else ($statusCode, $wellformednessReport//text()(:"Provided file must be well-formed XML":))
     else ($statusCode, $xiReport)
 };
