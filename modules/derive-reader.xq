@@ -1,5 +1,7 @@
 xquery version "3.0";
 
+declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
+
 import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
 
@@ -34,7 +36,7 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 :)
 
 (: Declaring the serialization method to be XHTML keeps tags from self-closing. :)
-declare option exist:serialize "method=xhtml";
+declare option output:method "xhtml";
 
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "POST";
