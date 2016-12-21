@@ -51,7 +51,7 @@ Copyright © 2009-2012 John A. Walsh on modifications to original code, specific
 
   <xsl:template name="xml-to-string">
     <xsl:param name="node-set" select="."/>
-    <xsl:apply-templates select="exsl:node-set($node-set)/*" mode="xml-to-string">
+    <xsl:apply-templates select="$node-set/*" mode="xml-to-string">
       <xsl:with-param name="depth" select="1"/>
     </xsl:apply-templates>
   </xsl:template>
