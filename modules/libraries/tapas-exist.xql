@@ -11,6 +11,7 @@ import module namespace util="http://exist-db.org/xquery/util";
 import module namespace validate="http://exist-db.org/xquery/validation";
 import module namespace functx="http://www.functx.com";
 import module namespace map="http://www.w3.org/2005/xpath-functions/map";
+declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 (:~
  : This library contains functions for carrying out requests in eXist-db. It 
@@ -20,10 +21,25 @@ import module namespace map="http://www.w3.org/2005/xpath-functions/map";
  : @author Ashley M. Clark
  : @version 1.0
  : 
- : 2015-10-05: Rearranged function logic to accommodate complex error messages. 
+ : 2017-01-30: Added function to get parameter definitions from view package
+ :   configuration files.
  : 2015-10-26: Expanded XML validation and classified errors from that process
  :   as HTTP 422s.
+ : 2015-10-05: Rearranged function logic to accommodate complex error messages. 
 :)
+
+
+(: FUNCTIONS :)
+
+(: Create a map of expected request parameters using the configuration file. :)
+declare function txq:get-param-map($pkgID as xs:string) as map(*) {
+  let $parameters := tgen:get-config-file($pkgID)/vpkg:parameters
+  return
+    map:new(
+      for $param in $parameters/vpkg:parameter
+      return map:entry($param/@name/data(.), $param/@as/data(.))
+    )
+};
 
 (: Get a request parameter. :)
 declare function txq:get-param($param-name as xs:string) {

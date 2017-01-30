@@ -7,8 +7,8 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~ Before installing the package, eXist will:
  :  * create a user for the app (if none exists);
- :  * create a 'tapas-data' directory for the app (if none exists); and
- :  * change the owner/group of 'tapas-data' (if it hasn't been done).
+ :  * create 'tapas-data' and 'tapas-view-pkgs' directories for the app (if none exists); and
+ :  * change the owner/group of 'tapas-data' and 'tapas-view-pkgs' (if it hasn't been done).
  : 
  : NOTE: When tapas-xq is installed on a web-accessible server, the user 
  : password should be changed afterward from the default used in $tempPass.
@@ -22,7 +22,7 @@ declare variable $storageDirBase := "/db";
 declare variable $dataDir := "tapas-data";
 declare variable $viewsDir := "tapas-view-pkgs";
 
-(: Create the data directory, :)
+(: Create a specified directory if it does not already exist, logging any errors. :)
 declare function local:create-dir($pathBase as xs:string, $dirName as xs:string) {
   let $path := concat($pathBase,'/',$dirName)
   return 
@@ -39,7 +39,7 @@ declare function local:create-dir($pathBase as xs:string, $dirName as xs:string)
     else local:chown-dir($path)
 };
 
-(: Change the owner of the data directory. :)
+(: Change the owner of a specified directory. :)
 declare function local:chown-dir($path as xs:string) {
   let $permissions := sm:get-permissions(xs:anyURI($path))
   return
