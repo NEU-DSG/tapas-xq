@@ -29,10 +29,16 @@ declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 :)
 
 
+(: VARIABLES :)
+
+(: The valid reader types will soon be mined, but are hard-coded for now. :)
+declare variable $txq:valid-reader-types := ('tapas-generic', 'teibp');
+
+
 (: FUNCTIONS :)
 
 (: Create a map of expected request parameters using the configuration file. :)
-declare function txq:get-param-map($pkgID as xs:string) as map(*) {
+declare function txq:make-param-map($pkgID as xs:string) as map(*) {
   let $parameters := tgen:get-config-file($pkgID)/vpkg:parameters
   return
     map:new(
