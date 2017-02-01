@@ -30,6 +30,7 @@ declare function tapas-xq:get-error($code as xs:integer) {
     case 401 return <p>Error: authentication failed</p>
     case 405 return <p>Error: unsupported HTTP method</p>
     case 500 return <p>Error: unable to access resource</p>
+    case 501 return <p>Error: functionality not implemented</p>
     default  return <p>Error</p>
 };
 
@@ -44,9 +45,26 @@ declare function tapas-xq:set-error($content) {
 (:   VIEW PACKAGES   :)
 
 (: Get the configuration file for a specified view package. :)
-declare function tapas-xq:get-config-file($pkgID as xs:string) as node() {
-  let $path := concat($tapas-xq:pkgDir,$pkgID,'/PKG-CONFIG.xml')
+declare function tapas-xq:get-config-file($pkgID as xs:string) as node()? {
+  let $path := tapas-xq:get-pkg-filepath($pkgID,'PKG-CONFIG.xml')
   return doc($path)/vpkg:view_package
+};
+
+(: Expand a relative filepath using a view package's home directory. :)
+declare function tapas-xq:get-pkg-filepath($pkgID as xs:string, $relPath as xs:string) as xs:string {
+  let $mungedPath := replace($relPath, '^/', '')
+  return concat(tapas-xq:get-package-home($pkgID), $mungedPath)
+};
+
+(: Get the full path to a view pacakge's home directory. :)
+declare function tapas-xq:get-package-home($pkgID as xs:string) as xs:string {
+  concat($tapas-xq:pkgDir,$pkgID,'/')
+};
+
+(: Get the <run> element from the configuration file. :)
+declare function tapas-xq:get-run-stmt($pkgID as xs:string) as node()? {
+  let $config := tapas-xq:get-config-file($pkgID)
+  return $config/vpkg:run
 };
 
 (: Get the configurations from all known view packages. :)

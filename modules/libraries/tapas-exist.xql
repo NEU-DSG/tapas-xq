@@ -31,7 +31,8 @@ declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 (: VARIABLES :)
 
-(: The valid reader types will soon be mined, but are hard-coded for now. :)
+(: XD: The valid reader types will soon be gathered programmatically, but are 
+  hard-coded for now. :)
 declare variable $txq:valid-reader-types := ('tapas-generic', 'teibp');
 
 
