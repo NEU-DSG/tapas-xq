@@ -65,7 +65,7 @@ return
     let $runStmt := tgen:get-run-stmt($viewType)
     let $responseBody :=  
       if ( $estimateCode = $successCode ) then
-        (: Get XHTML using... :)
+        (: Make XHTML using... :)
         switch ( $runStmt/@type/data(.) )
           
           (:  XSLT  :)
@@ -83,17 +83,6 @@ return
                 </parameters>
               (: Run the XSL transformation. :)
               let $xhtml := transform:transform($teiXML, doc($xslPath), $xslParams)
-                (:if ( txq:get-param('type') eq 'teibp' ) then 
-                  let $allHTML := transform:transform($teiXML, doc("../resources/teibp/teibp.xsl"), $XSLparams)
-                  return
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="teibp">
-                      { $allHTML/body/* }
-                    </div>
-                else if ( txq:get-param('type') eq 'tapas-generic' ) then
-                  transform:transform($teiXML, doc("../resources/tapas-generic/tei2html.xslt"), $XSLparams)
-                (\: If the $type keyword doesn't match the 
-                 : expected values, return an error. :\)
-                else (400, "':type' must have a value of 'teibp' or 'tapas-generic'"):)
               return $xhtml
               
           (:case 'xproc' return '' 
@@ -107,7 +96,7 @@ return
             let $type := $runStmt/@type/data(.)
             let $error := 
               if ( empty($type) ) then
-                "View package configuration must include a transformation program"
+                "View package configuration must include a method of transformation"
               else concat("Programs of type '",$type,"' are not implemented")
             return ($code, $error)
       
