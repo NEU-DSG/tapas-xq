@@ -6,17 +6,19 @@ xquery version "3.0";
  : @author Ashley M. Clark
  : @version 1.0
  :
+ : 2017-02-14: Changed the prefix for this library from 'tapas-xq' to the 'tgen' 
+ :   already used everywhere else.
  : 2017-01-30: Added function to get a configuration file for a view package.
  : 2015-10-05: Added set-error().
 :)
 
-module namespace tapas-xq="http://tapasproject.org/tapas-xq/general";
+module namespace tgen="http://tapasproject.org/tapas-xq/general";
 declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 
 (: VARIABLES :)
 
-declare variable $tapas-xq:pkgDir := '/db/tapas-view-pkgs/';
+declare variable $tgen:pkgDir := '/db/tapas-view-pkgs/';
 
 
 (: FUNCTIONS :)
@@ -24,7 +26,7 @@ declare variable $tapas-xq:pkgDir := '/db/tapas-view-pkgs/';
 (:   ERROR MESSAGES   :)
 
 (: Given an HTTP error code, return some human-readable text. :)
-declare function tapas-xq:get-error($code as xs:integer) {
+declare function tgen:get-error($code as xs:integer) {
   switch ($code)
     case 400 return <p>Error: bad request</p>
     case 401 return <p>Error: authentication failed</p>
@@ -35,7 +37,7 @@ declare function tapas-xq:get-error($code as xs:integer) {
 };
 
 (: Ensure that error messages are formatted in XML. :)
-declare function tapas-xq:set-error($content) {
+declare function tgen:set-error($content) {
   typeswitch ($content)
     case xs:string return <p>{$content}</p>
     case node() return $content
@@ -45,31 +47,31 @@ declare function tapas-xq:set-error($content) {
 (:   VIEW PACKAGES   :)
 
 (: Get the configuration file for a specified view package. :)
-declare function tapas-xq:get-config-file($pkgID as xs:string) as node()? {
-  let $path := tapas-xq:get-pkg-filepath($pkgID,'PKG-CONFIG.xml')
+declare function tgen:get-config-file($pkgID as xs:string) as node()? {
+  let $path := tgen:get-pkg-filepath($pkgID,'PKG-CONFIG.xml')
   return doc($path)/vpkg:view_package
 };
 
 (: Expand a relative filepath using a view package's home directory. :)
-declare function tapas-xq:get-pkg-filepath($pkgID as xs:string, $relPath as xs:string) as xs:string {
+declare function tgen:get-pkg-filepath($pkgID as xs:string, $relPath as xs:string) as xs:string {
   let $mungedPath := replace($relPath, '^/', '')
-  return concat(tapas-xq:get-package-home($pkgID), $mungedPath)
+  return concat(tgen:get-package-home($pkgID), $mungedPath)
 };
 
 (: Get the full path to a view pacakge's home directory. :)
-declare function tapas-xq:get-package-home($pkgID as xs:string) as xs:string {
-  concat($tapas-xq:pkgDir,$pkgID,'/')
+declare function tgen:get-package-home($pkgID as xs:string) as xs:string {
+  concat($tgen:pkgDir,$pkgID,'/')
 };
 
 (: Get the <run> element from the configuration file. :)
-declare function tapas-xq:get-run-stmt($pkgID as xs:string) as node()? {
-  let $config := tapas-xq:get-config-file($pkgID)
+declare function tgen:get-run-stmt($pkgID as xs:string) as node()? {
+  let $config := tgen:get-config-file($pkgID)
   return $config/vpkg:run
 };
 
 (: Get the configurations from all known view packages. :)
   (: XD: it turns out this use of collection() is eXist-specific. It outputs all 
     files in descendant collections. Saxon will not do the same. :)
-(:declare function tapas-xq:get-view-packages() as item()* {
-  collection($tapas-xq:pkgDir)[contains(base-uri(), 'CONFIG.xml')]/vpkg:view_package
+(:declare function tgen:get-view-packages() as item()* {
+  collection($tgen:pkgDir)[contains(base-uri(), 'CONFIG.xml')]/vpkg:view_package
 };:)

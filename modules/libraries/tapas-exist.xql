@@ -3,14 +3,15 @@ xquery version "3.0";
 module namespace txq="http://tapasproject.org/tapas-xq/exist";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
 
+import module namespace functx="http://www.functx.com";
+import module namespace httpc="http://exist-db.org/xquery/httpclient";
+import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace response="http://exist-db.org/xquery/response";
 import module namespace transform="http://exist-db.org/xquery/transform";
-import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 import module namespace util="http://exist-db.org/xquery/util";
 import module namespace validate="http://exist-db.org/xquery/validation";
-import module namespace functx="http://www.functx.com";
-import module namespace map="http://www.w3.org/2005/xpath-functions/map";
+import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 (:~
