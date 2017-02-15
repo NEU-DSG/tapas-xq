@@ -19,11 +19,12 @@ import module namespace xdb="http://exist-db.org/xquery/xmldb";
  : @version 1.0
 :)
 
-declare variable $dpkg:github-base := 'https://api.github.com/repos/NEU-DSG/tapas-view-packages';
+declare variable $dpkg:github-base := 'https://api.github.com/repos';
+declare variable $dpkg:github-vpkg := concat($dpkg:github-base,'/NEU-DSG/tapas-view-packages');
 declare variable $dpkg:home-directory := '/db/tapas-view-pkgs';
 
 declare function dpkg:get-package-from-github($pkgID as xs:string, $branch as xs:string) as xs:string {
-  let $apiURL := concat($dpkg:github-base,'/contents/',$pkgID,'?ref=',$branch)
+  let $apiURL := concat($dpkg:github-vpkg,'/contents/',$pkgID,'?ref=',$branch)
   return $apiURL (: XD: Send requests to Github's API, then download the files from the responses. Handle directories recursively. :)
 };
 
@@ -32,10 +33,29 @@ declare function dpkg:get-contents-from-github($jsonObjs as node()*) {
   let $type := $obj/pair[@name eq 'type']/text()
   return
     switch ($type)
+      case 'dir' return dpkg:get-dir-from-github($obj)
       case 'file' return dpkg:get-file-from-github($obj)
       case 'submodule' return $type (: XD :)
-      case 'dir' return $type (: XD :)
       default return $type
+};
+
+declare function dpkg:get-dir-from-github($jsonObj as node()) {
+  let $existDir := 
+    let $relPath := $jsonObj/pair[@name eq 'path']/text()
+    let $fullPath := concat($dpkg:home-directory,'/',$path)
+    return 
+      if ( xdb:collection-available($fullPath) ) then
+        $fullPath
+      else
+        let $dirname := $jsonObj/pair[@name eq 'name']/text() 
+        let $target := replace($fullPath,concat('/?',$dirname,'$'),'')
+        return xdb:create-collection($target,$dirname)
+  return
+    if ( $existDir ) then
+      let $apiURL := $jsonObj/pair[@name eq 'url']/text()
+      let $contents := dpkg:get-json-objects($apiURL)
+      return dpkg:get-contents-from-github($contents)
+    else () (: error :)
 };
 
 declare function dpkg:get-file-from-github($jsonObj as node()) {
@@ -51,10 +71,9 @@ declare function dpkg:get-file-from-github($jsonObj as node()) {
       return 
         if ( $download/@statusCode/data(.) eq '200' ) then
           let $body := $download//httpc:body
-          let $method := $body/@type/data(.)
-          let $mimetype := concat('text/', $method)
+          let $mimetype := substring-before($body/@mimetype/data(.),';')
           let $contents := 
-            if ( $method eq 'xml' ) then
+            if ( contains($mimetype,'xml') ) then
               document {
                 $body/processing-instruction(),
                 $body/node()
@@ -67,22 +86,25 @@ declare function dpkg:get-file-from-github($jsonObj as node()) {
 
 declare function dpkg:get-rails-packages() as node()* {
   let $railsAddr := xs:anyURI('') (: XD: Figure out where to store this. :)
-  let $response :=
-    let $request := httpc:get($railsAddr,false(),<headers/>)
-    let $status := $request//httpc:header[@name eq 'Status']/@value/data(.)
-    let $body := $request/httpc:body
-    return
-      if ( $status[contains(.,'200')] ) then
+  return dpkg:get-json-objects($railsAddr)
+};
+
+declare function dpkg:get-json-objects($url as xs:string) as node()* {
+  let $address := xs:anyURI($url)
+  let $request := httpc:get($address,false(),<headers/>)
+  let $status := $request/@statusCode/data(.)
+  let $body := $request/httpc:body
+  return
+    if ( $status eq '200' ) then
+      let $jsonStr :=
         if ( $body[@encoding eq 'Base64Encoded'] ) then
           util:base64-decode($body/text())
         else $body/text()
-      else $status
-  return
-    if ( not(matches($response,'^\d\d\d ')) ) then
-      let $pseudojson := xqjson:parse-json($response)
-      return $pseudojson/item[@type eq 'object']
-    else 
-      <error>{ $response }</error>
+      let $pseudojson := xqjson:parse-json($jsonStr)
+      return 
+        ( $pseudojson[@type eq 'object'] 
+        | $pseudojson/item[@type eq 'object'] )
+    else <error>{ $status }</error> (: error :)
 };
 
 declare function dpkg:set-up-package-collection() {
