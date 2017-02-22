@@ -8,8 +8,8 @@ import module namespace file="http://exist-db.org/xquery/file";
 import module namespace http="http://expath.org/ns/http-client";
 import module namespace httpc="http://exist-db.org/xquery/httpclient";
 import module namespace util="http://exist-db.org/xquery/util";
-import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
+import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
 
 (:~
  : This library contains functions for dynamically updating and maintaining the view 
@@ -22,6 +22,7 @@ import module namespace xdb="http://exist-db.org/xquery/xmldb";
 declare variable $dpkg:github-base := 'https://api.github.com/repos';
 declare variable $dpkg:github-vpkg := concat($dpkg:github-base,'/NEU-DSG/tapas-view-packages');
 declare variable $dpkg:home-directory := '/db/tapas-view-pkgs';
+declare variable $dpkg:registry := concat($dpkg:home-directory,'/registry.xml');
 
 declare function dpkg:get-package-from-github($pkgID as xs:string, $branch as xs:string) as xs:string {
   let $apiURL := concat($dpkg:github-vpkg,'/contents/',$pkgID,'?ref=',$branch)
@@ -85,7 +86,7 @@ declare function dpkg:get-file-from-github($jsonObj as node()) {
 };
 
 declare function dpkg:get-rails-packages() as node()* {
-  let $railsAddr := xs:anyURI('') (: XD: Figure out where to store this. :)
+  let $railsAddr := xs:anyURI('http://rails_api.tapasdev.neu.edu/api/view_packages') (: XD: Figure out where to store this. :)
   return dpkg:get-json-objects($railsAddr)
 };
 
@@ -100,24 +101,66 @@ declare function dpkg:get-json-objects($url as xs:string) as node()* {
         if ( $body[@encoding eq 'Base64Encoded'] ) then
           util:base64-decode($body/text())
         else $body/text()
-      let $pseudojson := xqjson:parse-json($jsonStr)
       return 
-        ( $pseudojson[@type eq 'object'] 
-        | $pseudojson/item[@type eq 'object'] )
-    else <error>{ $status }</error> (: error :)
+        if ( $jsonStr ) then
+          let $pseudojson := xqjson:parse-json($jsonStr)
+          return 
+            ( $pseudojson[@type eq 'object'] 
+            | $pseudojson/item[@type eq 'object'] )
+        else <p>ERROR: No response</p>
+    else <p>ERROR: { $status }</p>
 };
 
 declare function dpkg:set-up-package-collection() {
-  if ( file:exists($dpkg:home-directory) ) then
-    ()
+  if ( xdb:collection-available($dpkg:home-directory) ) then ()
   else file:mkdirs($dpkg:home-directory)
 };
 
-declare function dpkg:update-packages() {
+declare function dpkg:get-updatable() as item()* {
   let $railsPkgs := dpkg:get-rails-packages()
-  let $toUpdate := $railsPkgs/pair[@name eq 'machine_name']/text() (: XD: Identify the packages that should be updated in eXist. :)
-  let $gitCalls := 
-    for $pkg in $toUpdate
-    return dpkg:get-package-from-github($pkg,'develop')
-  return $gitCalls
+  let $upCandidates :=
+    if ( doc-available($dpkg:registry) ) then
+      for $railsPkg in $railsPkgs
+      let $dirName := $railsPkg/pair[@name eq 'dir_name']/text()
+      let $registryPkg := doc($dpkg:registry)//package_ref[@name eq $dirName]
+      return
+        (: Flag for update the packages with no entry in the registry. :)
+        if ( not(exists($registryPkg)) ) then $railsPkg
+        else
+          let $gitTimeR := $railsPkg/pair[@name eq 'git_timestamp']/text() cast as xs:dateTime
+          let $gitTimeE := $registryPkg/git/@timestamp/data(.) cast as xs:dateTime
+          return 
+            (: Flag for update those packages where Rails' version has a newer git 
+              timestamp than eXist's version. :)
+            if ( $gitTimeE lt $gitTimeR ) then $railsPkg
+            (: If the package is up-to-date, do nothing. :)
+            else ()
+    else $railsPkgs
+  return
+    for $pkg in $upCandidates
+    return
+      <package_ref name="{$pkg/pair[@name eq 'dir_name']/text()}">
+        <git timestamp="{$pkg/pair[@name eq 'git_timestamp']/text()}">
+          {
+            let $branch := $pkg/pair[@name eq 'git_branch']/text()
+            return 
+              if ( exists($branch) and $branch ne '' ) then
+                attribute branch { $branch }
+              else ()
+          }
+        </git>
+      </package_ref>
+};
+
+declare function dpkg:update-packages() {
+  if ( doc-available($dpkg:registry) ) then
+    let $toUpdate := dpkg:get-updatable()
+    let $gitCalls := 
+      for $pkg in $toUpdate (: XD: download the package and create registry entry :)
+      return 
+        (:dpkg:get-package-from-github($pkg,'develop'):) 
+        $pkg/@name/data(.)
+    return $gitCalls
+  else (: XD: download all packages and create registry :)
+    <p>No registry</p>
 };
