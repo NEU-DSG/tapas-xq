@@ -8,7 +8,6 @@ import module namespace file="http://exist-db.org/xquery/file";
 import module namespace http="http://expath.org/ns/http-client";
 import module namespace httpc="http://exist-db.org/xquery/httpclient";
 import module namespace util="http://exist-db.org/xquery/util";
-import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "tapas-exist.xql";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
 import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
 
@@ -25,6 +24,9 @@ declare variable $dpkg:github-vpkg-repo := 'NEU-DSG/tapas-view-packages';
 declare variable $dpkg:default-git-branch := 'develop';
 declare variable $dpkg:home-directory := '/db/tapas-view-pkgs';
 declare variable $dpkg:registry := concat($dpkg:home-directory,'/registry.xml');
+declare variable $dpkg:valid-reader-types := 
+  for $pkg in doc($dpkg:registry)/view_registry/package_ref
+  return $pkg/@name/data(.);
 
 declare function dpkg:call-github-contents-api($repoID as xs:string, $path as xs:string) {
   dpkg:call-github-contents-api($repoID, $path, $dpkg:default-git-branch)
@@ -36,6 +38,22 @@ declare function dpkg:call-github-contents-api($repoID as xs:string, $path as xs
   let $apiURL := concat($dpkg:github-base,'/',$repoID,'/contents/',$path,'?ref=',$branch)
   let $pseudoJSON := dpkg:get-json-objects($apiURL)
   return dpkg:get-contents-from-github($pseudoJSON)
+};
+
+declare function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, $dateTime as xs:string) {
+  if ( $dateTime castable as xs:dateTime ) then
+    let $apiURL := concat($dpkg:github-base,'/',$repoID,'/commits?sha=',$branch,'&amp;since=',$dateTime)
+    let $pseudoJSON := dpkg:get-json-objects($apiURL)[1]
+    return $pseudoJSON/pair[@name eq 'sha']/text()
+  else () (: error :)
+};
+
+(: Get the configurations from all known view packages. :)
+(: NOTE: It turns out this use of collection() is eXist-specific. It outputs all 
+  files in descendant collections. Saxon will not do the same. :)
+declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
+  let $parentDir := concat($dpkg:home-directory,'/',$pkgID)
+  return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package
 };
 
 declare function dpkg:get-contents-from-github($jsonObjs as node()*) {
@@ -128,6 +146,23 @@ declare function dpkg:get-json-objects($url as xs:string) as node()* {
     else <p>ERROR: { $status }</p>
 };
 
+(: Get the full path to a view pacakge's home directory. :)
+declare function dpkg:get-package-home($pkgID as xs:string) as xs:string {
+  concat($dpkg:home-directory,'/',$pkgID)
+};
+
+(: Expand a relative filepath using a view package's home directory. :)
+declare function dpkg:get-package-filepath($pkgID as xs:string, $relPath as xs:string) as xs:string {
+  let $mungedPath := concat($pkgID,'/',replace($relPath, '^/', ''))
+  return dpkg:make-absolute-path($mungedPath)
+};
+
+(: Get the <run> element from the configuration file. :)
+declare function dpkg:get-run-stmt($pkgID as xs:string) as node()? {
+  let $config := dpkg:get-configuration($pkgID)
+  return $config/vpkg:run
+};
+
 declare function dpkg:get-rails-packages() as node()* {
   let $railsAddr := xs:anyURI('http://rails_api.tapasdev.neu.edu/api/view_packages') (: XD: Figure out where to store this. :)
   return dpkg:get-json-objects($railsAddr)
@@ -136,7 +171,7 @@ declare function dpkg:get-rails-packages() as node()* {
 declare function dpkg:get-updatable() as item()* {
   let $railsPkgs := dpkg:get-rails-packages()
   let $upCandidates :=
-    if ( doc-available($dpkg:registry) ) then
+    if ( doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref] ) then
       for $railsPkg in $railsPkgs
       let $dirName := $railsPkg/pair[@name eq 'dir_name']/text()
       let $registryPkg := doc($dpkg:registry)//package_ref[@name eq $dirName]
@@ -212,21 +247,54 @@ declare function dpkg:set-up-packages-home() {
   else ()
 };
 
+declare function dpkg:insert-registry-entry($entry as node()) {
+  let $name := $entry/@name/data(.)
+  let $prevPkg := doc($dpkg:registry)/view_registry/package_ref[@name][@name/data(.) eq $name]
+  return
+    if ( $prevPkg ) then
+      update replace $prevPkg with $entry
+    else
+      update insert $entry into doc($dpkg:registry)/view_registry
+};
+
+declare function dpkg:update-package($update as node()) {
+  let $pkgID := $update/@name/data(.)
+  let $pkgBranch := $update/git/@branch/data(.)
+  let $targetDateTime := $update/git/@timestamp/data(.)
+  let $newCommit := 
+    let $pkgRef := $dpkg:github-vpkg-repo
+    let $branch := 
+      if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
+      else $dpkg:default-git-branch
+    return dpkg:get-commit-at($pkgRef,$branch,$targetDateTime)
+  return
+    if ( exists($newCommit) and $newCommit ne '' ) then
+      let $installUpdate :=
+        if ( exists(dpkg:set-up-package-collection($pkgID)) ) then
+          dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $newCommit)
+        else <p>Couldn't create package collection</p>
+      return
+        if ( $installUpdate/p ) then
+          () (: error :)
+        else
+          let $newEntry := 
+            <package_ref name="{$pkgID}">
+              <conf>{dpkg:get-configuration($pkgID)/base-uri()}</conf>
+              <git commit="{$newCommit}" timestamp="{$targetDateTime}"/>
+            </package_ref>
+          return dpkg:insert-registry-entry($newEntry)
+    else () (: XD: if there's no recognizable commit, download the latest contents from the given branch. :)
+};
+
+(: For each updatable package, find the git commit that Rails is using, then 
+  download the package's files and create or update its registry entry. :)
 declare function dpkg:update-packages() {
   if ( doc-available($dpkg:registry) ) then
     let $toUpdate := dpkg:get-updatable()
     let $gitCalls := 
-      for $pkg in $toUpdate (: XD: download the package and create registry entry :)
+      for $pkg in $toUpdate (: XD: create registry entry :)
       let $pkgID := $pkg/@name/data(.)
-      let $pkgBranch := $pkg/git/@branch/data(.)
-      return 
-        (:dpkg:get-package-from-github($pkg,'develop'):) 
-        if ( exists(dpkg:set-up-package-collection($pkgID)) ) then
-          if ( $pkgBranch ) then
-            dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $pkgBranch)
-          else 
-            dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID)
-        else <p>Couldn't create package collection</p>
+      return dpkg:update-package($pkgID)
     return $gitCalls
   else (: XD: download all packages and create registry :)
     <p>No registry</p>

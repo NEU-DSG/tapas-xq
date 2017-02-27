@@ -4,6 +4,7 @@ declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 
 import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
+import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "libraries/view-pkgs.xql";
 
 import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 import module namespace transform="http://exist-db.org/xquery/transform";
@@ -54,7 +55,7 @@ declare variable $contentType := "text/html";
   can be augmented as needed. :)
 let $viewType := txq:test-param('type','xs:string')
 return
-  if ( $viewType[1] instance of xs:string and $viewType = $txq:valid-reader-types ) then
+  if ( $viewType[1] instance of xs:string and $viewType = $dpkg:valid-reader-types ) then
     (: Create a new map of the expected parameters using the always-present ones 
       listed above, as well as any parameters defined in the package config file. 
       At this point, the package type has already been tested, so it is removed from 
@@ -62,7 +63,7 @@ return
     let $testParams := map:new((map:remove($parameters,'type'), txq:make-param-map($viewType)))
     let $reqEstimate := txq:test-request($method, $testParams, $successCode)
     let $estimateCode := $reqEstimate[1]
-    let $runStmt := tgen:get-run-stmt($viewType)
+    let $runStmt := dpkg:get-run-stmt($viewType)
     let $responseBody :=  
       if ( $estimateCode = $successCode ) then
         (: Make XHTML using... :)
@@ -71,7 +72,7 @@ return
           (:  XSLT  :)
           case 'xslt' return
               let $teiXML := txq:get-param-xml('file')
-              let $xslPath := tgen:get-pkg-filepath($viewType, $runStmt/@pgm/data(.))
+              let $xslPath := dpkg:get-package-filepath($viewType, $runStmt/@pgm/data(.))
               (: Set XSLT parameters using HTTP parameters. :)
               let $xslParams := 
                 <parameters>
@@ -108,6 +109,6 @@ return
       else txq:build-response($estimateCode, $contentType, $responseBody)
   else 
     let $message := 
-      let $list := string-join($txq:valid-reader-types,', ')
+      let $list := string-join($dpkg:valid-reader-types,', ')
       return concat("'type' must be one of the following: ", $list)
     return txq:build-response(400, $contentType, tgen:set-error($message))

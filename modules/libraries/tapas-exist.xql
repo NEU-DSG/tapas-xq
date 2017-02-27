@@ -1,7 +1,8 @@
 xquery version "3.0";
 
 module namespace txq="http://tapasproject.org/tapas-xq/exist";
-import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
+declare namespace tgen="http://tapasproject.org/tapas-xq/general";
+import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
 
 import module namespace functx="http://www.functx.com";
 import module namespace httpc="http://exist-db.org/xquery/httpclient";
@@ -41,7 +42,7 @@ declare variable $txq:valid-reader-types := ('tapas-generic', 'teibp');
 
 (: Create a map of expected request parameters using the configuration file. :)
 declare function txq:make-param-map($pkgID as xs:string) as map(*) {
-  let $parameters := tgen:get-config-file($pkgID)/vpkg:parameters
+  let $parameters := dpkg:get-configuration($pkgID)/vpkg:parameters
   return
     map:new(
       for $param in $parameters/vpkg:parameter
