@@ -21,7 +21,7 @@ import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
 
 declare variable $dpkg:github-base := 'https://api.github.com/repos';
 declare variable $dpkg:github-vpkg-repo := 'NEU-DSG/tapas-view-packages';
-declare variable $dpkg:default-git-branch := 'develop';
+declare variable $dpkg:default-git-branch := 'feature/config-file';
 declare variable $dpkg:home-directory := '/db/tapas-view-pkgs';
 declare variable $dpkg:registry := concat($dpkg:home-directory,'/registry.xml');
 declare variable $dpkg:valid-reader-types := 
@@ -237,7 +237,7 @@ declare function dpkg:set-up-package-collection($dirName as xs:string) {
   let $home := dpkg:set-up-packages-home()
   let $fullPath := concat($home,'/',$dirName)
   return
-    if ( xdb:collection-available($fullPath) ) then ()
+    if ( xdb:collection-available($fullPath) ) then $fullPath
     else xdb:create-collection($home,$dirName)
 };
 
@@ -261,29 +261,37 @@ declare function dpkg:update-package($update as node()) {
   let $pkgID := $update/@name/data(.)
   let $pkgBranch := $update/git/@branch/data(.)
   let $targetDateTime := $update/git/@timestamp/data(.)
+  let $branch := 
+    if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
+    else $dpkg:default-git-branch
   let $newCommit := 
     let $pkgRef := $dpkg:github-vpkg-repo
-    let $branch := 
-      if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
-      else $dpkg:default-git-branch
     return dpkg:get-commit-at($pkgRef,$branch,$targetDateTime)
-  return
+  let $installUpdate :=
     if ( exists($newCommit) and $newCommit ne '' ) then
-      let $installUpdate :=
-        if ( exists(dpkg:set-up-package-collection($pkgID)) ) then
-          dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $newCommit)
-        else <p>Couldn't create package collection</p>
-      return
-        if ( $installUpdate/p ) then
-          () (: error :)
-        else
-          let $newEntry := 
-            <package_ref name="{$pkgID}">
-              <conf>{dpkg:get-configuration($pkgID)/base-uri()}</conf>
-              <git commit="{$newCommit}" timestamp="{$targetDateTime}"/>
-            </package_ref>
-          return dpkg:insert-registry-entry($newEntry)
-    else () (: XD: if there's no recognizable commit, download the latest contents from the given branch. :)
+      if ( exists(dpkg:set-up-package-collection($pkgID)) ) then
+        dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $newCommit)
+      else <p>Couldn't create package collection</p> 
+    (: If there's no recognizable commit, download the latest contents from the given branch. :)
+    else dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $branch)
+  return
+    typeswitch ($installUpdate)
+      case xs:string* return
+        let $configPath := dpkg:get-configuration($pkgID)/base-uri()
+        let $entry := 
+          <package_ref name="{$pkgID}">
+            <conf>{$configPath}</conf>
+            <git>
+              { 
+                if ( exists($newCommit) and $newCommit ne '' ) then 
+                  attribute commit { $newCommit }
+                else (),
+                attribute timestamp { $targetDateTime }
+              }
+            </git>
+          </package_ref>
+        return dpkg:insert-registry-entry($entry)
+      default return $installUpdate (: error :)
 };
 
 (: For each updatable package, find the git commit that Rails is using, then 
@@ -292,9 +300,9 @@ declare function dpkg:update-packages() {
   if ( doc-available($dpkg:registry) ) then
     let $toUpdate := dpkg:get-updatable()
     let $gitCalls := 
-      for $pkg in $toUpdate (: XD: create registry entry :)
+      for $pkg in $toUpdate/descendant-or-self::package_ref
       let $pkgID := $pkg/@name/data(.)
-      return dpkg:update-package($pkgID)
+      return dpkg:update-package($pkg)
     return $gitCalls
   else (: XD: download all packages and create registry :)
     <p>No registry</p>
