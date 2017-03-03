@@ -28,16 +28,18 @@ declare variable $dpkg:valid-reader-types :=
   for $pkg in doc($dpkg:registry)/view_registry/package_ref
   return $pkg/@name/data(.);
 
-declare function dpkg:call-github-contents-api($repoID as xs:string, $path as xs:string) {
-  dpkg:call-github-contents-api($repoID, $path, $dpkg:default-git-branch)
+(: Send requests to Github's API, then download the files from the responses. Handle 
+  directories recursively. :)
+declare function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $localPath as xs:string) {
+  dpkg:call-github-contents-api($repoID, $repoPath, $localPath, $dpkg:default-git-branch)
 };
 
 (: Send requests to Github's API, then download the files from the responses. Handle 
   directories recursively. :)
-declare function dpkg:call-github-contents-api($repoID as xs:string, $path as xs:string, $branch as xs:string) {
-  let $apiURL := concat($dpkg:github-base,'/',$repoID,'/contents/',$path,'?ref=',$branch)
+declare function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $localPath as xs:string, $branch as xs:string) {
+  let $apiURL := concat($dpkg:github-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
   let $pseudoJSON := dpkg:get-json-objects($apiURL)
-  return dpkg:get-contents-from-github($pseudoJSON)
+  return dpkg:get-contents-from-github($pseudoJSON, $localPath)
 };
 
 declare function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, $dateTime as xs:string) {
@@ -56,50 +58,44 @@ declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
   return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package
 };
 
-declare function dpkg:get-contents-from-github($jsonObjs as node()*) {
+declare function dpkg:get-contents-from-github($jsonObjs as node()*, $basePath as xs:string) {
   for $obj in $jsonObjs
   let $type := $obj/pair[@name eq 'type']/text()
   return
     switch ($type)
-      case 'dir' return dpkg:get-dir-from-github($obj)
-      case 'file' return dpkg:get-file-from-github($obj)
-      (:case 'submodule' return ():)
+      case 'dir'        return dpkg:get-dir-from-github($obj, $basePath)
+      case 'file'       return dpkg:get-file-from-github($obj, $basePath)
+      case 'submodule'  return dpkg:get-submodule-from-github($obj, $basePath)
       default return () (: XD: symlinks :)
 };
 
 declare function dpkg:get-dir-from-github($jsonObj as node()) {
-  let $existDir := 
-    let $relPath := $jsonObj/pair[@name eq 'path']/text()
-    return dpkg:make-directories($relPath)
+  dpkg:get-dir-from-github($jsonObj,'')
+};
+
+declare function dpkg:get-dir-from-github($jsonObj as node(), $pathBase as xs:string) {
+  let $newPath := concat($pathBase,'/',$jsonObj/pair[@name eq 'name']/text())
+  let $existDir := dpkg:make-directories($newPath)
   return
     if ( exists($existDir) ) then
       let $apiURL := $jsonObj/pair[@name eq 'url']/text()
       let $contents := dpkg:get-json-objects($apiURL)
-      return dpkg:get-contents-from-github($contents)
+      return dpkg:get-contents-from-github($contents,$newPath)
     else () (: error :)
 };
 
 declare function dpkg:get-file-from-github($jsonObj as node()) {
+  dpkg:get-file-from-github($jsonObj,'')
+};
+
+declare function dpkg:get-file-from-github($jsonObj as node(), $pathBase as xs:string) {
   let $filename := $jsonObj/pair[@name eq 'name']/text()
-  let $path := $jsonObj/pair[@name eq 'path']/text()
+  let $path := concat($pathBase, '/', $filename)
   let $downloadURL := $jsonObj/pair[@name eq 'download_url']/text()
   return
     if ( exists(dpkg:set-up-packages-home()) ) then
       if ( exists($downloadURL) ) then
-        let $folder := 
-          let $parentPath := 
-            if ( contains($path,'/') ) then
-              replace($path,concat('/',$filename,'$'),'')
-            else ''
-          let $absoluteParentPath := dpkg:make-absolute-path($parentPath)
-          return
-            if ( xdb:collection-available($absoluteParentPath) ) then
-              $absoluteParentPath
-            else 
-              (
-                dpkg:make-directories($parentPath),
-                xdb:collection-available($absoluteParentPath)
-              )
+        let $folder := $pathBase
         let $download := httpc:get($downloadURL,false(),<headers/>)
         let $statusCode := $download/@statusCode/data(.)
         return 
@@ -168,6 +164,28 @@ declare function dpkg:get-rails-packages() as node()* {
   return dpkg:get-json-objects($railsAddr)
 };
 
+declare function dpkg:get-submodule-from-github($jsonObj as node(), $pathBase as xs:string) {
+  let $moduleName := $jsonObj/pair[@name eq 'name']/text()
+  let $path :=
+    if ( matches($pathBase,concat('/',$moduleName,'$')) ) then
+      $pathBase
+    else concat($pathBase,'/',$moduleName)
+  let $existDir := dpkg:make-directories($path)
+  return
+    if ( exists($existDir) ) then
+      let $repoID := 
+        let $gitURL := $jsonObj/pair[@name eq 'git_url']/text()
+        return dpkg:get-submodule-identifier($gitURL)
+      let $commit := $jsonObj/pair[@name eq 'sha']/text()
+      return dpkg:call-github-contents-api($repoID,'',$path,$commit)
+    else () (: error :)
+};
+
+declare function dpkg:get-submodule-identifier($gitURL as xs:string) {
+  let $baseless := substring-after($gitURL,concat($dpkg:github-base,'/'))
+  return substring-before($baseless,'/git/trees')
+};
+
 declare function dpkg:get-updatable() as item()* {
   let $railsPkgs := dpkg:get-rails-packages()
   let $upCandidates :=
@@ -211,31 +229,24 @@ declare %private function dpkg:make-absolute-path($relPath as xs:string) {
     concat($dpkg:home-directory,'/',$relPath)
 };
 
-declare %private function dpkg:make-directories($relPath as xs:string) {
-  let $fullDir := dpkg:make-absolute-path($relPath)
-  return
-    if ( exists(dpkg:set-up-packages-home()) ) then
-      if ( not(xdb:collection-available($fullDir)) ) then 
-        let $tokenizedPath := tokenize($relPath,'/')
-        return 
-          for $index in 1 to count($tokenizedPath)
-          let $newDir := $tokenizedPath[$index]
-          let $targetDir := 
-            let $tokens := subsequence($tokenizedPath,1,$index - 1)
-            let $newRelPath := if ( $index le 1 ) then '' else string-join($tokens,'/')
-            let $path := dpkg:make-absolute-path($newRelPath)
-            return $path
-          return 
-            if ( not(xdb:collection-available(concat($targetDir,$newDir))) ) then
-              xdb:create-collection($targetDir,$newDir)
-            else ()
-      else () (: error :)
-    else () (: error :)
+declare %private function dpkg:make-directories($absPath as xs:string) {
+  let $tokenizedPath := tokenize($absPath,'/')
+  return 
+    for $index in 1 to count($tokenizedPath)
+    let $newDir := $tokenizedPath[$index]
+    let $targetDir := 
+      let $tokens := subsequence($tokenizedPath,1,$index - 1)
+      let $parentPath := if ( $index le 1 ) then '' else string-join($tokens,'/')
+      return $parentPath
+    return 
+      if ( not(xdb:collection-available(concat($targetDir,$newDir))) ) then
+        xdb:create-collection($targetDir,$newDir)
+      else ()
 };
 
 declare function dpkg:set-up-package-collection($dirName as xs:string) {
   let $home := dpkg:set-up-packages-home()
-  let $fullPath := concat($home,'/',$dirName)
+  let $fullPath := concat($dpkg:home-directory,'/',$dirName)
   return
     if ( xdb:collection-available($fullPath) ) then $fullPath
     else xdb:create-collection($home,$dirName)
@@ -261,36 +272,54 @@ declare function dpkg:update-package($update as node()) {
   let $pkgID := $update/@name/data(.)
   let $pkgBranch := $update/git/@branch/data(.)
   let $targetDateTime := $update/git/@timestamp/data(.)
+  (: Test to see if the package is a submodule. :)
+  let $isSubmodule :=
+    let $testURL := concat($dpkg:github-base,'/',$dpkg:github-vpkg-repo,'/contents/',$pkgID,'?ref=',$dpkg:default-git-branch)
+    let $pkgContent := dpkg:get-json-objects($testURL)
+    return 
+      if ( count($pkgContent) eq 1 and $pkgContent/pair[@name eq 'type'][text() eq 'submodule'] ) then 
+        $pkgContent
+      else false()
+  let $pkgRef := 
+    if ( $isSubmodule ) then 
+      let $gitURL := $isSubmodule/pair[@name eq 'git_url']/text()
+      return dpkg:get-submodule-identifier($gitURL)
+    else $dpkg:github-vpkg-repo
   let $branch := 
     if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
     else $dpkg:default-git-branch
-  let $newCommit := 
-    let $pkgRef := $dpkg:github-vpkg-repo
-    return dpkg:get-commit-at($pkgRef,$branch,$targetDateTime)
+  let $newCommit := dpkg:get-commit-at($pkgRef,$branch,$targetDateTime)
+  let $pkgDir := dpkg:set-up-package-collection($pkgID)
   let $installUpdate :=
     if ( exists($newCommit) and $newCommit ne '' ) then
-      if ( exists(dpkg:set-up-package-collection($pkgID)) ) then
-        dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $newCommit)
-      else <p>Couldn't create package collection</p> 
+      if ( exists($pkgDir) ) then
+        dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $pkgDir, $newCommit)
+      else <p>Couldn't create package collection</p>
     (: If there's no recognizable commit, download the latest contents from the given branch. :)
-    else dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $branch)
+    else dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $pkgDir, $branch)
   return
     typeswitch ($installUpdate)
       case xs:string* return
-        let $configPath := dpkg:get-configuration($pkgID)/base-uri()
-        let $entry := 
-          <package_ref name="{$pkgID}">
-            <conf>{$configPath}</conf>
-            <git>
-              { 
-                if ( exists($newCommit) and $newCommit ne '' ) then 
-                  attribute commit { $newCommit }
-                else (),
-                attribute timestamp { $targetDateTime }
-              }
-            </git>
-          </package_ref>
-        return dpkg:insert-registry-entry($entry)
+        let $conf := dpkg:get-configuration($pkgID)
+        return
+          if ( count(xdb:get-child-resources($pkgDir)) ge 1 ) then
+            let $configPath := 
+              if ( $conf ) then $conf/base-uri()
+              else ()
+            let $entry := 
+              <package_ref name="{$pkgID}">
+                <conf>{$configPath}</conf>
+                <git>
+                  {
+                    if ( exists($newCommit) and $newCommit ne '' ) then 
+                      attribute commit { $newCommit }
+                    else (),
+                    attribute timestamp { $targetDateTime }
+                  }
+                </git>
+              </package_ref>
+            return dpkg:insert-registry-entry($entry)
+          else $installUpdate (: error :)
       default return $installUpdate (: error :)
 };
 
