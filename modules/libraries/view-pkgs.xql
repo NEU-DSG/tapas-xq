@@ -19,105 +19,28 @@ import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
  : @version 1.0
 :)
 
-declare variable $dpkg:github-base := 'https://api.github.com/repos';
-declare variable $dpkg:github-vpkg-repo := 'NEU-DSG/tapas-view-packages';
+(:  VARIABLES  :)
+
 declare variable $dpkg:default-git-branch := 'develop';
+declare variable $dpkg:github-api-base := 'https://api.github.com/repos';
+declare variable $dpkg:github-raw-base := 'https://raw.githubusercontent.com';
+declare variable $dpkg:github-vpkg-repo := 'NEU-DSG/tapas-view-packages';
 declare variable $dpkg:home-directory := '/db/tapas-view-pkgs';
-declare variable $dpkg:registry := concat($dpkg:home-directory,'/registry.xml');
+declare variable $dpkg:registry-name := 'registry.xml';
+declare variable $dpkg:registry := concat($dpkg:home-directory,'/',$dpkg:registry-name);
 declare variable $dpkg:valid-reader-types := 
   for $pkg in doc($dpkg:registry)/view_registry/package_ref
   return $pkg/@name/data(.);
 
-(: Query GitHub's API for repository contents, using the default git branch. Then 
-  download the files from the responses. Handle directories recursively. :)
-declare function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $localPath as xs:string) {
-  dpkg:call-github-contents-api($repoID, $repoPath, $localPath, $dpkg:default-git-branch)
-};
 
-(: Query GitHub's API for repository contents, using a specified git branch. Then 
-  download the files from the responses. Handle directories recursively. :)
-declare function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $localPath as xs:string, $branch as xs:string) {
-  let $apiURL := concat($dpkg:github-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
-  let $pseudoJSON := dpkg:get-json-objects($apiURL)
-  return dpkg:get-contents-from-github($pseudoJSON, $localPath)
-};
+(:  FUNCTIONS  :)
 
-(: Query GitHub's API for a repository's commits matching the timestamp given by 
-  Rails. :)
-declare function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, $dateTime as xs:string) {
-  if ( $dateTime castable as xs:dateTime ) then
-    let $apiURL := concat($dpkg:github-base,'/',$repoID,'/commits?sha=',$branch,'&amp;since=',$dateTime)
-    let $pseudoJSON := dpkg:get-json-objects($apiURL)[1]
-    return $pseudoJSON/pair[@name eq 'sha']/text()
-  else () (: error :)
-};
-
-(: Get the configurations from all known view packages. :)
+(: Get a configuration file for a given view package. :)
 (: NOTE: It turns out this use of collection() is eXist-specific. It outputs all 
   files in descendant collections. Saxon will not do the same. :)
 declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
   let $parentDir := concat($dpkg:home-directory,'/',$pkgID)
   return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package
-};
-
-(: Given JSON objects representing the contents of a directory within a GitHub repo, 
-  determine how to handle each one by its type: directory, file, or git submodule. :)
-declare function dpkg:get-contents-from-github($jsonObjs as node()*, $pathBase as xs:string) {
-  for $obj in $jsonObjs
-  let $type := $obj/pair[@name eq 'type']/text()
-  return
-    switch ($type)
-      case 'dir'        return dpkg:get-dir-from-github($obj, $pathBase)
-      case 'file'       return dpkg:get-file-from-github($obj, $pathBase)
-      case 'submodule'  return dpkg:get-submodule-from-github($obj, $pathBase)
-      default return () (: XD: symlinks :)
-};
-
-(: For a directory within a GitHub repo, create the directory locally if it doesn't 
-  exist, and download its contents. :)
-declare function dpkg:get-dir-from-github($jsonObj as node(), $pathBase as xs:string) {
-  let $newPath := concat($pathBase,'/',$jsonObj/pair[@name eq 'name']/text())
-  let $existDir := dpkg:make-directories($newPath)
-  return
-    if ( exists($existDir) ) then
-      let $apiURL := $jsonObj/pair[@name eq 'url']/text()
-      let $contents := dpkg:get-json-objects($apiURL)
-      return dpkg:get-contents-from-github($contents,$newPath)
-    else () (: error :)
-};
-
-(: For a file within a GitHub repo, download it. :)
-declare function dpkg:get-file-from-github($jsonObj as node(), $pathBase as xs:string) {
-  let $filename := $jsonObj/pair[@name eq 'name']/text()
-  let $path := concat($pathBase, '/', $filename)
-  let $downloadURL := $jsonObj/pair[@name eq 'download_url']/text()
-  return
-    if ( exists(dpkg:set-up-packages-home()) ) then
-      if ( exists($downloadURL) ) then
-        let $folder := $pathBase
-        let $download := httpc:get($downloadURL,false(),<headers/>)
-        let $statusCode := $download/@statusCode/data(.)
-        return 
-          if ( exists($folder) and $statusCode eq '200' ) then
-            let $body := $download//httpc:body
-            let $type := $body/@type/data(.)
-            let $encoding := $body/@encoding/data(.)
-            let $contents := 
-              if ( contains($type, 'xml') ) then
-                document { $body/processing-instruction(), $body/node() }
-              else if ( exists($encoding) and $encoding eq 'URLEncoded' ) then
-                xdb:decode($body/text())
-              else if ( exists($encoding) and $encoding eq 'Base64Encoded' ) then
-                util:base64-decode($body/text())
-              else $body/text()
-            return 
-              if ( exists($contents) and not(empty($contents)) ) then
-                let $mimetype := concat('text/',$type)
-                return xdb:store($folder,$filename,$contents,$mimetype)
-              else () (: error :)
-          else () (: error :)
-      else () (: error :)
-    else () (: error :)
 };
 
 (: Send out a query, and log any HTTP response that isn't "200 OK". :)
@@ -138,25 +61,8 @@ declare function dpkg:get-json-objects($url as xs:string) as node()* {
           return 
             ( $pseudojson[@type eq 'object'] 
             | $pseudojson/item[@type eq 'object'] )
-        else <p>ERROR: No response</p>
-    else <p>ERROR: { $status }</p>
-};
-
-(:(\: Get the full path to a view pacakge's home directory. :\)
-declare function dpkg:get-package-home($pkgID as xs:string) as xs:string {
-  concat($dpkg:home-directory,'/',$pkgID)
-};
-
-(\: Expand a relative filepath using a view package's home directory. :\)
-declare function dpkg:get-package-filepath($pkgID as xs:string, $relPath as xs:string) as xs:string {
-  let $mungedPath := concat($pkgID,'/',replace($relPath, '^/', ''))
-  return dpkg:make-absolute-path($mungedPath)
-};:)
-
-(: Get the <run> element from a package's configuration file. :)
-declare function dpkg:get-run-stmt($pkgID as xs:string) as node()? {
-  let $config := dpkg:get-configuration($pkgID)
-  return $config/vpkg:run
+        else <p>ERROR: No response</p> (: error :)
+    else <p>ERROR: { $status }</p> (: error :)
 };
 
 (: Query the TAPAS Rails API for its stored view packages. :)
@@ -165,79 +71,380 @@ declare function dpkg:get-rails-packages() as node()* {
   return dpkg:get-json-objects($railsAddr)
 };
 
-(: For a submodule within a GitHub repo, create a directory if it doesn't exist 
-  locally, then download its contents. :)
-declare function dpkg:get-submodule-from-github($jsonObj as node(), $pathBase as xs:string) {
-  let $moduleName := $jsonObj/pair[@name eq 'name']/text()
-  let $path :=
-    if ( matches($pathBase,concat('/',$moduleName,'$')) ) then
-      $pathBase
-    else concat($pathBase,'/',$moduleName)
-  let $existDir := dpkg:make-directories($path)
-  return
-    if ( exists($existDir) ) then
-      let $repoID := 
-        let $gitURL := $jsonObj/pair[@name eq 'git_url']/text()
-        return dpkg:get-submodule-identifier($gitURL)
-      let $commit := $jsonObj/pair[@name eq 'sha']/text()
-      return dpkg:call-github-contents-api($repoID,'',$path,$commit)
-    else () (: error :)
+declare function dpkg:get-registry-entry($pkgID as xs:string) as node()? {
+  doc($dpkg:registry)//package_ref[@name eq $pkgID]
 };
 
-(: Get the repository identifier and its GitHub owner from the "git_url" of a 
-  submodule object. :)
-declare function dpkg:get-submodule-identifier($gitURL as xs:string) {
-  let $baseless := substring-after($gitURL,concat($dpkg:github-base,'/'))
-  return substring-before($baseless,'/git/trees')
+(: Get the <run> element from a package's configuration file. :)
+declare function dpkg:get-run-stmt($pkgID as xs:string) as node()? {
+  let $config := dpkg:get-configuration($pkgID)
+  return $config/vpkg:run
 };
 
 (: Return package reference entries for each view package newer in Rails than in the 
   XML database. Git commit timestamps are used for comparison. :)
 declare function dpkg:get-updatable() as item()* {
   let $railsPkgs := dpkg:get-rails-packages()
+  let $registryExists := doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
   let $upCandidates :=
-    if ( doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref] ) then
-      for $railsPkg in $railsPkgs
-      let $dirName := $railsPkg/pair[@name eq 'dir_name']/text()
-      let $registryPkg := doc($dpkg:registry)//package_ref[@name eq $dirName]
-      return
-        (: Flag for update the packages with no entry in the registry. :)
-        if ( not(exists($registryPkg)) ) then $railsPkg
-        else
-          let $gitTimeR := $railsPkg/pair[@name eq 'git_timestamp']/text() cast as xs:dateTime
-          let $gitTimeE := $registryPkg/git/@timestamp/data(.) cast as xs:dateTime
-          return 
-            (: Flag for update those packages where Rails' version has a newer git 
-              timestamp than eXist's version. :)
-            if ( $gitTimeE lt $gitTimeR ) then $railsPkg
-            (: If the package is up-to-date, do nothing. :)
-            else ()
-    else $railsPkgs
-  return
-    for $pkg in $upCandidates
-    return
-      <package_ref name="{$pkg/pair[@name eq 'dir_name']/text()}">
-        <git timestamp="{$pkg/pair[@name eq 'git_timestamp']/text()}">
+    for $railsPkg in $railsPkgs
+    let $dirName := $railsPkg/pair[@name eq 'dir_name']/text()
+    let $branch := $railsPkg/pair[@name eq 'git_branch']/text()
+    let $isSubmodule := exists($branch) and $branch ne ''
+    let $registryPkg := dpkg:get-registry-entry($dirName)
+    let $useBranch := if ( $isSubmodule ) then $branch else $dpkg:default-git-branch
+    let $useRepo := 
+      if ( not($isSubmodule) ) then
+        $dpkg:github-vpkg-repo
+      else if ( $registryPkg ) then
+        $registryPkg/git/@repo/data(.)
+      else
+        dpkg:get-submodule-identifier($dpkg:github-vpkg-repo, $dirName, $useBranch)
+    let $gitTimeR := $railsPkg/pair[@name eq 'git_timestamp']/text()
+    let $makeEntry := function() {
+        <package_ref name="{$dirName}">
           {
-            let $branch := $pkg/pair[@name eq 'git_branch']/text()
-            return 
-              if ( exists($branch) and $branch ne '' ) then
-                attribute branch { $branch }
-              else ()
+            if ( $isSubmodule ) then
+              attribute submodule { true() }
+            else ()
           }
-        </git>
-      </package_ref>
+          <git>
+            { attribute commit { dpkg:get-commit-at($useRepo, $useBranch, $gitTimeR) } }
+            { attribute timestamp { $gitTimeR } }
+            {
+              if ( $isSubmodule ) then
+                (
+                  attribute branch { $branch },
+                  attribute repo { $useRepo }
+                )
+              else ()
+            }
+          </git>
+        </package_ref>
+      }
+    return
+      (: Flag for update the packages with no entry in the registry. :)
+      if ( not($registryExists) or not(exists($registryPkg)) ) then
+        $makeEntry()
+      else 
+        (: Flag for update those packages where Rails' version has a newer git 
+          timestamp than eXist's version. :)
+        let $gitTimeE := $registryPkg/git/@timestamp/data(.) cast as xs:dateTime
+        return 
+          if ( $gitTimeE lt $gitTimeR cast as xs:dateTime ) then
+            $makeEntry()
+          (: If the package is up-to-date, do nothing. :)
+          else ()
+  return $upCandidates
 };
 
-(:declare %private function dpkg:make-absolute-path($relPath as xs:string) {
-  if ( starts-with($relPath,'/') ) then
-    concat($dpkg:home-directory, $relPath)
+(: Get the contents of $dpkg:github-vpkg-repo at the $dpkg:default-git-branch by 
+  retrieving its ZIP archive from GitHub. Set up the view package registry. :)
+declare function dpkg:initialize-packages() {
+  (: Get the current commit on the default branch. :)
+  let $vpkgCommit := 
+    let $urlParts := ( $dpkg:github-api-base, $dpkg:github-vpkg-repo, 
+                        'branches', $dpkg:default-git-branch )
+    let $branchURL := string-join($urlParts,'/')
+    return dpkg:get-json-objects($branchURL)/pair[@name eq 'commit']/pair[@name eq 'sha']/text()
+  (: Get a ZIP archive of $dpkg:github-vpkg-repo, and unpack it into 
+    $dpkg:home-directory. This process also obtains and unpacks any git submodules. :)
+  let $mainRepo := dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $vpkgCommit)
+  (: Create registry. :)
+  let $registry := 
+    <view_registry>
+      <git commit="{$vpkgCommit}" repo="{$dpkg:github-vpkg-repo}" branch="{$dpkg:default-git-branch}"/>
+      {
+        for $pkg in ( $mainRepo, dpkg:get-updatable()[not(@submodule) or @submodule ne 'true'] )
+        let $name := $pkg/@name/data(.)
+        order by $name
+        return 
+          <package_ref>
+            { $pkg/@* }
+            <conf>{ dpkg:get-configuration($name)/base-uri() }</conf>
+            {
+              if ( $pkg[@submodule][@submodule eq 'true'] ) then
+                $pkg/git
+              else 
+                dpkg:get-commit-for-package($name,$vpkgCommit)
+            }
+          </package_ref>
+      }
+    </view_registry>
+  return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
+};
+
+(: For each updatable package, find the git commit that Rails is using, then 
+  download the package's files and create or update its registry entry. :)
+declare function dpkg:update-packages() {
+  if ( doc-available($dpkg:registry) ) then
+    let $toUpdate := dpkg:get-updatable()
+    let $gitCalls := 
+      for $pkg in $toUpdate/descendant-or-self::package_ref
+      let $pkgID := $pkg/@name/data(.)
+      return dpkg:update-package($pkg) (:$pkg:)
+    return $gitCalls
   else 
-    concat($dpkg:home-directory,'/',$relPath)
-};:)
+    (: If there's no registry, download all packages and create the registry for 
+      each package. :)
+    dpkg:initialize-packages()
+};
+
+(: Given a package reference entry, update or create the local copy of that package. :)
+declare function dpkg:update-package($update as node()) {
+  let $pkgID := $update/@name/data(.)
+  let $pkgBranch := $update/git/@branch/data(.)
+  let $targetDateTime := $update/git/@timestamp/data(.)
+  (: Test if the package is a submodule of the tapas-view-packages repo. :)
+  let $isSubmodule := $update/@submodule/data(.)
+  (: Determine the correct package identifier to use for the view package. If the 
+    package is a submodule, use its own package identifier, otherwise use 
+    tapas-view-package. :)
+  let $useRepo := 
+    if ( $isSubmodule and $update/git[@repo] ) then
+      $update/git/@repo/data(.)
+    else $dpkg:github-vpkg-repo
+  let $useBranch := 
+    if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
+    else $dpkg:default-git-branch
+  let $newCommit := $update/git/@commit/data(.)
+  let $pkgDir := dpkg:get-package-directory($pkgID)
+  let $pkgEntry := dpkg:get-registry-entry($pkgID)
+  let $installUpdate :=
+    if ( $pkgEntry ) then
+      let $oldCommit := $pkgEntry/git/@commit/data(.)
+      let $urlParts := ( $dpkg:github-api-base, $useRepo, 'compare', concat($oldCommit,'...',$newCommit) )
+      let $url := string-join($urlParts,'/')
+      let $changedFiles := dpkg:get-json-objects($url)/pair[@name eq 'files']/item[@type eq 'object']
+      return
+        for $fileRef in $changedFiles
+        let $status := $fileRef/pair[@name eq 'status']/text()
+        return
+          if ( $status eq 'added' or $status eq 'modified' ) then
+            if ( $fileRef/pair[@name eq 'raw_url']/@type/data(.) ne 'null' ) then
+              dpkg:get-file-from-github($fileRef, $pkgDir)
+            else () (: XD: download submodule :)
+          else () (: XD: delete files from eXist :)
+    (: If the view package is a submodule and being added to eXist for the first 
+      time, install its files from a ZIP archive. :)
+    else if ( $isSubmodule ) then
+      dpkg:get-repo-archive($useRepo, dpkg:get-package-directory($pkgID), $useBranch)
+    (: If the view package is a child of $dpkg:github-vpkg-repo, re-install the view packages repository :)
+    else (: XD: there's gotta be a smarter way of doing this! :)
+      dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $dpkg:default-git-branch)
+  (: If the update returns strings of filepaths, and the view package is proven to 
+    be populated, create or update the registry entry for the package. :)
+  return
+    typeswitch ($installUpdate)
+      case xs:string* return
+        let $conf := dpkg:get-configuration($pkgID)
+        return
+          if ( count(xdb:get-child-resources($pkgDir)) ge 1 ) then
+            let $entry := 
+              <package_ref>
+                { $update/@* }
+                <conf>
+                  {
+                    if ( $conf ) then $conf/base-uri()
+                    else () (: error :)
+                  }
+                </conf>
+                <git>{ $update/git/@* }</git>
+              </package_ref>
+            return dpkg:insert-registry-entry($entry)
+          else $installUpdate (: error :)
+      default return $installUpdate (: error :)
+};
+
+
+(:  FUNCTIONS: Private  :)
+
+(: Query GitHub's API for repository contents, using a specified git branch. :)
+declare
+  %private 
+function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $branch as xs:string) {
+  let $apiURL := concat($dpkg:github-api-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
+  return dpkg:get-json-objects($apiURL)
+};
+
+(: Recurse through a directory, returning the paths for any git submodules (as 
+  indicated by empty directories, which git is not able to track). This should only 
+  be run after unpacking a GitHub repository from a ZIP file. :)
+declare
+  %private 
+function dpkg:find-submodule-dirs($path as xs:string) as xs:string* {
+  let $childDirs := xdb:get-child-collections($path)
+  return
+    (: To be a submodule directory, this directory must not contain any files, and 
+      it must not contain any directories. :)
+    if ( count(xdb:get-child-resources($path)) eq 0 and count($childDirs) eq 0 ) then 
+      $path
+    else 
+      for $dir in $childDirs
+      let $absPath := concat($path,'/',$dir)
+      return dpkg:find-submodule-dirs($absPath)
+};
+
+(: Query GitHub's API for a repository's commits matching the timestamp given by 
+  Rails. :)
+declare 
+  %private 
+function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, $dateTime as xs:string) {
+  if ( $dateTime castable as xs:dateTime ) then
+    let $apiURL := concat($dpkg:github-api-base,'/',$repoID,'/commits?sha=',$branch,'&amp;since=',$dateTime)
+    let $pseudoJSON := dpkg:get-json-objects($apiURL)[1]
+    return $pseudoJSON/pair[@name eq 'sha']/text()
+  else () (: error :)
+};
+
+(: Query GitHub's API for the latest commit on a given view package in 
+  $dpkg:github-vpkg-repo. Returns a <git> element with attributes for the commit SHA 
+  and timestamp. :)
+declare
+  %private 
+function dpkg:get-commit-for-package($pkgID as xs:string, $branch as xs:string) as node() {
+  let $url := 
+    let $params := concat('commits?path=',$pkgID,'&amp;sha=',$branch)
+    let $urlParts := ($dpkg:github-api-base, $dpkg:github-vpkg-repo, $params)
+    return string-join($urlParts, '/')
+  let $latestCommitObj := dpkg:get-json-objects($url)[1]
+  let $sha := $latestCommitObj/pair[@name eq 'sha']/text()
+  let $timestamp := $latestCommitObj/pair[@name eq 'commit']/pair[@name eq 'committer']/pair[@name eq 'date']/text()
+  return 
+    <git commit="{$sha}" timestamp="{$timestamp}"/>
+};
+
+(: Download a file using data from GitHub's 'Compare Commits' API. :)
+declare
+  %private
+function dpkg:get-file-from-github($jsonObj as node(), $pathBase as xs:string) {
+  let $relPath := $jsonObj/pair[@name eq 'filename']/text()
+  let $filename := tokenize($relPath,'/')[last()]
+  let $folder := concat($pathBase, '/', substring-before($relPath,concat('/',$filename)))
+  let $downloadURL := $jsonObj/pair[@name eq 'raw_url']/text()
+  return
+    if ( exists(dpkg:make-directories($folder)) ) then
+      if ( exists($downloadURL) ) then
+        let $download := httpc:get($downloadURL,false(),<headers/>)
+        let $statusCode := $download/@statusCode/data(.)
+        return 
+          if ( exists($folder) and $statusCode eq '200' ) then
+            let $body := $download/httpc:body
+            let $type := $body/@type/data(.)
+            let $encoding := $body/@encoding/data(.)
+            let $contents := 
+              if ( contains($type, 'xml') ) then
+                document { $body/processing-instruction(), $body/node() }
+              else if ( exists($encoding) and $encoding eq 'URLEncoded' ) then
+                xdb:decode($body/text())
+              else if ( exists($encoding) and $encoding eq 'Base64Encoded' ) then
+                util:base64-decode($body/text())
+              else $body/text()
+            return 
+              if ( exists($contents) and not(empty($contents)) ) then
+                let $mimetype := concat('text/',$type)
+                return xdb:store($folder,$filename,$contents,$mimetype)
+              else () (: error :)
+          else () (: error :)
+      else () (: error :)
+    else () (: error :)
+};
+
+(: Get the absolute path to the directory for a given view package ID. No attempt is 
+  made to check if the identifier matches an actual view package; this function just 
+  builds the path for the collection where the package would be stored. :)
+declare
+  %private 
+function dpkg:get-package-directory($pkgID as xs:string) {
+  concat($dpkg:home-directory,'/',$pkgID)
+};
+
+(: Get and unpack an archive of the contents of a GitHub repository. :)
+declare 
+  %private
+function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $branch as xs:string) {
+  let $zipURL := 
+    let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
+    return xs:anyURI(string-join($urlParts,'/'))
+  let $response := httpc:get($zipURL,false(),<headers/>)
+  let $zipFilename := $response//httpc:header[@name eq 'Content-Disposition']/@value/substring-after(data(.),'filename=')
+  let $archivePath := 
+    let $binary := xs:base64Binary($response//httpc:body/text())
+    return xmldb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
+  let $filterFn := 
+    function($path as xs:anyURI, $type as xs:string, $param as item()*) { 
+      true() 
+    }
+  let $wrapperDirName := substring-before($zipFilename,'.zip')
+  let $storageFn := 
+    function($path as xs:string, $type as xs:string, $param as item()*) as xs:anyURI { 
+      concat($dbPath, substring-after($path,$wrapperDirName)) cast as xs:anyURI 
+    }
+  let $storedBinary := util:binary-doc($archivePath)
+  let $unzipped := cprs:unzip($storedBinary, $filterFn, (), $storageFn, ())
+  (: Download and unpack the archives for any submodules. :)
+  let $submoduleDirs := dpkg:find-submodule-dirs($dbPath)
+  let $getSubmodules := 
+    for $localPath in $submoduleDirs
+    let $repoPath := substring-after($localPath, concat($dbPath,'/'))
+    let $subRepo := dpkg:get-submodule-identifier($repoID, $repoPath, $branch)
+    let $updateEntry := dpkg:get-updatable()[@submodule eq 'true'][contains($subRepo,@name)]
+    let $commit := 
+      (: If the submodule matches a view package, use the specific commit used by Rails. :)
+      if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry/git/@commit/data(.)) ) then
+        $updateEntry/git/@commit/data(.)
+      (: If the submodule is not a view package, use the commit referenced by GitHub. :)
+      else dpkg:call-github-contents-api($repoID,$repoPath,$branch)/pair[@name eq 'sha']/text()
+    return 
+      if ( contains($subRepo,' ') ) then ()
+      else 
+        (
+          dpkg:get-repo-archive($subRepo,$localPath,$commit),
+          (: If the submodule is a view package, return complete git(Hub) info. :)
+          if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry) ) then
+            <package_ref>
+              { $updateEntry/@* }
+              <git>
+                { $updateEntry/git/@* }
+              </git>
+            </package_ref>
+          else ()
+        )
+  (: Delete the ZIP file after we're done with it. :)
+  let $deleteZip :=  xdb:remove($dpkg:home-directory,$zipFilename)
+  return $getSubmodules
+};
+
+(: Identify the GitHub repository identifier of a different repository's submodule. :)
+declare
+  %private 
+function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:string, $branch as xs:string) {
+  let $submoduleObj := dpkg:call-github-contents-api($repoID, $repoPath, $branch)
+  let $gitURL := $submoduleObj/pair[@name eq 'git_url']/text()
+  return
+    if ( $gitURL ) then 
+      let $baseless := substring-after($gitURL,concat($dpkg:github-api-base,'/'))
+      return substring-before($baseless,'/git/trees')
+    else concat("No GitHub URL in ",$repoID," for ",$repoPath) (: error :)
+};
+
+(: Insert a given XML entry into the local view package registry. :)
+declare 
+  %private
+function dpkg:insert-registry-entry($entry as node()) {
+  let $name := $entry/@name/data(.)
+  let $prevPkg := doc($dpkg:registry)/view_registry/package_ref[@name][@name/data(.) eq $name]
+  return
+    if ( $prevPkg ) then
+      update replace $prevPkg with $entry
+    else
+      update insert $entry into doc($dpkg:registry)/view_registry
+};
 
 (: Create all missing directories from an absolute path. :)
-declare %private function dpkg:make-directories($absPath as xs:string) {
+declare
+  %private 
+function dpkg:make-directories($absPath as xs:string) {
   let $tokenizedPath := tokenize($absPath,'/')
   return 
     for $index in 1 to count($tokenizedPath)
@@ -250,108 +457,4 @@ declare %private function dpkg:make-directories($absPath as xs:string) {
       if ( not(xdb:collection-available(concat($targetDir,$newDir))) ) then
         xdb:create-collection($targetDir,$newDir)
       else ()
-};
-
-(: Create a directory for a given view package, if it doesn't already exist. :)
-declare function dpkg:set-up-package-collection($dirName as xs:string) {
-  let $home := dpkg:set-up-packages-home()
-  let $fullPath := concat($dpkg:home-directory,'/',$dirName)
-  return
-    if ( xdb:collection-available($fullPath) ) then $fullPath
-    else xdb:create-collection($home,$dirName)
-};
-
-(: Create the view package home directory, if it doesn't already exist. :)
-declare function dpkg:set-up-packages-home() {
-  if ( xdb:collection-available($dpkg:home-directory) or file:mkdirs($dpkg:home-directory) ) then 
-    $dpkg:home-directory
-  else ()
-};
-
-(: Insert a given XML entry into the local view package registry. :)
-declare function dpkg:insert-registry-entry($entry as node()) {
-  let $name := $entry/@name/data(.)
-  let $prevPkg := doc($dpkg:registry)/view_registry/package_ref[@name][@name/data(.) eq $name]
-  return
-    if ( $prevPkg ) then
-      update replace $prevPkg with $entry
-    else
-      update insert $entry into doc($dpkg:registry)/view_registry
-};
-
-(: Given a package reference entry, update or create the local copy of that package. :)
-declare function dpkg:update-package($update as node()) {
-  let $pkgID := $update/@name/data(.)
-  let $pkgBranch := $update/git/@branch/data(.)
-  let $targetDateTime := $update/git/@timestamp/data(.)
-  (: Test if the package is a submodule of the tapas-view-packages repo. :)
-  let $isSubmodule :=
-    let $testURL := concat($dpkg:github-base,'/',$dpkg:github-vpkg-repo,'/contents/',$pkgID,'?ref=',$dpkg:default-git-branch)
-    let $pkgContent := dpkg:get-json-objects($testURL)
-    return 
-      if ( count($pkgContent) eq 1 and $pkgContent/pair[@name eq 'type'][text() eq 'submodule'] ) then 
-        $pkgContent
-      else false()
-  (: Determine the correct package identifier to use for the view package. If the 
-    package is a submodule, use its own package identifier, otherwise use 
-    tapas-view-package. :)
-  let $pkgRef := 
-    if ( $isSubmodule ) then 
-      let $gitURL := $isSubmodule/pair[@name eq 'git_url']/text()
-      return dpkg:get-submodule-identifier($gitURL)
-    else $dpkg:github-vpkg-repo
-  let $branch := 
-    if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
-    else $dpkg:default-git-branch
-  let $newCommit := dpkg:get-commit-at($pkgRef,$branch,$targetDateTime)
-  let $pkgDir := dpkg:set-up-package-collection($pkgID)
-  (: Attempt to download the package from a GitHub repository. :)
-  let $installUpdate :=
-    if ( exists($newCommit) and $newCommit ne '' ) then
-      if ( exists($pkgDir) ) then
-        dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $pkgDir, $newCommit)
-      else <p>Couldn't create package collection</p>
-    (: If there's no recognizable commit, download the latest contents from the 
-      given branch. :)
-    else dpkg:call-github-contents-api($dpkg:github-vpkg-repo, $pkgID, $pkgDir, $branch)
-  return
-    (: If the update returns strings of filepaths, and the view package is proven to 
-      be populated, create or update the registry entry for the package. :)
-    typeswitch ($installUpdate)
-      case xs:string* return
-        let $conf := dpkg:get-configuration($pkgID)
-        return
-          if ( count(xdb:get-child-resources($pkgDir)) ge 1 ) then
-            let $configPath := 
-              if ( $conf ) then $conf/base-uri()
-              else () (: error :)
-            let $entry := 
-              <package_ref name="{$pkgID}">
-                <conf>{$configPath}</conf>
-                <git>
-                  {
-                    if ( exists($newCommit) and $newCommit ne '' ) then 
-                      attribute commit { $newCommit }
-                    else (),
-                    attribute timestamp { $targetDateTime }
-                  }
-                </git>
-              </package_ref>
-            return dpkg:insert-registry-entry($entry)
-          else $installUpdate (: error :)
-      default return $installUpdate (: error :)
-};
-
-(: For each updatable package, find the git commit that Rails is using, then 
-  download the package's files and create or update its registry entry. :)
-declare function dpkg:update-packages() {
-  if ( doc-available($dpkg:registry) ) then
-    let $toUpdate := dpkg:get-updatable()
-    let $gitCalls := 
-      for $pkg in $toUpdate/descendant-or-self::package_ref
-      let $pkgID := $pkg/@name/data(.)
-      return dpkg:update-package($pkg)
-    return $gitCalls
-  else (: XD: download all packages and create registry :)
-    <p>No registry</p>
 };
