@@ -43,28 +43,6 @@ declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
   return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package
 };
 
-(: Send out a query, and log any HTTP response that isn't "200 OK". :)
-declare function dpkg:get-json-objects($url as xs:string) as node()* {
-  let $address := xs:anyURI($url)
-  let $request := httpc:get($address,false(),<headers/>)
-  let $status := $request/@statusCode/data(.)
-  let $body := $request/httpc:body
-  return
-    if ( $status eq '200' ) then
-      let $jsonStr :=
-        if ( $body[@encoding eq 'Base64Encoded'] ) then
-          util:base64-decode($body/text())
-        else $body/text()
-      return 
-        if ( $jsonStr ) then
-          let $pseudojson := xqjson:parse-json($jsonStr)
-          return 
-            ( $pseudojson[@type eq 'object'] 
-            | $pseudojson/item[@type eq 'object'] )
-        else <p>ERROR: No response</p> (: error :)
-    else <p>ERROR: { $status }</p> (: error :)
-};
-
 (: Query the TAPAS Rails API for its stored view packages. :)
 declare function dpkg:get-rails-packages() as node()* {
   let $railsAddr := xs:anyURI('http://rails_api.tapasdev.neu.edu/api/view_packages') (: XD: Figure out where to store this. :)
@@ -109,16 +87,16 @@ declare function dpkg:get-updatable() as item()* {
             else ()
           }
           <git>
-            { attribute commit { dpkg:get-commit-at($useRepo, $useBranch, $gitTimeR) } }
-            { attribute timestamp { $gitTimeR } }
             {
               if ( $isSubmodule ) then
                 (
+                  attribute repo { $useRepo },
                   attribute branch { $branch },
-                  attribute repo { $useRepo }
+                  attribute commit { dpkg:get-commit-at($useRepo, $useBranch, $gitTimeR) }
                 )
               else ()
             }
+            { attribute timestamp { $gitTimeR } }
           </git>
         </package_ref>
       }
@@ -179,81 +157,65 @@ declare function dpkg:initialize-packages() {
 declare function dpkg:update-packages() {
   if ( doc-available($dpkg:registry) ) then
     let $toUpdate := dpkg:get-updatable()
-    let $gitCalls := 
-      for $pkg in $toUpdate/descendant-or-self::package_ref
-      let $pkgID := $pkg/@name/data(.)
-      return dpkg:update-package($pkg) (:$pkg:)
-    return $gitCalls
+    return
+      if ( count($toUpdate) gt 0 ) then
+      let $submodules := 
+        for $pkg in $toUpdate/descendant-or-self::package_ref[@submodule/data(.) eq 'true']
+        let $pkgID := $pkg/@name/data(.)
+        return dpkg:update-submodule($pkg)
+      let $repoPkgs := $toUpdate/descendant-or-self::package_ref[not(@submodule) or @submodule/data(.) eq 'false']
+      let $vpkgRepo :=
+        (: All view packages entirely housed within $dpkg:github-vpkg-repo should have 
+          the same Rails timestamp (and thus, the same commit SHA). If they don't, 
+          return an error. :)
+        let $timestamp := distinct-values($repoPkgs/git/@timestamp)
+        return
+          if ( count($timestamp) eq 0 ) then
+            doc($dpkg:registry)/view_registry/git
+          else if ( count($timestamp) eq 1 ) then
+            dpkg:update-package-repo($timestamp)
+          else () (: error :)
+      (: Copy the registry entries for unmodified packages, and expand entries for 
+        packages updated as part of the $dpkg:github-vpkg-repo. :)
+      let $otherPkgs := 
+        (
+          doc($dpkg:registry)//package_ref[not(@name = $toUpdate/@name/data(.))],
+          for $pkg in $repoPkgs
+          let $conf := dpkg:get-configuration($pkg/@name/data(.))
+          return
+            <package_ref>
+              { $pkg/@* }
+              <conf>
+                {
+                  if ( $conf ) then $conf/base-uri()
+                  else () (: error :)
+                }
+              </conf>
+              <git>
+                { $pkg/git/@* }
+                { $vpkgRepo/@commit }
+              </git>
+            </package_ref>
+        )
+      (: Recreate the registry of view packages. :)
+      let $newRegistry := 
+        <view_registry>
+          { $vpkgRepo }
+          { 
+            for $pkg in ( $submodules, $otherPkgs )
+            order by $pkg/@name/data(.)
+            return $pkg
+          }
+        </view_registry>
+      (: Update the registry document by storing it again. :)
+      return 
+        xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
+    (: If there's nothing to update, don't do anything. :)
+    else ()
   else 
     (: If there's no registry, download all packages and create the registry for 
       each package. :)
     dpkg:initialize-packages()
-};
-
-(: Given a package reference entry, update or create the local copy of that package. :)
-declare function dpkg:update-package($update as node()) {
-  let $pkgID := $update/@name/data(.)
-  let $pkgBranch := $update/git/@branch/data(.)
-  let $targetDateTime := $update/git/@timestamp/data(.)
-  (: Test if the package is a submodule of the tapas-view-packages repo. :)
-  let $isSubmodule := $update/@submodule/data(.)
-  (: Determine the correct package identifier to use for the view package. If the 
-    package is a submodule, use its own package identifier, otherwise use 
-    tapas-view-package. :)
-  let $useRepo := 
-    if ( $isSubmodule and $update/git[@repo] ) then
-      $update/git/@repo/data(.)
-    else $dpkg:github-vpkg-repo
-  let $useBranch := 
-    if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
-    else $dpkg:default-git-branch
-  let $newCommit := $update/git/@commit/data(.)
-  let $pkgDir := dpkg:get-package-directory($pkgID)
-  let $pkgEntry := dpkg:get-registry-entry($pkgID)
-  let $installUpdate :=
-    if ( $pkgEntry ) then
-      let $oldCommit := $pkgEntry/git/@commit/data(.)
-      let $urlParts := ( $dpkg:github-api-base, $useRepo, 'compare', concat($oldCommit,'...',$newCommit) )
-      let $url := string-join($urlParts,'/')
-      let $changedFiles := dpkg:get-json-objects($url)/pair[@name eq 'files']/item[@type eq 'object']
-      return
-        for $fileRef in $changedFiles
-        let $status := $fileRef/pair[@name eq 'status']/text()
-        return
-          if ( $status eq 'added' or $status eq 'modified' ) then
-            if ( $fileRef/pair[@name eq 'raw_url']/@type/data(.) ne 'null' ) then
-              dpkg:get-file-from-github($fileRef, $pkgDir)
-            else () (: XD: download submodule :)
-          else () (: XD: delete files from eXist :)
-    (: If the view package is a submodule and being added to eXist for the first 
-      time, install its files from a ZIP archive. :)
-    else if ( $isSubmodule ) then
-      dpkg:get-repo-archive($useRepo, dpkg:get-package-directory($pkgID), $useBranch)
-    (: If the view package is a child of $dpkg:github-vpkg-repo, re-install the view packages repository :)
-    else (: XD: there's gotta be a smarter way of doing this! :)
-      dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $dpkg:default-git-branch)
-  (: If the update returns strings of filepaths, and the view package is proven to 
-    be populated, create or update the registry entry for the package. :)
-  return
-    typeswitch ($installUpdate)
-      case xs:string* return
-        let $conf := dpkg:get-configuration($pkgID)
-        return
-          if ( count(xdb:get-child-resources($pkgDir)) ge 1 ) then
-            let $entry := 
-              <package_ref>
-                { $update/@* }
-                <conf>
-                  {
-                    if ( $conf ) then $conf/base-uri()
-                    else () (: error :)
-                  }
-                </conf>
-                <git>{ $update/git/@* }</git>
-              </package_ref>
-            return dpkg:insert-registry-entry($entry)
-          else $installUpdate (: error :)
-      default return $installUpdate (: error :)
 };
 
 
@@ -350,6 +312,30 @@ function dpkg:get-file-from-github($jsonObj as node(), $pathBase as xs:string) {
     else () (: error :)
 };
 
+(: Send out a query, and log any HTTP response that isn't "200 OK". :)
+declare 
+  %private
+function dpkg:get-json-objects($url as xs:string) as node()* {
+  let $address := xs:anyURI($url)
+  let $request := httpc:get($address,false(),<headers/>)
+  let $status := $request/@statusCode/data(.)
+  let $body := $request/httpc:body
+  return
+    if ( $status eq '200' ) then
+      let $jsonStr :=
+        if ( $body[@encoding eq 'Base64Encoded'] ) then
+          util:base64-decode($body/text())
+        else $body/text()
+      return 
+        if ( $jsonStr ) then
+          let $pseudojson := xqjson:parse-json($jsonStr)
+          return 
+            ( $pseudojson[@type eq 'object'] 
+            | $pseudojson/item[@type eq 'object'] )
+        else <p>ERROR: No response</p> (: error :)
+    else <p>ERROR: { $status }</p> (: error :)
+};
+
 (: Get the absolute path to the directory for a given view package ID. No attempt is 
   made to check if the identifier matches an actual view package; this function just 
   builds the path for the collection where the package would be stored. :)
@@ -428,17 +414,13 @@ function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:str
     else concat("No GitHub URL in ",$repoID," for ",$repoPath) (: error :)
 };
 
-(: Insert a given XML entry into the local view package registry. :)
-declare 
+(: Get a list of all files changed between commits in a given GitHub repository. :)
+declare
   %private
-function dpkg:insert-registry-entry($entry as node()) {
-  let $name := $entry/@name/data(.)
-  let $prevPkg := doc($dpkg:registry)/view_registry/package_ref[@name][@name/data(.) eq $name]
-  return
-    if ( $prevPkg ) then
-      update replace $prevPkg with $entry
-    else
-      update insert $entry into doc($dpkg:registry)/view_registry
+function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, $newCommit as xs:string) {
+  let $urlParts := ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
+  let $url := string-join($urlParts,'/')
+  return dpkg:get-json-objects($url)/pair[@name eq 'files']/item[@type eq 'object']
 };
 
 (: Create all missing directories from an absolute path. :)
@@ -457,4 +439,90 @@ function dpkg:make-directories($absPath as xs:string) {
       if ( not(xdb:collection-available(concat($targetDir,$newDir))) ) then
         xdb:create-collection($targetDir,$newDir)
       else ()
+};
+
+(: Update a list of files from a 'Compare Commits' API response from GitHub. :)
+declare 
+  %private
+function dpkg:update-files($targetDir as xs:string, $fileList as node()*) as xs:string* {
+  for $fileRef in $fileList
+  let $status := $fileRef/pair[@name eq 'status']/text()
+  return
+    if ( $status eq 'added' or $status eq 'modified' ) then
+      if ( $fileRef/pair[@name eq 'raw_url']/@type/data(.) ne 'null' ) then
+        dpkg:get-file-from-github($fileRef, $targetDir)
+      else () (: XD: download submodule :)
+    else () (: XD: delete files from eXist :)
+};
+
+(: Update $dpkg:home-directory using the $dpkg:github-vpkg-repo. :)
+declare 
+  %private
+function dpkg:update-package-repo($timestamp as xs:string) {
+  let $newCommit := dpkg:get-commit-at($dpkg:github-vpkg-repo, $dpkg:default-git-branch, $timestamp)
+  (: Get a list of files changed since the last time the registry was updated. :)
+  let $oldCommit := doc($dpkg:registry)/view_registry/git/@commit/data(.)
+  let $fileList := dpkg:list-changed-files($dpkg:github-vpkg-repo, $oldCommit, $newCommit)
+  (: For each file in the list (that isn't a submodule view package), either 
+    download the file or delete it from eXist. :)
+  let $files := dpkg:update-files($dpkg:home-directory, $fileList)
+  (: Recreate the registry, using the same commit and timestamp for <git> under 
+    <view_registry> and each non-submodule <package_ref>. :)
+  return
+    <git repo="{$dpkg:github-vpkg-repo}" branch="{$dpkg:default-git-branch}" 
+      commit="{$newCommit}" timestamp="{$timestamp}"/>
+};
+
+(: Given a package reference entry for a submodule of $dpkg:github-vpkg-repo, update 
+  or create the local copy of that package. :)
+declare
+  %private
+function dpkg:update-submodule($update as node()) {
+  let $pkgID := $update/@name/data(.)
+  let $pkgBranch := $update/git/@branch/data(.)
+  let $targetDateTime := $update/git/@timestamp/data(.)
+  (: Determine the correct package identifier to use for the view package. If the 
+    package is a submodule, use its own package identifier, otherwise use 
+    tapas-view-package. :)
+  let $useRepo := 
+    if ( $update/git[@repo] ) then
+      $update/git/@repo/data(.)
+    else () (: error :)
+  let $useBranch := 
+    if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
+    else $dpkg:default-git-branch
+  let $newCommit := $update/git/@commit/data(.)
+  let $pkgDir := dpkg:get-package-directory($pkgID)
+  let $pkgEntry := dpkg:get-registry-entry($pkgID)
+  let $installUpdate :=
+    if ( $pkgEntry ) then
+      let $oldCommit := $pkgEntry/git/@commit/data(.)
+      let $changedFiles := dpkg:list-changed-files($useRepo, $oldCommit, $newCommit)
+      return dpkg:update-files($pkgDir, $changedFiles)
+    (: If the view package is a submodule and being added to eXist for the first 
+      time, install its files from a ZIP archive. :)
+    else 
+      dpkg:get-repo-archive($useRepo, dpkg:get-package-directory($pkgID), $useBranch)
+  (: If the update returns strings of filepaths, and the view package is proven to 
+    be populated, create or update the registry entry for the package. :)
+  return
+    typeswitch ($installUpdate)
+      case xs:string* return
+        let $conf := dpkg:get-configuration($pkgID)
+        return
+          if ( count(xdb:get-child-resources($pkgDir)) ge 1 ) then
+            let $entry := 
+              <package_ref>
+                { $update/@* }
+                <conf>
+                  {
+                    if ( $conf ) then $conf/base-uri()
+                    else () (: error :)
+                  }
+                </conf>
+                <git>{ $update/git/@* }</git>
+              </package_ref>
+            return $entry
+          else $installUpdate (: error :)
+      default return $installUpdate (: error :)
 };
