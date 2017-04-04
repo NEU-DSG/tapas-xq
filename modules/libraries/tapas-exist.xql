@@ -2,6 +2,7 @@ xquery version "3.0";
 
 module namespace txq="http://tapasproject.org/tapas-xq/exist";
 declare namespace tgen="http://tapasproject.org/tapas-xq/general";
+declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
 
 import module namespace functx="http://www.functx.com";
@@ -13,7 +14,6 @@ import module namespace transform="http://exist-db.org/xquery/transform";
 import module namespace util="http://exist-db.org/xquery/util";
 import module namespace validate="http://exist-db.org/xquery/validation";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
-declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 (:~
  : This library contains functions for carrying out requests in eXist-db. It 

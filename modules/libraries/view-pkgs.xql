@@ -4,6 +4,7 @@ module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs";
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
+import module namespace cprs="http://exist-db.org/xquery/compression";
 import module namespace file="http://exist-db.org/xquery/file";
 import module namespace http="http://expath.org/ns/http-client";
 import module namespace httpc="http://exist-db.org/xquery/httpclient";
@@ -119,19 +120,25 @@ declare function dpkg:get-updatable() as item()* {
 (: Get the contents of $dpkg:github-vpkg-repo at the $dpkg:default-git-branch by 
   retrieving its ZIP archive from GitHub. Set up the view package registry. :)
 declare function dpkg:initialize-packages() {
-  (: Get the current commit on the default branch. :)
-  let $vpkgCommit := 
+  (: Create <git> to hold data on $dpkg:github-vpkg-repo. :)
+  let $vpkgGitInfo :=
     let $urlParts := ( $dpkg:github-api-base, $dpkg:github-vpkg-repo, 
                         'branches', $dpkg:default-git-branch )
     let $branchURL := string-join($urlParts,'/')
-    return dpkg:get-json-objects($branchURL)/pair[@name eq 'commit']/pair[@name eq 'sha']/text()
+    let $responseObj := dpkg:get-json-objects($branchURL)/pair[@name eq 'commit']
+    return
+      <git repo="{$dpkg:github-vpkg-repo}" branch="{$dpkg:default-git-branch}"
+        commit="{$responseObj/pair[@name eq 'sha']/text()}"
+        timestamp="{$responseObj/pair[@name eq 'commit']/pair[@name eq 'author']/pair[@name eq 'date']/text()}"/>
+  (: Get the current commit on the default branch. :)
+  let $vpkgCommit := $vpkgGitInfo/@commit/data(.)
   (: Get a ZIP archive of $dpkg:github-vpkg-repo, and unpack it into 
     $dpkg:home-directory. This process also obtains and unpacks any git submodules. :)
   let $mainRepo := dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $vpkgCommit)
-  (: Create registry. :)
+  (: Create the view package registry. :)
   let $registry := 
     <view_registry>
-      <git commit="{$vpkgCommit}" repo="{$dpkg:github-vpkg-repo}" branch="{$dpkg:default-git-branch}"/>
+      { $vpkgGitInfo }
       {
         for $pkg in ( $mainRepo, dpkg:get-updatable()[not(@submodule) or @submodule ne 'true'] )
         let $name := $pkg/@name/data(.)
@@ -144,7 +151,9 @@ declare function dpkg:initialize-packages() {
               if ( $pkg[@submodule][@submodule eq 'true'] ) then
                 $pkg/git
               else 
-                dpkg:get-commit-for-package($name,$vpkgCommit)
+                <git>
+                  { $vpkgGitInfo/@commit, $vpkgGitInfo/@timestamp }
+                </git>
             }
           </package_ref>
       }
@@ -257,23 +266,6 @@ function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, $dateTim
     let $pseudoJSON := dpkg:get-json-objects($apiURL)[1]
     return $pseudoJSON/pair[@name eq 'sha']/text()
   else () (: error :)
-};
-
-(: Query GitHub's API for the latest commit on a given view package in 
-  $dpkg:github-vpkg-repo. Returns a <git> element with attributes for the commit SHA 
-  and timestamp. :)
-declare
-  %private 
-function dpkg:get-commit-for-package($pkgID as xs:string, $branch as xs:string) as node() {
-  let $url := 
-    let $params := concat('commits?path=',$pkgID,'&amp;sha=',$branch)
-    let $urlParts := ($dpkg:github-api-base, $dpkg:github-vpkg-repo, $params)
-    return string-join($urlParts, '/')
-  let $latestCommitObj := dpkg:get-json-objects($url)[1]
-  let $sha := $latestCommitObj/pair[@name eq 'sha']/text()
-  let $timestamp := $latestCommitObj/pair[@name eq 'commit']/pair[@name eq 'committer']/pair[@name eq 'date']/text()
-  return 
-    <git commit="{$sha}" timestamp="{$timestamp}"/>
 };
 
 (: Download a file using data from GitHub's 'Compare Commits' API. :)
