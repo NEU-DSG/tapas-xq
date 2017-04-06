@@ -8,6 +8,7 @@ import module namespace cprs="http://exist-db.org/xquery/compression";
 import module namespace file="http://exist-db.org/xquery/file";
 import module namespace http="http://expath.org/ns/http-client";
 import module namespace httpc="http://exist-db.org/xquery/httpclient";
+import module namespace sm="http://exist-db.org/xquery/securitymanager";
 import module namespace util="http://exist-db.org/xquery/util";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
 import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
@@ -120,107 +121,124 @@ declare function dpkg:get-updatable() as item()* {
 (: Get the contents of $dpkg:github-vpkg-repo at the $dpkg:default-git-branch by 
   retrieving its ZIP archive from GitHub. Set up the view package registry. :)
 declare function dpkg:initialize-packages() {
-  (: Create <git> to hold data on $dpkg:github-vpkg-repo. :)
-  let $vpkgGitInfo :=
-    let $urlParts := ( $dpkg:github-api-base, $dpkg:github-vpkg-repo, 
-                        'branches', $dpkg:default-git-branch )
-    let $branchURL := string-join($urlParts,'/')
-    let $responseObj := dpkg:get-json-objects($branchURL)/pair[@name eq 'commit']
-    return
-      <git repo="{$dpkg:github-vpkg-repo}" branch="{$dpkg:default-git-branch}"
-        commit="{$responseObj/pair[@name eq 'sha']/text()}"
-        timestamp="{$responseObj/pair[@name eq 'commit']/pair[@name eq 'author']/pair[@name eq 'date']/text()}"/>
-  (: Get the current commit on the default branch. :)
-  let $vpkgCommit := $vpkgGitInfo/@commit/data(.)
-  (: Get a ZIP archive of $dpkg:github-vpkg-repo, and unpack it into 
-    $dpkg:home-directory. This process also obtains and unpacks any git submodules. :)
-  let $mainRepo := dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $vpkgCommit)
-  (: Create the view package registry. :)
-  let $registry := 
-    <view_registry>
-      { $vpkgGitInfo }
-      {
-        for $pkg in ( $mainRepo, dpkg:get-updatable()[not(@submodule) or @submodule ne 'true'] )
-        let $name := $pkg/@name/data(.)
-        order by $name
-        return 
-          <package_ref>
-            { $pkg/@* }
-            <conf>{ dpkg:get-configuration($name)/base-uri() }</conf>
-            {
-              if ( $pkg[@submodule][@submodule eq 'true'] ) then
-                $pkg/git
-              else 
-                <git>
-                  { $vpkgGitInfo/@commit, $vpkgGitInfo/@timestamp }
-                </git>
-            }
-          </package_ref>
-      }
-    </view_registry>
-  return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
+  (: Only proceed if the current user is the TAPAS user. This ensures that the 
+    contents of $dpkg:home-directory will be owned by that user. :)
+      (: 2017-04-06: This test is commented out for now! eXist v2.2 has a bug which 
+        causes sm:id() to error out when one XQuery calls a function in a library: 
+        https://github.com/eXist-db/exist/issues/388. It should be fixed in eXist 
+        v3.0 and higher; uncomment the test when TAPAS upgrades eXist. :)
+  (:if ( dpkg:is-tapas-user() ) then:)
+    (: Create <git> to hold data on $dpkg:github-vpkg-repo. :)
+    let $vpkgGitInfo :=
+      let $urlParts := ( $dpkg:github-api-base, $dpkg:github-vpkg-repo, 
+                          'branches', $dpkg:default-git-branch )
+      let $branchURL := string-join($urlParts,'/')
+      let $responseObj := dpkg:get-json-objects($branchURL)/pair[@name eq 'commit']
+      return
+        <git repo="{$dpkg:github-vpkg-repo}" branch="{$dpkg:default-git-branch}"
+          commit="{$responseObj/pair[@name eq 'sha']/text()}"
+          timestamp="{$responseObj/pair[@name eq 'commit']/pair[@name eq 'author']/pair[@name eq 'date']/text()}"/>
+    (: Get the current commit on the default branch. :)
+    let $vpkgCommit := $vpkgGitInfo/@commit/data(.)
+    (: Get a ZIP archive of $dpkg:github-vpkg-repo, and unpack it into 
+      $dpkg:home-directory. This process also obtains and unpacks any git submodules. :)
+    let $mainRepo := dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $vpkgCommit)
+    (: Create the view package registry. :)
+    let $registry := 
+      <view_registry>
+        { $vpkgGitInfo }
+        {
+          for $pkg in ( $mainRepo, dpkg:get-updatable()[not(@submodule) or @submodule ne 'true'] )
+          let $name := $pkg/@name/data(.)
+          order by $name
+          return 
+            <package_ref>
+              { $pkg/@* }
+              <conf>{ dpkg:get-configuration($name)/base-uri() }</conf>
+              {
+                if ( $pkg[@submodule][@submodule eq 'true'] ) then
+                  $pkg/git
+                else 
+                  <git>
+                    { $vpkgGitInfo/@commit, $vpkgGitInfo/@timestamp }
+                  </git>
+              }
+            </package_ref>
+        }
+      </view_registry>
+    return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
+  (:else
+    () (\: error :\):)
 };
 
 (: For each updatable package, find the git commit that Rails is using, then 
   download the package's files and create or update its registry entry. :)
 declare function dpkg:update-packages() {
   if ( doc-available($dpkg:registry) ) then
-    let $toUpdate := dpkg:get-updatable()
-    return
-      if ( count($toUpdate) gt 0 ) then
-      let $submodules := 
-        for $pkg in $toUpdate/descendant-or-self::package_ref[@submodule/data(.) eq 'true']
-        let $pkgID := $pkg/@name/data(.)
-        return dpkg:update-submodule($pkg)
-      let $repoPkgs := $toUpdate/descendant-or-self::package_ref[not(@submodule) or @submodule/data(.) eq 'false']
-      let $vpkgRepo :=
-        (: All view packages entirely housed within $dpkg:github-vpkg-repo should have 
-          the same Rails timestamp (and thus, the same commit SHA). If they don't, 
-          return an error. :)
-        let $timestamp := distinct-values($repoPkgs/git/@timestamp)
-        return
-          if ( count($timestamp) eq 0 ) then
-            doc($dpkg:registry)/view_registry/git
-          else if ( count($timestamp) eq 1 ) then
-            dpkg:update-package-repo($timestamp)
-          else () (: error :)
-      (: Copy the registry entries for unmodified packages, and expand entries for 
-        packages updated as part of the $dpkg:github-vpkg-repo. :)
-      let $otherPkgs := 
-        (
-          doc($dpkg:registry)//package_ref[not(@name = $toUpdate/@name/data(.))],
-          for $pkg in $repoPkgs
-          let $conf := dpkg:get-configuration($pkg/@name/data(.))
+    (: Only proceed if the current user is the TAPAS user. This ensures that the 
+      contents of $dpkg:home-directory will be owned by that user. :)
+      (: 2017-04-06: This test is commented out for now! eXist v2.2 has a bug which 
+        causes sm:id() to error out when one XQuery calls a function in a library: 
+        https://github.com/eXist-db/exist/issues/388. It should be fixed in eXist 
+        v3.0 and higher; uncomment the test when TAPAS upgrades eXist. :)
+    (:if ( dpkg:is-tapas-user() ) then:)
+      let $toUpdate := dpkg:get-updatable()
+      return
+        if ( count($toUpdate) gt 0 ) then
+        let $submodules := 
+          for $pkg in $toUpdate/descendant-or-self::package_ref[@submodule/data(.) eq 'true']
+          let $pkgID := $pkg/@name/data(.)
+          return dpkg:update-submodule($pkg)
+        let $repoPkgs := $toUpdate/descendant-or-self::package_ref[not(@submodule) or @submodule/data(.) eq 'false']
+        let $vpkgRepo :=
+          (: All view packages entirely housed within $dpkg:github-vpkg-repo should have 
+            the same Rails timestamp (and thus, the same commit SHA). If they don't, 
+            return an error. :)
+          let $timestamp := distinct-values($repoPkgs/git/@timestamp)
           return
-            <package_ref>
-              { $pkg/@* }
-              <conf>
-                {
-                  if ( $conf ) then $conf/base-uri()
-                  else () (: error :)
-                }
-              </conf>
-              <git>
-                { $pkg/git/@* }
-                { $vpkgRepo/@commit }
-              </git>
-            </package_ref>
-        )
-      (: Recreate the registry of view packages. :)
-      let $newRegistry := 
-        <view_registry>
-          { $vpkgRepo }
-          { 
-            for $pkg in ( $submodules, $otherPkgs )
-            order by $pkg/@name/data(.)
-            return $pkg
-          }
-        </view_registry>
-      (: Update the registry document by storing it again. :)
-      return 
-        xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
-    (: If there's nothing to update, don't do anything. :)
-    else ()
+            if ( count($timestamp) eq 0 ) then
+              doc($dpkg:registry)/view_registry/git
+            else if ( count($timestamp) eq 1 ) then
+              dpkg:update-package-repo($timestamp)
+            else () (: error :)
+        (: Copy the registry entries for unmodified packages, and expand entries for 
+          packages updated as part of the $dpkg:github-vpkg-repo. :)
+        let $otherPkgs := 
+          (
+            doc($dpkg:registry)//package_ref[not(@name = $toUpdate/@name/data(.))],
+            for $pkg in $repoPkgs
+            let $conf := dpkg:get-configuration($pkg/@name/data(.))
+            return
+              <package_ref>
+                { $pkg/@* }
+                <conf>
+                  {
+                    if ( $conf ) then $conf/base-uri()
+                    else () (: error :)
+                  }
+                </conf>
+                <git>
+                  { $pkg/git/@* }
+                  { $vpkgRepo/@commit }
+                </git>
+              </package_ref>
+          )
+        (: Recreate the registry of view packages. :)
+        let $newRegistry := 
+          <view_registry>
+            { $vpkgRepo }
+            { 
+              for $pkg in ( $submodules, $otherPkgs )
+              order by $pkg/@name/data(.)
+              return $pkg
+            }
+          </view_registry>
+        (: Update the registry document by storing it again. :)
+        return 
+          xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
+      (: If there's nothing to update, don't do anything. :)
+      else ()
+    (:else () (\: error :\):)
   else 
     (: If there's no registry, download all packages and create the registry for 
       each package. :)
@@ -404,6 +422,20 @@ function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:str
       let $baseless := substring-after($gitURL,concat($dpkg:github-api-base,'/'))
       return substring-before($baseless,'/git/trees')
     else concat("No GitHub URL in ",$repoID," for ",$repoPath) (: error :)
+};
+
+(: Test if the current, effective eXist user is the TAPAS user. :)
+declare
+  %private
+function dpkg:is-tapas-user() as xs:boolean {
+  let $account := sm:id()
+  let $matchUser := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
+  return
+    (: Use the 'effective' user if the 'real' user is acting as someone else. :)
+    if ( $account[descendant::sm:effective] ) then
+      $matchUser($account//sm:effective/sm:username/text())
+    else
+      $matchUser($account//sm:real/sm:username/text())
 };
 
 (: Get a list of all files changed between commits in a given GitHub repository. :)
