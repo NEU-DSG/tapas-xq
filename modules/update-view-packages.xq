@@ -4,6 +4,7 @@ declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "libraries/view-pkgs.xql";
+import module namespace sm="http://exist-db.org/xquery/securitymanager";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
 import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
 import module namespace util="http://exist-db.org/xquery/util";
@@ -42,7 +43,11 @@ declare variable $contentType := "text/html";
 (:  MAIN QUERY  :)
 
 let $reqEstimate := txq:test-request($method, $parameters, $successCode)
-let $estimateCode := $reqEstimate[1]
+(: Test if the current user has write access to the view package directory. :)
+let $estimateCode := 
+  if ( sm:has-access(xs:anyURI($dpkg:home-directory),'rwx') ) then
+    $reqEstimate[1]
+  else 401
 let $responseBody := 
   if ( $estimateCode = $successCode ) then
     let $update := dpkg:update-packages()
@@ -50,6 +55,8 @@ let $responseBody :=
       typeswitch ($update)
         case xs:string return $update
         default return ''
+  else if ( $estimateCode eq 401 ) then
+    tgen:set-error("User does not have write access to the view packages directory")
   else if ( $reqEstimate instance of item()* ) then
     tgen:set-error($reqEstimate[2])
   else tgen:get-error($estimateCode)
