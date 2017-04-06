@@ -72,7 +72,7 @@ return
           (:  XSLT  :)
           case 'xslt' return
               let $teiXML := txq:get-param-xml('file')
-              let $xslPath := dpkg:get-package-filepath($viewType, $runStmt/@pgm/data(.))
+              let $xslPath := dpkg:get-path-from-package($viewType, $runStmt/@pgm/data(.))
               (: Set XSLT parameters using HTTP parameters. :)
               let $xslParams := 
                 <parameters>
@@ -105,8 +105,10 @@ return
         tgen:set-error($reqEstimate[2])
       else tgen:get-error($estimateCode)
     return 
-      if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
-      else txq:build-response($estimateCode, $contentType, $responseBody)
+      if ( $responseBody[2] ) then 
+        txq:build-response($responseBody[1], $contentType, $responseBody[2])
+      else 
+        txq:build-response($estimateCode, $contentType, $responseBody)
   else 
     let $message := 
       let $list := string-join($dpkg:valid-reader-types,', ')

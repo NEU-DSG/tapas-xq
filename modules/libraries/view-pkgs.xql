@@ -37,11 +37,6 @@ declare variable $dpkg:valid-reader-types :=
 
 (:  FUNCTIONS  :)
 
-(: Test if the current user can write to $dpkg:home-directory. :)
-declare function dpkg:can-write() {
-  sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
-};
-
 (: Get a configuration file for a given view package. :)
 (: NOTE: It turns out this use of collection() is eXist-specific. It outputs all 
   files in descendant collections. Saxon will not do the same. :)
@@ -50,6 +45,18 @@ declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
   (: Since the configuration filename can begin with anything as long as it ends in 
     'CONFIG.xml', take the first-occurring file matching the config file criteria. :)
   return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')][1]/vpkg:view_package
+};
+
+(: Turn a relative filepath from a view package directory into an absolute filepath. :)
+declare function dpkg:get-path-from-package($pkgID as xs:string, $relativePath as xs:string) {
+  if ( $pkgID = $dpkg:valid-reader-types ) then
+    let $pkgHome := dpkg:get-package-directory($pkgID)
+    let $realRelativePath :=
+      if ( starts-with($relativePath,'/') ) then
+        $relativePath
+      else concat('/', $relativePath)
+    return concat($pkgHome,$realRelativePath)
+  else () (: error :)
 };
 
 (: Query the TAPAS Rails API for its stored view packages. :)
@@ -126,16 +133,22 @@ declare function dpkg:get-updatable() as item()* {
   return $upCandidates
 };
 
+(: Determine if the current eXist user can write to the $dpkg:home-directory. :)
+  (: 2017-04-06: Half of the test is commented out for now! eXist v2.2 has a bug 
+    which causes sm:id() to error out when one XQuery calls a function in a library; 
+    see https://github.com/eXist-db/exist/issues/388. It should be fixed in eXist 
+    v3.0 and higher; uncomment the dpkg:is-tapas-user() call when TAPAS upgrades 
+    eXist. :)
+declare function dpkg:has-write-access() as xs:boolean {
+  (:dpkg:is-tapas-user() and :) dpkg:can-write()
+};
+
 (: Get the contents of $dpkg:github-vpkg-repo at the $dpkg:default-git-branch by 
   retrieving its ZIP archive from GitHub. Set up the view package registry. :)
 declare function dpkg:initialize-packages() {
   (: Only proceed if the current user is the TAPAS user. This ensures that the 
     contents of $dpkg:home-directory will be owned by that user. :)
-      (: 2017-04-06: This test is commented out for now! eXist v2.2 has a bug which 
-        causes sm:id() to error out when one XQuery calls a function in a library: 
-        https://github.com/eXist-db/exist/issues/388. It should be fixed in eXist 
-        v3.0 and higher; uncomment the test when TAPAS upgrades eXist. :)
-  (:if ( dpkg:is-tapas-user() ) then:)
+  if ( dpkg:has-write-access() ) then
     (: Create <git> to hold data on $dpkg:github-vpkg-repo. :)
     let $vpkgGitInfo :=
       let $urlParts := ( $dpkg:github-api-base, $dpkg:github-vpkg-repo, 
@@ -175,8 +188,8 @@ declare function dpkg:initialize-packages() {
         }
       </view_registry>
     return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
-  (:else
-    () (\: error :\):)
+  else
+    () (: error :)
 };
 
 (: For each updatable package, find the git commit that Rails is using, then 
@@ -185,11 +198,7 @@ declare function dpkg:update-packages() {
   if ( doc-available($dpkg:registry) ) then
     (: Only proceed if the current user is the TAPAS user. This ensures that the 
       contents of $dpkg:home-directory will be owned by that user. :)
-      (: 2017-04-06: This test is commented out for now! eXist v2.2 has a bug which 
-        causes sm:id() to error out when one XQuery calls a function in a library: 
-        https://github.com/eXist-db/exist/issues/388. It should be fixed in eXist 
-        v3.0 and higher; uncomment the test when TAPAS upgrades eXist. :)
-    (:if ( dpkg:is-tapas-user() ) then:)
+    if ( dpkg:has-write-access() ) then
       let $toUpdate := dpkg:get-updatable()
       return
         if ( count($toUpdate) gt 0 ) then
@@ -246,7 +255,7 @@ declare function dpkg:update-packages() {
           xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
       (: If there's nothing to update, don't do anything. :)
       else ()
-    (:else () (\: error :\):)
+    else () (: error :)
   else 
     (: If there's no registry, download all packages and create the registry for 
       each package. :)
@@ -262,6 +271,13 @@ declare
 function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $branch as xs:string) {
   let $apiURL := concat($dpkg:github-api-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
   return dpkg:get-json-objects($apiURL)
+};
+
+(: Test if the current user can write to $dpkg:home-directory. :)
+declare 
+  %private 
+function dpkg:can-write() {
+  sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
 };
 
 (: Recurse through a directory, returning the paths for any git submodules (as 

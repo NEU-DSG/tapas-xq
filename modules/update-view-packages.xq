@@ -43,8 +43,8 @@ declare variable $contentType := "text/html";
 let $reqEstimate := txq:test-request($method, $parameters, $successCode)
 let $estimateCode := 
   (: Test if the current user has write access to the view package directory. Return 
-    a 401 if they can't. :)
-  if ( dpkg:can-write() ) then
+    a 401 status code if they can't. :)
+  if ( dpkg:has-write-access() ) then
     $reqEstimate[1]
   else 401
 let $responseBody := 

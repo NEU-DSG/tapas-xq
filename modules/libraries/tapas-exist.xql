@@ -1,15 +1,15 @@
 xquery version "3.0";
 
 module namespace txq="http://tapasproject.org/tapas-xq/exist";
-declare namespace tgen="http://tapasproject.org/tapas-xq/general";
 declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
-import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
 
+import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
 import module namespace functx="http://www.functx.com";
 import module namespace httpc="http://exist-db.org/xquery/httpclient";
 import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace response="http://exist-db.org/xquery/response";
+import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
 import module namespace transform="http://exist-db.org/xquery/transform";
 import module namespace util="http://exist-db.org/xquery/util";
 import module namespace validate="http://exist-db.org/xquery/validation";
@@ -32,10 +32,6 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 
 (: VARIABLES :)
-
-(: XD: The valid reader types will soon be gathered programmatically, but are 
-  hard-coded for now. :)
-declare variable $txq:valid-reader-types := ('tapas-generic', 'teibp');
 
 
 (: FUNCTIONS :)
@@ -211,14 +207,14 @@ declare function txq:build-response($code as xs:integer, $content-type as xs:str
   (: $content should always be XML or a string. If it is an integer, then this 
    : function treats that integer as an error code. :)
   let $isError := $content instance of xs:integer
-  let $returnCode :=  if ($isError) then
+  let $returnCode :=  if ( $isError ) then
                         $content
                       else $code
   return
       (
         response:set-status-code($returnCode),
         response:set-header("Content-Type", $content-type),
-        if ($isError) then
+        if ( $isError ) then
           tgen:get-error($content)
         else $content
       )
