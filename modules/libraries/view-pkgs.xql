@@ -37,12 +37,19 @@ declare variable $dpkg:valid-reader-types :=
 
 (:  FUNCTIONS  :)
 
+(: Test if the current user can write to $dpkg:home-directory. :)
+declare function dpkg:can-write() {
+  sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
+};
+
 (: Get a configuration file for a given view package. :)
 (: NOTE: It turns out this use of collection() is eXist-specific. It outputs all 
   files in descendant collections. Saxon will not do the same. :)
 declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
   let $parentDir := concat($dpkg:home-directory,'/',$pkgID)
-  return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package
+  (: Since the configuration filename can begin with anything as long as it ends in 
+    'CONFIG.xml', take the first-occurring file matching the config file criteria. :)
+  return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')][1]/vpkg:view_package
 };
 
 (: Query the TAPAS Rails API for its stored view packages. :)
@@ -51,6 +58,7 @@ declare function dpkg:get-rails-packages() as node()* {
   return dpkg:get-json-objects($railsAddr)
 };
 
+(: Get the registry entry for the view package matching a given identifier. :)
 declare function dpkg:get-registry-entry($pkgID as xs:string) as node()? {
   doc($dpkg:registry)//package_ref[@name eq $pkgID]
 };
@@ -425,18 +433,20 @@ function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:str
 };
 
 (: Test if the current, effective eXist user is the TAPAS user. :)
-declare
+  (: 2017-04-06: This function will silently fail in eXist v2.2. DO NOT USE until 
+    TAPAS upgrades to v3.0 or higher. :)
+(:declare
   %private
 function dpkg:is-tapas-user() as xs:boolean {
   let $account := sm:id()
   let $matchUser := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
   return
-    (: Use the 'effective' user if the 'real' user is acting as someone else. :)
+    (\: Use the 'effective' user if the 'real' user is acting as someone else. :\)
     if ( $account[descendant::sm:effective] ) then
       $matchUser($account//sm:effective/sm:username/text())
     else
       $matchUser($account//sm:real/sm:username/text())
-};
+};:)
 
 (: Get a list of all files changed between commits in a given GitHub repository. :)
 declare
