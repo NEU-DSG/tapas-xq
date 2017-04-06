@@ -86,12 +86,12 @@ declare function dpkg:get-updatable() as item()* {
     let $dirName := $railsPkg/pair[@name eq 'dir_name']/text()
     let $branch := $railsPkg/pair[@name eq 'git_branch']/text()
     let $isSubmodule := exists($branch) and $branch ne ''
-    let $registryPkg := dpkg:get-registry-entry($dirName)
+    let $registryPkg := if ( exists($dirName) ) then dpkg:get-registry-entry($dirName) else ()
     let $useBranch := if ( $isSubmodule ) then $branch else $dpkg:default-git-branch
     let $useRepo := 
       if ( not($isSubmodule) ) then
         $dpkg:github-vpkg-repo
-      else if ( $registryPkg ) then
+      else if ( exists($registryPkg) ) then
         $registryPkg/git/@repo/data(.)
       else
         dpkg:get-submodule-identifier($dpkg:github-vpkg-repo, $dirName, $useBranch)
