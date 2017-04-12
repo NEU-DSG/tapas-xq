@@ -206,7 +206,7 @@ declare function dpkg:initialize-packages() {
 (: For each updatable package, find the git commit that Rails is using, then 
   download the package's files and create or update its registry entry. :)
 declare function dpkg:update-packages() {
-  if ( doc-available($dpkg:registry) ) then
+  if ( doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref] ) then
     (: Only proceed if the current user is the TAPAS user. This ensures that the 
       contents of $dpkg:home-directory will be owned by that user. :)
     if ( dpkg:has-write-access() ) then
@@ -269,8 +269,8 @@ declare function dpkg:update-packages() {
       else ()
     else () (: error :)
   else 
-    (: If there's no registry, download all packages and create the registry for 
-      each package. :)
+    (: If there's no registry or actionable package entries, download all packages 
+      and create the registry for each package. :)
     dpkg:initialize-packages()
 };
 
