@@ -1,7 +1,7 @@
 <meta xmlns="http://exist-db.org/xquery/repo">
   <description>An application dedicated to managing TAPAS's interests inside eXist-db.</description>
-  <author>Syd Bauman</author>
   <author>Ashley M. Clark</author>
+  <author>Syd Bauman</author>
   <website>http://www.tapasproject.org</website>
   <status>beta</status>
   <license>GNU-LGPL</license>
