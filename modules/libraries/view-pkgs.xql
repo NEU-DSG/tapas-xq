@@ -24,12 +24,17 @@ import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
 (:  VARIABLES  :)
 
 declare variable $dpkg:default-git-branch := 'develop';
+declare variable $dpkg:default-rails-api := 'http://rails_api.tapas.neu.edu/api/view_packages';
 declare variable $dpkg:github-api-base := 'https://api.github.com/repos';
 declare variable $dpkg:github-raw-base := 'https://raw.githubusercontent.com';
 declare variable $dpkg:github-vpkg-repo := 'NEU-DSG/tapas-view-packages';
 declare variable $dpkg:home-directory := '/db/tapas-view-pkgs';
 declare variable $dpkg:registry-name := 'registry.xml';
 declare variable $dpkg:registry := concat($dpkg:home-directory,'/',$dpkg:registry-name);
+declare variable $dpkg:rails-api-url := 
+  if ( doc-available($dpkg:registry) and doc($dpkg:registry)/view_registry[@rails-api] ) then
+    doc($dpkg:registry)/view_registry/@rails-api/data(.)
+  else $dpkg:default-rails-api;
 declare variable $dpkg:valid-reader-types := 
   for $pkg in doc($dpkg:registry)/view_registry/package_ref
   return $pkg/@name/data(.);
@@ -61,7 +66,7 @@ declare function dpkg:get-path-from-package($pkgID as xs:string, $relativePath a
 
 (: Query the TAPAS Rails API for its stored view packages. :)
 declare function dpkg:get-rails-packages() as node()* {
-  let $railsAddr := xs:anyURI('http://rails_api.tapasdev.neu.edu/api/view_packages') (: XD: Figure out where to store this. :)
+  let $railsAddr := xs:anyURI($dpkg:rails-api-url) (: XD: Figure out where to store this. :)
   return dpkg:get-json-objects($railsAddr)
 };
 
@@ -86,8 +91,13 @@ declare function dpkg:get-updatable() as item()* {
     let $dirName := $railsPkg/pair[@name eq 'dir_name']/text()
     let $branch := $railsPkg/pair[@name eq 'git_branch']/text()
     let $isSubmodule := exists($branch) and $branch ne ''
-    let $registryPkg := if ( exists($dirName) ) then dpkg:get-registry-entry($dirName) else ()
-    let $useBranch := if ( $isSubmodule ) then $branch else $dpkg:default-git-branch
+    let $registryPkg := 
+      if ( exists($dirName) ) then 
+        dpkg:get-registry-entry($dirName) 
+      else ()
+    let $useBranch := 
+      if ( $isSubmodule ) then $branch 
+      else $dpkg:default-git-branch
     let $useRepo := 
       if ( not($isSubmodule) ) then
         $dpkg:github-vpkg-repo
@@ -167,6 +177,7 @@ declare function dpkg:initialize-packages() {
     (: Create the view package registry. :)
     let $registry := 
       <view_registry>
+        { dpkg:define-rails-api-attribute() }
         { $vpkgGitInfo }
         {
           for $pkg in ( $mainRepo, dpkg:get-updatable()[not(@submodule) or @submodule ne 'true'] )
@@ -243,6 +254,7 @@ declare function dpkg:update-packages() {
         (: Recreate the registry of view packages. :)
         let $newRegistry := 
           <view_registry>
+            { dpkg:define-rails-api-attribute() }
             { $vpkgRepo }
             { 
               for $pkg in ( $submodules, $otherPkgs )
@@ -280,22 +292,32 @@ function dpkg:can-write() {
   sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
 };
 
-(: Recurse through a directory, returning the paths for any git submodules (as 
-  indicated by empty directories, which git is not able to track). This should only 
-  be run after unpacking a GitHub repository from a ZIP file. :)
+(: Return the paths for any git submodules (as indicated by empty directories, which 
+  git is not able to track). This should only be run after unpacking a GitHub 
+  repository from a ZIP file, before that file is deleted. :)
 declare
-  %private 
-function dpkg:find-submodule-dirs($path as xs:string) as xs:string* {
-  let $childDirs := xdb:get-child-collections($path)
+  %private
+function dpkg:find-submodule-dirs($zipPath as xs:string) as xs:string* {
+  let $uri := xs:anyURI($zipPath)
   return
-    (: To be a submodule directory, this directory must not contain any files, and 
-      it must not contain any directories. :)
-    if ( count(xdb:get-child-resources($path)) eq 0 and count($childDirs) eq 0 ) then 
-      $path
-    else 
-      for $dir in $childDirs
-      let $absPath := concat($path,'/',$dir)
-      return dpkg:find-submodule-dirs($absPath)
+    if ( util:binary-doc-available($uri) ) then
+      let $zipEntries := zip:entries($uri)
+      let $zipDirs := $zipEntries/zip:dir/@name/data(.)
+      (: To be a submodule directory, a directory must not contain any files, and 
+        it must not contain any directories. :)
+      return
+        for $dir in $zipDirs
+        let $numPathMatches := count($zipEntries/*[contains(@name/data(.),$dir)])
+        let $filename := tokenize($zipPath,'/')[last()]
+        let $zipBase := concat(substring-before($filename,'.zip'),'/')
+        return
+          (: If the directory is empty, there will be only one archive entry 
+            matching the directory path. :)
+          if ( $numPathMatches eq 1 ) then
+            (: Return the absolute path to the directory in the database. :)
+            concat(substring-before($zipPath,$filename), substring-after($dir,$zipBase))
+          else ()
+    else () (: error :)
 };
 
 (: Query GitHub's API for a repository's commits matching the timestamp given by 
@@ -402,8 +424,8 @@ function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $bran
     }
   let $storedBinary := util:binary-doc($archivePath)
   let $unzipped := cprs:unzip($storedBinary, $filterFn, (), $storageFn, ())
-  (: Download and unpack the archives for any submodules. :)
-  let $submoduleDirs := dpkg:find-submodule-dirs($dbPath)
+  (: Identify any submodules; download and unpack their archives. :)
+  let $submoduleDirs := dpkg:find-submodule-dirs($archivePath)
   let $getSubmodules := 
     for $localPath in $submoduleDirs
     let $repoPath := substring-after($localPath, concat($dbPath,'/'))
@@ -489,6 +511,16 @@ function dpkg:make-directories($absPath as xs:string) {
       if ( not(xdb:collection-available(concat($targetDir,$newDir))) ) then
         xdb:create-collection($targetDir,$newDir)
       else ()
+};
+
+(: If $dpkg:rails-api-url doesn't match the default (production) Rails API, create 
+  an attribute @rails-api with the custom URL. This attribute should be placed on 
+  <view_registry> as necessary. :)
+declare
+  %private
+function dpkg:define-rails-api-attribute() as item()? {
+  if ( $dpkg:rails-api-url eq $dpkg:default-rails-api ) then ()
+  else attribute rails-api { $dpkg:rails-api-url }
 };
 
 (: Update a list of files from a 'Compare Commits' API response from GitHub. :)
