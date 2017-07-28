@@ -1,0 +1,30 @@
+datatypes xs = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+# RELAX NG schema for TAPAS eXist environments
+# Written 2017-07-28 by Ashley Clark
+# Copyleft
+
+## A definition of the TAPAS ecosystem in which this instance of eXist lives.
+element environ {
+  ## The type of TAPAS environment. Allowed values are:
+  ## 'development-local', 'development-staging', and 'production'.
+  attribute type { 'development-local' | 'development-staging' | 'production' },
+  
+  ## The base URL for eXist to communicate with an instance of Rails.
+  element railsBaseURI {
+    ## The host and port number of the base URL, if the base URL won't work 
+    ## without a 'Host' request header field. For example, for eXist to 
+    ## communicate with Rails on a Plattr VM, the base URI must be 
+    ## '127.0.0.1:8080' and the Host value must be 'rails_api.localhost:8080'.
+    attribute host { text }?,
+    xs:anyURI
+  },
+  
+  ## The default branch to use when querying GitHub repositories.
+  element defaultGitBranch {
+    ## The name of the default git branch. Suggested values are 'develop' and 
+    ## 'master', but any branch name can be used if necessary.
+    attribute name { xs:string | 'develop' | 'master' },
+    empty
+  }
+}

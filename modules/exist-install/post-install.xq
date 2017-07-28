@@ -1,6 +1,7 @@
 xquery version "3.0";
 
 declare namespace sm="http://exist-db.org/xquery/securitymanager";
+declare namespace system="http://exist-db.org/xquery/system";
 declare namespace util="http://exist-db.org/xquery/util";
 declare namespace xdb="http://exist-db.org/xquery/xmldb";
 
@@ -9,7 +10,9 @@ import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "/d
 
 (:~ After installing the package, eXist will:
  :  * if there is no view package registry, acquire the view packages from GitHub 
- :    and create the registry (if there is a registry, do nothing)
+ :    and create the registry (if there is a registry with entries, do nothing);
+ :  * if there is no environment configuration file at /db/environment.xml, copy 
+ :    the default configuration there
  : 
  : NOTE: This script will try to log in as the TAPAS user before initializing view 
  : packages. This will only work if the TAPAS user still has the default password 
@@ -40,3 +43,20 @@ return
       dpkg:initialize-packages()
     else
       util:log('warn','Could not initialize the TAPAS view packages collection. Try logging in as the TAPAS user and updating the view packages.')
+,
+
+let $environmentFileName := 'environment.xml'
+let $environmentFilePath := concat($storageDirBase, '/', $environmentFileName)
+return
+  if ( doc-available($environmentFilePath) ) then
+    ()
+  else 
+    let $moduleLoc := replace(system:get-module-load-path(), '^(xmldb:exist//)?(embedded-eXist-server)?(.+)$', '$3')
+    let $defaultConfigPath := concat($moduleLoc,'/', $environmentFileName, '.default')
+    return
+      if ( util:binary-doc-available($defaultConfigPath) ) then
+        (
+          xdb:store($storageDirBase, $environmentFileName, util:binary-doc($defaultConfigPath), 'text/xml' ),
+          sm:chmod($environmentFilePath, 'rw-rw-r--')
+        )
+      else ()
