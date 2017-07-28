@@ -1,6 +1,6 @@
 <package xmlns="http://expath.org/ns/pkg" 
   name="http://www.tapasproject.org/apps/tapas-xq" 
-  abbrev="tapas-xq" version="0.4.1" spec="1.0">
+  abbrev="tapas-xq" version="0.4.2" spec="1.0">
   <title>TAPAS-xq</title>
   
   <dependency processor="http://exist-db.org" semver-max="2.2.0"/>
