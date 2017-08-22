@@ -6,6 +6,7 @@ xquery version "3.0";
  : @author Ashley M. Clark
  : @version 1.0
  :
+ : 2017-08-22: Added get-document().
  : 2017-02-14: Changed the prefix for this library from 'tapas-xq' to the 'tgen' 
  :   already used everywhere else.
  : 2017-01-30: Added function to get a configuration file for a view package.
@@ -20,9 +21,19 @@ declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 (: VARIABLES :)
 
 declare variable $tgen:pkgDir := '/db/tapas-view-pkgs/';
+declare variable $tgen:dataDir := '/db/tapas-data/';
 
 
 (: FUNCTIONS :)
+
+(: Get a stored file using its project and document identifiers. :)
+declare function tgen:get-document($proj-id as xs:string, $doc-id as xs:string) {
+  let $path := concat($tgen:dataDir, $proj-id, '/', $doc-id)
+  return
+    if ( doc-available($path) ) then
+      doc($path)
+    else 400
+};
 
 (:   ERROR MESSAGES   :)
 

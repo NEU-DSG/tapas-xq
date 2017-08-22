@@ -35,8 +35,7 @@ declare variable $viewsDir := "tapas-view-pkgs";
 let $environmentFileName := 'environment.xml'
 let $environmentFilePath := concat($storageDirBase, '/', $environmentFileName)
 let $environmentSet :=
-  if ( doc-available($environmentFilePath) ) then
-    true()
+  if ( doc-available($environmentFilePath) ) then true()
   else 
     let $moduleLoc := replace(system:get-module-load-path(), '^(xmldb:exist//)?(embedded-eXist-server)?(.+)$', '$3')
     let $defaultConfigPath := concat($moduleLoc,'/', $environmentFileName, '.default')
