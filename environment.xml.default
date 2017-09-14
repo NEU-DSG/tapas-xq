@@ -4,6 +4,6 @@
   eXist is being run locally, on a Plattr VM. -->
 <environ type="development-local">
   
-  <railsBaseURI host="rails_api.localhost:8080">http://127.0.0.1:8080</railsBaseURI>
+  <railsBaseURI host="railsapi.localhost:8080">http://127.0.0.1:8080</railsBaseURI>
   <defaultGitBranch name="develop"/>
 </environ>

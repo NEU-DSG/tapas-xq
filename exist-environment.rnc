@@ -15,7 +15,7 @@ element environ {
     ## The host and port number of the base URL, if the base URL won't work 
     ## without a 'Host' request header field. For example, for eXist to 
     ## communicate with Rails on a Plattr VM, the base URI must be 
-    ## '127.0.0.1:8080' and the Host value must be 'rails_api.localhost:8080'.
+    ## '127.0.0.1:8080' and the Host value must be 'railsapi.localhost:8080'.
     attribute host { text }?,
     xs:anyURI
   },

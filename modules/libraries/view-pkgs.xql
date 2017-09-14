@@ -27,7 +27,7 @@ import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
 
 (:  VARIABLES  :)
 
-declare variable $dpkg:default-rails-api := 'http://rails_api.tapas.neu.edu/api/view_packages';
+declare variable $dpkg:default-rails-api := 'http://railsapi.tapas.neu.edu/api/view_packages';
 declare variable $dpkg:environment-defaults := '/db/environment.xml';
 declare variable $dpkg:github-api-base := 'https://api.github.com/repos';
 declare variable $dpkg:github-raw-base := 'https://raw.githubusercontent.com';
