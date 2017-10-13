@@ -38,11 +38,24 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (: Create a map of expected request parameters using the configuration file. :)
 declare function txq:make-param-map($pkgID as xs:string) as map(*) {
-  let $parameters := dpkg:get-configuration($pkgID)/vpkg:parameters
+  let $config := dpkg:get-configuration($pkgID)
+  let $parameters := $config/vpkg:parameters
+  let $options := $config/vpkg:run[@type eq 'xproc']/vpkg:step[1]/vpkg:option
   return
     map:new(
-      for $param in $parameters/vpkg:parameter
-      return map:entry($param/@name/data(.), $param/@as/data(.))
+      (
+        for $param in $parameters/vpkg:parameter
+        return map:entry($param/@name/data(.), $param/@as/data(.)),
+        (: XProc options are only included if they haven't already been listed with 
+          the HTTP parameters. :)
+        for $option in $options
+        let $optionName := $option/@name/data(.)
+        return
+          if ( $optionName = $parameters/vpkg:parameter/@name/data(.) ) then ()
+          else
+            (: XProc options will always be considered xs:untypedAtomic. :)
+            map:entry($optionName, 'xs:untypedAtomic')
+      )
     )
 };
 

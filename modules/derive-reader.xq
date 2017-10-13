@@ -1,5 +1,6 @@
 xquery version "3.0";
 
+declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 
 import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "libraries/view-pkgs.xql";
@@ -8,6 +9,7 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 
 import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 import module namespace transform="http://exist-db.org/xquery/transform";
+import module namespace xprc="http://exist-db.org/xproc";
 
 (:~
  : `POST exist/apps/tapas-xq/derive-reader/:type` 
@@ -32,6 +34,7 @@ import module namespace transform="http://exist-db.org/xquery/transform";
  : @author Ashley M. Clark
  : @version 1.1
  :
+ : 2017-10-02: Added transformation via XProc.
  : 2017-02-01: Restructured this file to allow dynamic view package functionality. 
  :   The view package type is tested first; then the HTTP request is tested against 
  :   the parameters set in the configuration file; then any transformations are run. 
@@ -64,6 +67,10 @@ return
     let $reqEstimate := txq:test-request($method, $testParams, $successCode)
     let $estimateCode := $reqEstimate[1]
     let $runStmt := dpkg:get-run-stmt($viewType)
+    (: The HTTP parameter 'file' will always contain the TEI file from which to 
+      create the reader output. All remaining parameters should be passed on as 
+      parameters to the program running the derivation process. :)
+    let $scriptParams := map:keys($testParams)[. ne 'file']
     let $responseBody :=  
       if ( $estimateCode = $successCode ) then
         (: Make XHTML using... :)
@@ -77,7 +84,7 @@ return
               let $xslParams := 
                 <parameters>
                   {
-                    for $key in map:keys($testParams)[. ne 'file']
+                    for $key in $scriptParams
                     return 
                       <param name="{$key}" value="{ txq:get-param($key) }"/>
                   }
@@ -86,8 +93,68 @@ return
               let $xhtml := transform:transform($teiXML, doc($xslPath), $xslParams)
               return $xhtml
               
-          (:case 'xproc' return '' 
-          case 'xquery' return '':)
+          (:  XProc  :)
+          case 'xproc' return 
+            let $teiXML := txq:get-param-xml('file')
+            let $xprocPath := dpkg:get-path-from-package($viewType, $runStmt/@pgm/data(.))
+            let $step := $runStmt/vpkg:step[1]
+            let $stepNamespace := $step/@ns/data(.)
+            let $xprocWrapper :=
+              (: The namespace for the XProc step listed in the config file must be 
+                defined at the root of the $xprocWrapper. To do so programmatically, 
+                all we should have to do is use a computed namespace constructor:
+                    namespace { $prefix } { $nsURI }
+                However, eXist doesn't do anything with namespace constructors until
+                v3.5.0, so until we upgrade, we should assume that the imported 
+                XProc step will use the prefix and namespace:
+                    xmlns:l="http://www.wheatoncollege.edu/TAPAS/1.0"
+                (2017-10-13, Ashley)
+              :)
+              <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" 
+                xmlns:l="http://www.wheatoncollege.edu/TAPAS/1.0"
+                version="1.0">
+                {
+                  (: Define the input and output ports outlined in the configuration 
+                    file. If there is more than one primary per *put type, only the
+                    first is marked as such. :)
+                  for $putType in ('in', 'out')
+                  let $gi := concat('p:',$putType,'put')
+                  return
+                    for $input in $step/vpkg:port[@put eq $putType]
+                    let $name := $input/text()
+                    let $isPrimary := $input/@primary eq 'true' 
+                                  and not($input/preceding-sibling::vpkg:port[@put eq $putType][@primary eq 'true'])
+                    return
+                      element { $gi } {
+                        attribute port { $name },
+                        if ( $isPrimary ) then
+                          (
+                            attribute primary { 'true' },
+                            if ( $putType eq 'in' ) then 
+                              <p:inline>
+                                { $teiXML }
+                              </p:inline>
+                            else ()
+                          )
+                        else ()
+                      },
+                  (: Check configured options against script parameters, and pass on 
+                    values from the HTTP request. :)
+                  for $option in $scriptParams
+                  return
+                    <p:option name="{$option}" 
+                              select="'{txq:get-param($option)}'"/>
+                }
+                <p:import href="xmldb://{$xprocPath}"/>
+                { 
+                  element { QName($stepNamespace, $step/@name/data(.)) } { }
+                }
+              </p:declare-step>
+            (: Run the $xprocWrapper on the imported XProc step, with the required 
+              inputs and options. :)
+            return xprc:process( $xprocWrapper )
+          
+          (:case 'xquery' return '':)
           
           (: If the @type on <run> is invalid (or if there is no configuration file), 
             output a HTTP 501 error. The server cannot complete the request because 

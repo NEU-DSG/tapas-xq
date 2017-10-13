@@ -404,7 +404,7 @@ function dpkg:get-json-objects($url as xs:string) as node()* {
             ( $pseudojson[@type eq 'object'] 
             | $pseudojson/item[@type eq 'object'] )
         else <p>ERROR: No response</p> (: error :)
-    else <p>ERROR: { $status }</p> (: error :)
+    else <p>ERROR: { $body }</p> (: error :)
 };
 
 (: Get the absolute path to the directory for a given view package ID. No attempt is 
@@ -419,10 +419,10 @@ function dpkg:get-package-directory($pkgID as xs:string) {
 (: Get the host of the Rails API for use in a request header. :)
 declare
   %private
-function dpkg:get-rails-api-host() as xs:string {
+function dpkg:get-rails-api-host() as xs:string? {
   if ( dpkg:is-environment-file-available() and doc($dpkg:environment-defaults)//railsBaseURI[@host] ) then
     doc($dpkg:environment-defaults)//railsBaseURI/@host/data(.) 
-  else ''
+  else ()
 };
 
 (: Get the Rails API URL. :)
@@ -575,7 +575,7 @@ function dpkg:send-request($url as xs:anyURI) as item()? {
   let $railsAPI := dpkg:get-rails-api-url()
   let $railsHost := dpkg:get-rails-api-host()
   return
-    if ( $url eq $railsAPI and $railsHost ne '' ) then
+    if ( $url eq $railsAPI and not(empty($railsHost)) and $railsHost ne '' ) then
       let $request :=
         <http:request method="GET" href="{$url}">
           <http:header name="Host" value="{$railsHost}"/>
