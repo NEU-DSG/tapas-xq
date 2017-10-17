@@ -34,7 +34,7 @@ import module namespace xprc="http://exist-db.org/xproc";
  : @author Ashley M. Clark
  : @version 1.1
  :
- : 2017-10-02: Added transformation via XProc.
+ : 2017-10-13: Added transformation via XProc.
  : 2017-02-01: Restructured this file to allow dynamic view package functionality. 
  :   The view package type is tested first; then the HTTP request is tested against 
  :   the parameters set in the configuration file; then any transformations are run. 
@@ -98,7 +98,7 @@ return
             let $teiXML := txq:get-param-xml('file')
             let $xprocPath := dpkg:get-path-from-package($viewType, $runStmt/@pgm/data(.))
             let $step := $runStmt/vpkg:step[1]
-            let $stepNamespace := $step/@ns/data(.)
+            let $stepNamespace := (:$step/@ns/data(.):) namespace-uri-from-QName($step/@qname/data(.))
             let $xprocWrapper :=
               (: The namespace for the XProc step listed in the config file must be 
                 defined at the root of the $xprocWrapper. To do so programmatically, 
@@ -111,7 +111,7 @@ return
                 (2017-10-13, Ashley)
               :)
               <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" 
-                xmlns:l="http://www.wheatoncollege.edu/TAPAS/1.0"
+                xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0"
                 version="1.0">
                 {
                   (: Define the input and output ports outlined in the configuration 
