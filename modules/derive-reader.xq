@@ -98,7 +98,7 @@ return
             let $teiXML := txq:get-param-xml('file')
             let $xprocPath := dpkg:get-path-from-package($viewType, $runStmt/@pgm/data(.))
             let $step := $runStmt/vpkg:step[1]
-            let $stepNamespace := (:$step/@ns/data(.):) namespace-uri-from-QName($step/@qname/data(.))
+            let $stepNamespace := (:$step/@ns/data(.):) (:namespace-uri-from-QName($step/@qname/data(.)):)''
             let $xprocWrapper :=
               (: The namespace for the XProc step listed in the config file must be 
                 defined at the root of the $xprocWrapper. To do so programmatically, 
@@ -147,7 +147,7 @@ return
                 }
                 <p:import href="xmldb://{$xprocPath}"/>
                 { 
-                  element { QName($stepNamespace, $step/@name/data(.)) } { }
+                  element { $step/@qname/data(.) } { }
                 }
               </p:declare-step>
             (: Run the $xprocWrapper on the imported XProc step, with the required 
