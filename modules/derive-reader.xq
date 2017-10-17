@@ -98,21 +98,25 @@ return
             let $teiXML := txq:get-param-xml('file')
             let $xprocPath := dpkg:get-path-from-package($viewType, $runStmt/@pgm/data(.))
             let $step := $runStmt/vpkg:step[1]
-            let $stepNamespace := (:$step/@ns/data(.):) (:namespace-uri-from-QName($step/@qname/data(.)):)''
+            let $stepQName := $step/@qname/data(.)
+            let $nsPrefix :=
+              if ( contains($stepQName,':') ) then 
+                substring-before($stepQName,':')
+              else ''
+            let $nsURI := namespace-uri-for-prefix($nsPrefix, $step)
             let $xprocWrapper :=
               (: The namespace for the XProc step listed in the config file must be 
                 defined at the root of the $xprocWrapper. To do so programmatically, 
                 all we should have to do is use a computed namespace constructor:
-                    namespace { $prefix } { $nsURI }
+                    namespace { $nsPrefix } { $nsURI }
                 However, eXist doesn't do anything with namespace constructors until
                 v3.5.0, so until we upgrade, we should assume that the imported 
                 XProc step will use the prefix and namespace:
-                    xmlns:l="http://www.wheatoncollege.edu/TAPAS/1.0"
+                    xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0"
                 (2017-10-13, Ashley)
               :)
-              <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" 
-                xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0"
-                version="1.0">
+              <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" version="1.0" 
+                xmlns:tapas="http://www.wheatoncollege.edu/TAPAS/1.0">
                 {
                   (: Define the input and output ports outlined in the configuration 
                     file. If there is more than one primary per *put type, only the
