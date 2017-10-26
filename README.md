@@ -1,7 +1,7 @@
 TAPAS-xq
 =======
 
-An EXPath application to manage TAPAS's interests inside eXist-db, including generation of the TEI documents considered canonical within TAPAS (a.k.a. the TAPAS-friendly copy, or TFC).
+An EXPath application to manage TAPAS's interests inside eXist-db, including generation of the HTML/MODS from TEI.
 
 ## Installation
 It's assumed you have eXist-db up and running somewhere. If not, see the [eXist Quick Start](http://exist-db.org/exist/apps/doc/quickstart.xml) guide and follow the instructions there.
@@ -13,7 +13,7 @@ Clone down this repository using your git client of choice, then run [Apache Ant
 
 In the terminal:
 
-1. `git clone https://github.com/NEU-DSG/tapas-xq.git`
+1. `git clone --recursive https://github.com/NEU-DSG/tapas-xq.git`
 
 2. `cd tapas-xq`
 

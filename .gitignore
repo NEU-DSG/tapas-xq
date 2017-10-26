@@ -1,2 +1,3 @@
 # The products of ant builds
 build/*
+.DS_Store
