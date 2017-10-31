@@ -15,9 +15,10 @@
   <p>Re-written 2015-08-19 by Syd w/ Ashley</p>
   <p>Updated 2017-10-26 by Syd:
      * remove extranous "one" test
-     * add test for &lt;script>, as that is a vulnerability
      * test that &lt;teiHeader> exists as any child of root element,
        not just first child of root element.</p>
+  <p>Updated 2017-10-31 by Ashley:
+     * add test for &lt;script>.</p>
   
   <pattern id="TAPAS01-outermost-element">
     <rule context="/*" role="fatal">
@@ -30,6 +31,7 @@
   <!-- handle case where <teiHeader> exists but is not 1st child, no? -->
   <pattern id="TAPAS02-teiHeader">
     <rule context="/tei:TEI" role="fatal">
+      <report test="descendant::*:script">TAPAS does not accept arbitrary Javascript</report>
       <assert test="tei:teiHeader">there must be a 'teiHeader' child of the outermost TEI element in order for TAPAS to know where to find certain metadata</assert>
       <report test="count( child::tei:teiHeader ) > 1">more than one 'teiHeader' element found as child of outermost TEI element</report>
     </rule>

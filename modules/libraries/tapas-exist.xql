@@ -73,7 +73,11 @@ declare function txq:validate($document) {
     if ( $wellformednessReport//status/text() eq "valid" ) then
       let $isTEI := <results>
                       {
-                        transform:transform($document,doc('../../resources/isTEI.xsl'),<parameters/>)
+                        let $validation := 
+                          transform:transform($document, doc('../../resources/isTEI.xsl'), <parameters/>)
+                        return
+                          for $message in tokenize($validation,'&#xA;')[. ne '']
+                          return <p>{$message}</p>
                       }
                     </results>
       return
