@@ -7,8 +7,8 @@ import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "librari
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
 
 (:~
- : `GET exist/apps/tapas-xq/get-view-packages` 
- : 
+ : `GET exist/apps/tapas-xq/view-packages` 
+ : Obtain registry of installed view packages.
  : 
  : Returns status code 200.
  : 
@@ -17,13 +17,11 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
  :  <li>Method: GET</li>
  : </ul>
  :
- : @return XHTML
+ : @return XML
  : 
  : @author Ashley M. Clark
  : @version 1.0
 :)
-
-(:declare option output:method "xml";:)
 
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "GET";
