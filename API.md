@@ -133,6 +133,7 @@ If no TEI document is associated with the given doc-id, the response will have a
 
 `GET exist/apps/tapas-xq/view-packages`
 
+Returns an XML registry of all the view packages which are currently installed in TAPAS-xq.
 
 ### Trigger file reindexing (manually)
 

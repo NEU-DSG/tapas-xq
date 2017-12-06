@@ -2,9 +2,9 @@ xquery version "1.0";
 
 import module namespace request="http://exist-db.org/xquery/request";
 
-declare variable $exist:path external;
-declare variable $exist:resource external;
-declare variable $exist:controller external;
+declare variable $exist:path        external;
+declare variable $exist:resource    external;
+declare variable $exist:controller  external;
 
 declare function local:get-extension($filename as xs:string) as xs:string {
   let $name := replace($filename, '.*[/\\]([^/\\]+)$', '$1')
