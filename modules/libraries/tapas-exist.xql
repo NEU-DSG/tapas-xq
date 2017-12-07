@@ -24,6 +24,9 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
  : @author Ashley M. Clark
  : @version 1.0
  : 
+ : 2017-12-07: Added function to get Markdown-flavored text and turn it into
+ :   HTML. Added variable $txq:home-dir for the path to the home directory of
+ :   TAPAS-xq in eXist.
  : 2017-01-30: Added function to get parameter definitions from view package
  :   configuration files.
  : 2015-10-26: Expanded XML validation and classified errors from that process
