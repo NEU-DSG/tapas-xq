@@ -246,7 +246,7 @@ declare function txq:parse-markdown($filename as xs:string) as item()* {
         <body>{ md:parse($markdown) }</body>
       </html>
     return ( 200, $html )
-  else ( 500, <p>{$filename}</p> )
+  else ( 500, tgen:get-error(500) )
 };
 
 (: Make sure the current user is logged out (by logging in as guest). :)

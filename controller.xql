@@ -100,6 +100,11 @@ else if ( local:get-parent-dir() eq 'view-packages' and local:get-extension($exi
       <add-parameter name="type" value="{$exist:resource}"/>
     </forward>
   </dispatch>
+(:
+ : Get API documentation
+ : exist/apps/tapas-xq                          -> modules/get-api.xq
+ : exist/apps/tapas-xq/api                      -> modules/get-api.xq
+ :)
 else if ( $exist:resource eq 'api' or $exist:resource eq '' ) then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/get-api.xq')}" method="GET"/>
