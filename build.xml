@@ -1,11 +1,29 @@
 <project default="xar" name="tapas-xq">
-    <xmlproperty file="expath-pkg.xml"/>
-    <property name="project.version" value="${package(version)}"/>
-    <property name="project.app" value="tapasxq"/>
-    <property name="build.dir" value="build"/>
-    <property name="legacy.dir" value="legacy"/>
-    <target name="xar">
-        <mkdir dir="${build.dir}"/>
-      <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="README.md ${build.dir}/** ${legacy.dir}/**"/>
-    </target>
+  <xmlproperty file="expath-pkg.xml"/>
+  <property name="project.version" value="${package(version)}"/>
+  <property name="project.app" value="tapasxq"/>
+  <property name="build.dir" value="build"/>
+  <property name="legacy.dir" value="legacy"/>
+  
+  <target name="xar" description="Build an EXPath package">
+    <mkdir dir="${build.dir}"/>
+    <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="README.md ${build.dir}/** ${legacy.dir}/**"/>
+  </target>
+  
+  <target name="version">
+    <echo message="Current build version is ${project.version}"/>
+  </target>
+  
+  <target name="increment">
+    <antcall target="version"/>
+    <input message="Input the new version number:" addproperty="proposed.version"/>
+    <condition property="new.version" value="${proposed.version}">
+      <matches string="${proposed.version}" pattern="^\d(\.\d){2,}"/>
+    </condition>
+    <fail unless="new.version"
+      message="The new version should include the minor and patch versions (i.e. 3.0.0)"/>
+    <echo message="Setting version to ${new.version}"/>
+    <replace file="expath-pkg.xml" failonnoreplacements="true" summary="true" 
+      token='version="${project.version}"' value='version="${new.version}"'/>
+  </target>
 </project>
