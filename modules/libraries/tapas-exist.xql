@@ -7,6 +7,7 @@ import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "vi
 import module namespace functx="http://www.functx.com";
 import module namespace httpc="http://exist-db.org/xquery/httpclient";
 import module namespace map="http://www.w3.org/2005/xpath-functions/map";
+import module namespace md="http://exist-db.org/xquery/markdown";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace response="http://exist-db.org/xquery/response";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
@@ -33,6 +34,12 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (: VARIABLES :)
 
+declare variable $txq:home-dir :=
+  let $noPrefix := replace(system:get-module-load-path(), '^(xmldb:exist://)?(embedded-eXist-server)?(.+)$', '$3')
+  return
+    if ( matches($noPrefix,'tapas-xq$') ) then $noPrefix
+    else replace($noPrefix,'(tapas-xq)(.+)$','$1')
+  ;
 
 (: FUNCTIONS :)
 
@@ -222,6 +229,21 @@ declare function txq:build-response($code as xs:integer, $content-type as xs:str
           tgen:get-error($content)
         else $content
       )
+};
+
+(: Retrieve Markdown-flavored text and turn it into HTML. :)
+declare function txq:parse-markdown($filename as xs:string) as item()* {
+  if ( util:binary-doc-available($filename) ) then
+    let $markdown := util:binary-to-string(util:binary-doc($filename))
+    let $html := 
+      <html>
+        <head>
+          <title>TAPAS-xq API</title>
+        </head>
+        <body>{ md:parse($markdown) }</body>
+      </html>
+    return ( 200, $html )
+  else ( 500, <p>{$filename}</p> )
 };
 
 (: Make sure the current user is logged out (by logging in as guest). :)

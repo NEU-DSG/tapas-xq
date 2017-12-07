@@ -1,5 +1,6 @@
 xquery version "1.0";
 
+import module namespace md="http://exist-db.org/xquery/markdown";
 import module namespace request="http://exist-db.org/xquery/request";
 
 declare variable $exist:path        external;
@@ -85,9 +86,23 @@ else if (request:get-method() eq 'DELETE' and local:get-extension($exist:resourc
  : Obtain registry of installed view packages
  : exist/apps/tapas-xq/view-packages            -> modules/get-view-packages.xq
  :)
-else if ( request:get-method() eq 'GET' and $exist:resource eq 'view-packages' ) then
+else if ( $exist:resource eq 'view-packages' ) then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/get-view-packages.xq')}" method="{request:get-method()}"/>
+  </dispatch>
+(:
+ : Obtain the configuration file of an installed view package
+ : exist/apps/tapas-xq/view-packages/:type      -> modules/get-package-configuration.xq
+ :)
+else if ( local:get-parent-dir() eq 'view-packages' and local:get-extension($exist:resource) eq '' ) then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/get-package-configuration.xq')}" method="{request:get-method()}">
+      <add-parameter name="type" value="{$exist:resource}"/>
+    </forward>
+  </dispatch>
+else if ( $exist:resource eq 'api' or $exist:resource eq '' ) then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/get-api.xq')}" method="GET"/>
   </dispatch>
 (:
  : All other API requests are passed on to an XQuery sharing the same name (without extension)

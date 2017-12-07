@@ -1,5 +1,7 @@
 # TAPAS-xq API
 
+_Last updated 2017-12-07._ For details, see the changelog below.
+
 ## For all requests
 
 ### Authentication
@@ -37,8 +39,8 @@ Optional parameters:
 | Name | Description |
 | ------ | ------- |
 | title | The work's title as it should appear in TAPAS metadata. |
-| authors | '\|'-separated list of authors' names as they should appear in TAPAS metadata. |
-| contributors | '\|'-separated list of contributors' names as they should appear in TAPAS metadata. |
+| authors | A list of authors' names as they should appear in TAPAS metadata, separated by vertical bars. |
+| contributors | A list of contributors' names as they should appear in TAPAS metadata, separated by vertical bars. |
 | timeline-date | The date associated with this item in the TAPAS Timeline feature. |
 
 Returns an XML-encoded file of the MODS record with status code 200. eXist does not store any files as a result of this request.
@@ -49,7 +51,7 @@ Returns an XML-encoded file of the MODS record with status code 200. eXist does 
 
 Content-type: multipart/form-data
 
-__`:type`__: A keyword representing the type of reader view to generate. Values can be "teibp" or "tapas-generic".
+__`:type`__: A keyword representing the type of reader view to generate. For a registry including the valid values,
 
 Parameters:
 
@@ -92,8 +94,8 @@ Optional parameters:
 | Name | Description |
 | ------ | ------- |
 | title | The work's title as it should appear in TAPAS metadata. |
-| authors | '\|'-separated list of authors' names as they should appear in TAPAS metadata. |
-| contributors | '\|'-separated list of contributors' names as they should appear in TAPAS metadata. |
+| authors | A list of authors' names as they should appear in TAPAS metadata, separated by vertical bars. |
+| contributors | A list of contributors' names as they should appear in TAPAS metadata, separated by vertical bars. |
 | timeline-date | The date associated with this item in the TAPAS Timeline feature. |
 
 If no TEI document is associated with the given doc-id, the response will have a status code of 500. The TEI file must be stored _before_ any of its derivatives.
@@ -127,7 +129,13 @@ If no project collection is associated with the given doc-id, the response will 
 If no TEI document is associated with the given doc-id, the response will have a status code of 500.
 
 
-## Maintenance requests
+## Informational requests
+
+### Get API documentation
+
+`GET exist/apps/tapas-xq/api`
+
+Returns HTML containing this API documentation.
 
 ### Obtain registry of installed view packages
 
@@ -135,7 +143,33 @@ If no TEI document is associated with the given doc-id, the response will have a
 
 Returns an XML registry of all the view packages which are currently installed in TAPAS-xq.
 
+### Obtain the configuration file of an installed view package
+
+`GET exist/apps/tapas-xq/view-packages/:type`
+
+__`:type`__: A keyword representing the view package name.
+
+Returns the XML configuration file for a currently-installed view package.
+
+
+## Maintenance requests
+
 ### Trigger file reindexing (manually)
 
 `POST exist/apps/tapas-xq/reindex`
 
+
+## Changelog
+
+### 2017-12-07
+
+* Added API endpoint for returning this document as HTML.
+* Added endpoints for accessing the view package registry and the configuration files for individual view packages.
+* Removed 'assets-base' parameter for the Derive Reader endpoint, since the list of required parameters will now be generated dynamically depending on the view package.
+* Changed the base URL to 'exist/apps/tapas-xq' from 'exist/db/apps/tapas-xq', which was incorrect.
+* Created this changelog.
+
+### 2015-10-05
+
+* Added 'file' parameter to Store TEI endpoint due to a problem reading the request body.
+* Added error handling to all endpoints.
