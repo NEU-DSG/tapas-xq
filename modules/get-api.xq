@@ -7,8 +7,9 @@ import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "librari
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
 
 (:~
- : `GET exist/apps/tapas-xq/view-packages` 
- : Obtain registry of installed view packages.
+ : `GET exist/apps/tapas-xq`
+ : `GET exist/apps/tapas-xq/api` 
+ : Obtain an HTML representation of the Markdown API file.
  : 
  : Returns status code 200.
  : 
@@ -17,26 +18,26 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
  :  <li>Method: GET</li>
  : </ul>
  :
- : @return XML
+ : @return XHTML
  : 
  : @author Ashley M. Clark
  : @version 1.0
 :)
+
+declare option output:method "xhtml";
 
 (: Variables corresponding to the expected request structure. :)
 declare variable $method := "GET";
 declare variable $parameters := map {};
 (: Variables corresponding to the expected response structure. :)
 declare variable $successCode := 200;
-declare variable $contentType := "application/xml";
+declare variable $contentType := "text/html";
 
 let $reqEstimate := txq:test-request($method, $parameters, $successCode) 
 let $estimateCode := $reqEstimate[1]
+let $api := concat($txq:home-dir, '/API.md')
 let $responseBody :=  if ( $estimateCode = $successCode ) then
-                        (: Return an error if the registry doesn't exist. :)
-                        if ( doc-available($dpkg:registry) ) then
-                          doc($dpkg:registry)
-                        else ( 500, tgen:get-error(500) )
+                        txq:parse-markdown($api)
                       else if ( $reqEstimate instance of item()* ) then
                         tgen:set-error($reqEstimate[2])
                       else tgen:get-error($estimateCode)

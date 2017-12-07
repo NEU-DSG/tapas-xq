@@ -54,11 +54,11 @@ declare variable $parameters := map {
 declare variable $successCode := 200;
 declare variable $contentType := "text/html";
 
-(: The type of reader requested must be tested first, so that the map of parameters 
-  can be augmented as needed. :)
+(: The type of reader requested must be tested first, so that the map of expected 
+  parameters can be augmented as needed. :)
 let $viewType := txq:test-param('type','xs:string')
 return
-  if ( $viewType[1] instance of xs:string and $viewType = $dpkg:valid-reader-types ) then
+  if ( $viewType[1] instance of xs:string and dpkg:is-valid-view-package($viewType) ) then
     (: Create a new map of the expected parameters using the always-present ones 
       listed above, as well as any parameters defined in the package config file. 
       At this point, the package type has already been tested, so it is removed from 

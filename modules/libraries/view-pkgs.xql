@@ -20,6 +20,8 @@ import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
  : @author Ashley M. Clark
  : @version 1.0
  :
+ : 2017-12-06: Added dpkg:is-valid-view-package() as a convenience function for testing a 
+ :    given string against the view packages listed in $dpkg:valid-reader-types.
  : 2017-07-28: Added environmental defaults at /db/environment.xml; moved some declared 
  :    variables into private functions; created dpkg:send-request() to handle Rails API 
  :    URLs with port numbers in them.
@@ -55,12 +57,12 @@ declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
 
 (: Turn a relative filepath from a view package directory into an absolute filepath. :)
 declare function dpkg:get-path-from-package($pkgID as xs:string, $relativePath as xs:string) {
-  if ( $pkgID = $dpkg:valid-reader-types ) then
+  if ( dpkg:is-valid-view-package($pkgID) ) then
     let $pkgHome := dpkg:get-package-directory($pkgID)
     let $realRelativePath :=
       if ( starts-with($relativePath,'/') ) then
         $relativePath
-      else concat('/', $relativePath)
+      else concat('/',$relativePath)
     return concat($pkgHome,$realRelativePath)
   else () (: error :)
 };
@@ -207,6 +209,11 @@ declare function dpkg:initialize-packages() {
     return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
   else
     () (: error :)
+};
+
+(: Determine if an identifier matches that of a valid view package. :)
+declare function dpkg:is-valid-view-package($name as xs:string) as xs:boolean {
+  $name = $dpkg:valid-reader-types
 };
 
 (: For each updatable package, find the git commit that Rails is using, then 
