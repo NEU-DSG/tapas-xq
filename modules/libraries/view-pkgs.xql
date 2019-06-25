@@ -480,7 +480,7 @@ function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $bran
     return 
       if ( contains($subRepo,' ') ) then ()
       else 
-        (
+        try {
           dpkg:get-repo-archive($subRepo,$localPath,$commit),
           (: If the submodule is a view package, return complete git(Hub) info. :)
           if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry) ) then
@@ -491,7 +491,7 @@ function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $bran
               </git>
             </package_ref>
           else ()
-        )
+        } catch * { () }
   (: Delete the ZIP file after we're done with it. :)
   let $deleteZip :=  xdb:remove($dpkg:home-directory, $zipFilename)
   return $getSubmodules
