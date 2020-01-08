@@ -1,16 +1,20 @@
 xquery version "3.0";
 
 module namespace txq="http://tapasproject.org/tapas-xq/exist";
-import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
+declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
+import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
+import module namespace functx="http://www.functx.com";
+import module namespace httpc="http://exist-db.org/xquery/httpclient";
+import module namespace map="http://www.w3.org/2005/xpath-functions/map";
+import module namespace md="http://exist-db.org/xquery/markdown";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace response="http://exist-db.org/xquery/response";
+import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
 import module namespace transform="http://exist-db.org/xquery/transform";
-import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 import module namespace util="http://exist-db.org/xquery/util";
 import module namespace validate="http://exist-db.org/xquery/validation";
-import module namespace functx="http://www.functx.com";
-import module namespace map="http://www.w3.org/2005/xpath-functions/map";
+import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
  : This library contains functions for carrying out requests in eXist-db. It 
@@ -20,10 +24,37 @@ import module namespace map="http://www.w3.org/2005/xpath-functions/map";
  : @author Ashley M. Clark
  : @version 1.0
  : 
- : 2015-10-05: Rearranged function logic to accommodate complex error messages. 
+ : 2017-12-07: Added function to get Markdown-flavored text and turn it into
+ :   HTML. Added variable $txq:home-dir for the path to the home directory of
+ :   TAPAS-xq in eXist.
+ : 2017-01-30: Added function to get parameter definitions from view package
+ :   configuration files.
  : 2015-10-26: Expanded XML validation and classified errors from that process
  :   as HTTP 422s.
+ : 2015-10-05: Rearranged function logic to accommodate complex error messages. 
 :)
+
+
+(: VARIABLES :)
+
+declare variable $txq:home-dir :=
+  let $noPrefix := replace(system:get-module-load-path(), '^(xmldb:exist://)?(embedded-eXist-server)?(.+)$', '$3')
+  return
+    if ( matches($noPrefix,'tapas-xq$') ) then $noPrefix
+    else replace($noPrefix,'(tapas-xq)(.+)$','$1')
+  ;
+
+(: FUNCTIONS :)
+
+(: Create a map of expected request parameters using the configuration file. :)
+declare function txq:make-param-map($pkgID as xs:string) as map(*) {
+  let $parameters := dpkg:get-configuration($pkgID)/vpkg:parameters
+  return
+    map:new(
+      for $param in $parameters/vpkg:parameter
+      return map:entry($param/@name/data(.), $param/@as/data(.))
+    )
+};
 
 (: Get a request parameter. :)
 declare function txq:get-param($param-name as xs:string) {
@@ -73,7 +104,11 @@ declare function txq:validate($document) {
     if ( $wellformednessReport//status/text() eq "valid" ) then
       let $isTEI := <results>
                       {
-                        transform:transform($document,doc('../../resources/isTEI.xsl'),<parameters/>)
+                        let $validation := 
+                          transform:transform($document, doc('../../resources/isTEI.xsl'), <parameters/>)
+                        return
+                          for $message in tokenize($validation,'&#xA;')[. ne '']
+                          return <p>{$message}</p>
                       }
                     </results>
       return
@@ -108,7 +143,7 @@ declare function txq:test-param($param-name as xs:string, $param-type as xs:stri
 };
 
 (: Make sure that the incoming request matches the XQuery's expectations. :)
-declare function txq:test-request($method-type as xs:string, $params as map, $success-code as xs:integer) as item()* {
+declare function txq:test-request($method-type as xs:string, $params as map(*), $success-code as xs:integer) as item()* {
   (: Test each parameter against a map with expected datatypes.:)
   let $badParams := map:new(
                         for $param-name in map:keys($params)
@@ -186,17 +221,32 @@ declare function txq:build-response($code as xs:integer, $content-type as xs:str
   (: $content should always be XML or a string. If it is an integer, then this 
    : function treats that integer as an error code. :)
   let $isError := $content instance of xs:integer
-  let $returnCode :=  if ($isError) then
+  let $returnCode :=  if ( $isError ) then
                         $content
                       else $code
   return
       (
         response:set-status-code($returnCode),
         response:set-header("Content-Type", $content-type),
-        if ($isError) then
+        if ( $isError ) then
           tgen:get-error($content)
         else $content
       )
+};
+
+(: Retrieve Markdown-flavored text and turn it into HTML. :)
+declare function txq:parse-markdown($filename as xs:string) as item()* {
+  if ( util:binary-doc-available($filename) ) then
+    let $markdown := util:binary-to-string(util:binary-doc($filename))
+    let $html := 
+      <html>
+        <head>
+          <title>TAPAS-xq API</title>
+        </head>
+        <body>{ md:parse($markdown) }</body>
+      </html>
+    return ( 200, $html )
+  else ( 500, tgen:get-error(500) )
 };
 
 (: Make sure the current user is logged out (by logging in as guest). :)
