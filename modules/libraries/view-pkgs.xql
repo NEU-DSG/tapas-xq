@@ -18,8 +18,11 @@ import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
  : packages available in eXist.
  : 
  : @author Ashley M. Clark
- : @version 1.0
+ : @version 1.1
  :
+ : 2019-06-26: Added dpkg:unpack-zip-archive() in order to abstract out and test some of 
+ :    the code in dpkg:get-repo-archive(). If the zip file contains a single outermost 
+ :    directory, that directory is not used during the decompression event.
  : 2017-12-06: Added dpkg:is-valid-view-package() as a convenience function for testing a 
  :    given string against the view packages listed in $dpkg:valid-reader-types.
  : 2017-07-28: Added environmental defaults at /db/environment.xml; moved some declared 
@@ -320,9 +323,9 @@ function dpkg:find-submodule-dirs($zipPath as xs:string) as xs:string* {
         it must not contain any directories. :)
       return
         for $dir in $zipDirs
-        let $numPathMatches := count($zipEntries/*[contains(@name/data(.),$dir)])
         let $filename := tokenize($zipPath,'/')[last()]
         let $zipBase := concat(substring-before($filename,'.zip'),'/')
+        let $numPathMatches := count($zipEntries/*[contains(@name/data(.),$dir)])
         return
           (: If the directory is empty, there will be only one archive entry 
             matching the directory path. :)
@@ -453,17 +456,7 @@ function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $bran
   let $archivePath := 
     let $binary := xs:base64Binary($response//httpc:body/text())
     return xmldb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
-  let $filterFn := 
-    function($path as xs:anyURI, $type as xs:string, $param as item()*) { 
-      true() 
-    }
-  let $wrapperDirName := substring-before($zipFilename,'.zip')
-  let $storageFn := 
-    function($path as xs:string, $type as xs:string, $param as item()*) as xs:anyURI { 
-      concat($dbPath, substring-after($path,$wrapperDirName)) cast as xs:anyURI 
-    }
-  let $storedBinary := util:binary-doc($archivePath)
-  let $unzipped := cprs:unzip($storedBinary, $filterFn, (), $storageFn, ())
+  let $unzipped := dpkg:unpack-zip-archive($archivePath, $dbPath)
   (: Identify any submodules; download and unpack their archives. :)
   let $submoduleDirs := dpkg:find-submodule-dirs($archivePath)
   let $getSubmodules := 
@@ -480,7 +473,7 @@ function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $bran
     return 
       if ( contains($subRepo,' ') ) then ()
       else 
-        (
+        try {
           dpkg:get-repo-archive($subRepo,$localPath,$commit),
           (: If the submodule is a view package, return complete git(Hub) info. :)
           if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry) ) then
@@ -491,7 +484,7 @@ function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $bran
               </git>
             </package_ref>
           else ()
-        )
+        } catch * { () }
   (: Delete the ZIP file after we're done with it. :)
   let $deleteZip :=  xdb:remove($dpkg:home-directory, $zipFilename)
   return $getSubmodules
@@ -604,6 +597,48 @@ function dpkg:send-request($url as xs:anyURI) as item()? {
         </httpc:response>
     else 
       httpc:get($url, false(), <httpc:headers/>)
+};
+
+(: Unzip an archive. If there is a single outermost directory, it is ignored in 
+  favor of its descendants. :)
+declare
+  %private
+function dpkg:unpack-zip-archive($archivePath as xs:string, $dbPath as xs:string) {
+  let $wrapperDirName := replace($archivePath, '^.*/(.+)\.zip$', '$1')
+  let $outermostDir :=
+    let $allOutermost := zip:entries(xs:anyURI($archivePath))
+                          //zip:*[@name[count(tokenize(replace(.,'/$',''),'/')) eq 1]]
+    return
+      (: We only need to know the resource name if it is the only outermost 
+        directory in the zip file. :)
+      if ( count($allOutermost) eq 1 and local-name($allOutermost) eq 'dir' ) then
+        $allOutermost/@name/xs:string(.)
+      else ()
+  (: Filter out the single outermost directory (if there is one). :)
+  let $filterFn := 
+    function($path as xs:string, $type as xs:string, $param as item()*) as xs:boolean {
+      if ( exists($outermostDir) ) then
+        not($type eq 'folder' and $path eq $outermostDir)
+      else 
+        $path ne concat($wrapperDirName, '/')
+    }
+  (: Build a URI for a given directory or resource. If needed, remove the outermost 
+    directory name, since we don't want to preserve it. :)
+  let $storageFn := 
+    function($path as xs:string, $type as xs:string, $param as item()*) as xs:anyURI { 
+      let $usePath := 
+        if ( exists($outermostDir) ) then 
+          substring-after($path, $outermostDir)
+        else if ( matches($path, concat('^',$wrapperDirName)) ) then 
+          substring-after($path, concat($wrapperDirName, '/'))
+        else $path
+      return
+        concat($dbPath, '/', $usePath) cast as xs:anyURI 
+    }
+  (: Obtain the zip file and unpack it, using the functions above and eXist's 
+    compression module. :)
+  let $storedBinary := util:binary-doc($archivePath)
+  return cprs:unzip($storedBinary, $filterFn, (), $storageFn, ())
 };
 
 (: Update a list of files from a 'Compare Commits' API response from GitHub. :)

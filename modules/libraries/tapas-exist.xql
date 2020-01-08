@@ -156,7 +156,7 @@ declare function txq:test-param($param-name as xs:string, $param-type as xs:stri
 };
 
 (: Make sure that the incoming request matches the XQuery's expectations. :)
-declare function txq:test-request($method-type as xs:string, $params as map, $success-code as xs:integer) as item()* {
+declare function txq:test-request($method-type as xs:string, $params as map(*), $success-code as xs:integer) as item()* {
   (: Test each parameter against a map with expected datatypes.:)
   let $badParams := map:new(
                         for $param-name in map:keys($params)

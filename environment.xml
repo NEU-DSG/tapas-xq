@@ -2,6 +2,6 @@
 <?xml-model href="./exist-environment.rnc" type="application/relax-ng-compact-syntax"?>
 <environ type="development-local">
   
-  <railsBaseURI host="railsapi.localhost:8080">http://127.0.0.1:8080</railsBaseURI>
+  <railsBaseURI>http://127.0.0.1:3000</railsBaseURI>
   <defaultGitBranch name="develop"/>
 </environ>
