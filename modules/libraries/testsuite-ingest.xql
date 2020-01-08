@@ -13,54 +13,95 @@ declare namespace mods="http://www.loc.gov/mods/v3";
   @version 1.0
  :)
 
-(:declare variable $txqt:host := "http://localhost:8080/exist/apps/tapas-xq";:)
-declare variable $txqt:exreq := doc('../../resources/testdocs/exhttpSkeleton.xml');
-declare variable $txqt:host := $txqt:exreq//@href;
-declare variable $txqt:testDoc := doc('../../resources/testdocs/sampleTEI.xml');
+  declare variable $txqt:exreq := doc('../../resources/testdocs/exhttpSkeleton.xml');
+  declare variable $txqt:host := $txqt:exreq//@href;
+  declare variable $txqt:testData := 
+    map {
+        'formData': (
+            txqt:set-http-header("Content-Disposition",' form-data; name="file"'),
+            txqt:set-http-body("application/xml", "xml", 
+              doc('../../resources/testdocs/sampleTEI.xml'))
+          ),
+        'docId': 'testDoc01',
+        'projId': 'testProj01'
+      };
+  declare variable $txqt:user :=
+    map {
+        'name': 'tapas-tester',
+        'password': 'freesample'
+      };
+
 
 (:  FUNCTIONS  :)
 
   declare
     %test:setUp
   function txqt:_test-setup() {
-    sm:create-account('tapas-tester', 'freesample', 'tapas')
+    sm:create-account($txqt:user?('name'), $txqt:user?('password'), 'tapas', ())
   };
   
   declare
     %test:tearDown
   function txqt:_test-teardown() {
-    sm:remove-account('tapas-tester'),
-    sm:remove-group('tapas-tester')
-  };
-  
-  declare 
-    %test:assertExists
-  function txqt:testdoc() {
-    $txqt:testDoc
+    sm:remove-account($txqt:user?('name'))
   };
   
   declare
     %test:name("Derive MODS")
-    %test:args('GET','false')
+    %test:args('GET', 'false')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '405'")
-    %test:args('POST','false')
+    %test:args('POST', 'false')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '400'")
-    %test:args('POST','true')
+    %test:args('POST', 'true')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '200'")
+      %test:assertXPath("namespace-uri($result[2]/*:mods) eq 'http://www.loc.gov/mods/v3'")
+  function txqt:derive-mods($method as xs:string, $file as xs:string) {
+    txqt:derive-mods($method, $file, (), (), ())
+  };
+  
+  declare
+    %test:name("Derive MODS with optional parameters")
+    %test:args('POST', 'true', 'A Test Title', 'Sarah Sweeney|A.M. Clark|Syd Bauman', 'A. Duck')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '200'")
       %test:assertXPath("namespace-uri($result[2]/*) eq 'http://www.loc.gov/mods/v3'")
-  function txqt:derive-mods($method as xs:string, $file as xs:string) {
+      %test:assertXPath("exists($result[2]//*:titleInfo[@displayLabel eq 'TAPAS Title']/*:title[. eq 'Test Title'])")
+      %test:assertXPath("exists($result[2]//*:name[@displayLabel eq 'TAPAS Author']/*:namePart[. eq 'A.M. Clark'])")
+      %test:assertXPath("exists($result[2]//*:name[@displayLabel eq 'TAPAS Contributor']/*:namePart[. eq 'A. Duck'])")
+  function txqt:derive-mods($method as xs:string, $file as xs:string, $title as 
+     xs:string?, $authors as xs:string?, $contributors as xs:string?) {
     let $reqURL := xs:anyURI(concat($txqt:host,"/derive-mods"))
-    let $parts :=
-      if ( $file eq 'true' ) then
-        txqt:set-http-multipart("xml", (
-          txqt:set-http-header("Content-Disposition",'form-data; name="file"'),
-          txqt:set-http-body("application/xml","xml",$txqt:testDoc)
-        ))
-      else ()
-    let $request := txqt:set-http-request($method, $reqURL, $parts)
+    let $optParams :=
+      map {
+          'title': $title,
+          'authors': $authors,
+          'contributors': $contributors
+        }
+    let $reqParts :=
+      (
+        if ( $file eq 'true' ) then
+          $txqt:testData?('formData')
+        else ()
+        ,
+        for $paramName in ('title', 'authors', 'contributors')
+        let $header :=
+          txqt:set-http-header("Content-Disposition", 
+            concat(' form-data; name="',$paramName,'"'))
+        return
+          if ( empty($optParams?($paramName)) ) then ()
+          else (
+              $header,
+              txqt:set-http-body("text/text", "text", $optParams?($paramName))
+            )
+      )
+    let $multipart :=
+      if ( empty($reqParts) ) then ()
+      else txqt:set-http-multipart('form-data', $reqParts)
+    let $request := 
+      txqt:set-http-request($txqt:user?('password'), $method, $reqURL, $multipart)
     return http:send-request($request)
   };
   
@@ -75,7 +116,7 @@ declare variable $txqt:testDoc := doc('../../resources/testdocs/sampleTEI.xml');
   };
   
   declare %private function txqt:set-http-header($name as xs:string, $value as 
-     xs:string) {
+     xs:string) as element() {
     <http:header name="{$name}" value='{$value}' />
   };
   
@@ -87,16 +128,15 @@ declare variable $txqt:testDoc := doc('../../resources/testdocs/sampleTEI.xml');
     </http:multipart>
   };
   
-  declare %private function txqt:set-http-request($method as xs:string, $href as 
-     xs:anyURI, $partSeq as item()*) as element() {
+  declare %private function txqt:set-http-request($password as xs:string, $method as 
+     xs:string, $href as xs:anyURI, $partSeq as item()*) as element() {
     <http:request>
       {
         $txqt:exreq/http:request/@* except $txqt:exreq/http:request/@href, 
         attribute username { "tapas-tester" },
-        attribute password { "freesample" },
-        attribute method { $method }, 
-        attribute href { xs:anyURI(concat($txqt:host,"/derive-mods")) }, 
-        $txqt:exreq/http:request/*,
+        attribute password { $password },
+        attribute method { $method },
+        attribute href { $href },
         $partSeq
       }
     </http:request>
