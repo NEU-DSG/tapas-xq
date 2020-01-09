@@ -144,76 +144,90 @@ declare function txq:test-param($param-name as xs:string, $param-type as xs:stri
 
 (: Make sure that the incoming request matches the XQuery's expectations. :)
 declare function txq:test-request($method-type as xs:string, $params as map(*), $success-code as xs:integer) as item()* {
-  (: Test each parameter against a map with expected datatypes.:)
-  let $badParams := map:new(
-                        for $param-name in map:keys($params)
-                        let $param-type := map:get($params, $param-name)
-                        let $testResult := txq:test-param($param-name,$param-type)
-                        return 
-                          if ( $testResult instance of item()* ) then map:entry($param-name,$testResult)
-                          else ()
-                      )
-  (: HTTP 400 errors occur when the API call is wrong in some way. :)
-  let $all400s := map:for-each-entry($badParams, 
-                    function ($key, $value) {
-                      if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 400 ) then
-                        $key
-                      else ()
-                    }
-                  )
-  let $num400s := count($all400s)
-  (: HTTP 422 errors occur when the API call is correct, but part of the 
-    request is not actionable. :)
-  let $all422s := map:for-each-entry($badParams, 
-                    function ($key, $value) {
-                      if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 422 ) then
-                        $key
-                      else ()
-                    }
-                  )
-  return
-    (: Return an error for any unsupported HTTP methods. :)
-    if ( request:get-method() ne $method-type ) then
-      (405, concat("Expected HTTP method ",$method-type))
-    else
-      (: Return an error if 1+ of the parameters does not match the expected type. :)
-      if ( $num400s > 0 ) then
-        (400, 
-        <div>
-          <p>{$num400s} parameter{ if ( $num400s > 1 ) then "s don't" else " doesn't" } match expectations:</p>
-          <ul>
-            {
-              for $error in $all400s
-              return <li>{ map:get($badParams,$error)[2] }</li>
-            }
-          </ul>
-        </div>)
-    else
-      (: Return an error if XML files are not valid or well-formed. :)
-      if ( count($all422s) > 0 ) then
-        (422, 
-        <div>
-          <p>Errors produced during XML validation:</p>
-          <ul>
-            {
-              for $file in $all422s
-              let $errors := map:get($badParams,$file)
-              let $report := subsequence($errors,2,count($errors))
-              return 
-                for $error in $report
-                return <li>{ $error }</li>
-            }
-          </ul>
-        </div>)
-    else 
-      (: If the request will affect what is stored in eXist, check the user's permissions. :)
-      if ($method-type eq 'DELETE' or $success-code = 201) then 
-        (: If the current user has access to the 'tapas-data' folder, then return a success code. :)
-        if ( sm:has-access(xs:anyURI('/db/tapas-data'),'rwx') ) then
-          $success-code
-        (: Return an error if login fails. :)
-        else (401, "User does not have access to the data directory")
-    else $success-code
+  (: Do not proceed unless the requester has been authenticated by eXist.
+    
+    NOTE: sm:is-authenticated() returns a NullPointerException when called from a 
+    library function. Uncomment this test when TAPAS upgrades eXist.
+   :)
+  (:if ( not(sm:is-authenticated()) ) then
+    (401, "Unauthorized")
+  else:)
+    (: Test each parameter against a map with expected datatypes.:)
+    let $badParams := 
+      map:new(
+          for $param-name in map:keys($params)
+          let $param-type := map:get($params, $param-name)
+          let $testResult := txq:test-param($param-name,$param-type)
+          return 
+            if ( $testResult instance of item()* ) then map:entry($param-name,$testResult)
+            else ()
+        )
+    (: HTTP 400 errors occur when the API call is wrong in some way. :)
+    let $all400s := 
+      map:for-each-entry($badParams, 
+          function ($key, $value) {
+            if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 400 ) then
+              $key
+            else ()
+          }
+        )
+    let $num400s := count($all400s)
+    (: HTTP 422 errors occur when the API call is correct, but part of the 
+      request is not actionable. :)
+    let $all422s := 
+      map:for-each-entry($badParams, 
+          function ($key, $value) {
+            if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 422 ) then
+              $key
+            else ()
+          }
+        )
+    return
+      (: Return an error for any unsupported HTTP methods. :)
+      if ( request:get-method() ne $method-type ) then
+        (405, concat("Expected HTTP method ",$method-type))
+      else
+        (: Return an error if 1+ of the parameters does not match the expected type. :)
+        if ( $num400s > 0 ) then
+          (400, 
+          <div>
+            <p>{$num400s} parameter{ 
+                if ( $num400s > 1 ) then "s don't" 
+                else " doesn't" 
+              } match expectations:</p>
+            <ul>
+              {
+                for $error in $all400s
+                return <li>{ map:get($badParams,$error)[2] }</li>
+              }
+            </ul>
+          </div>)
+      else
+        (: Return an error if XML files are not valid or well-formed. :)
+        if ( count($all422s) > 0 ) then
+          (422, 
+          <div>
+            <p>Errors produced during XML validation:</p>
+            <ul>
+              {
+                for $file in $all422s
+                let $errors := map:get($badParams,$file)
+                let $report := subsequence($errors,2,count($errors))
+                return 
+                  for $error in $report
+                  return <li>{ $error }</li>
+              }
+            </ul>
+          </div>)
+      else 
+        (: If the request will affect what is stored in eXist, check the user's permissions. :)
+        if ($method-type eq 'DELETE' or $success-code = 201) then 
+          (: If the current user has access to the 'tapas-data' folder, then return a success code. :)
+          if ( sm:has-access(xs:anyURI('/db/tapas-data'),'rwx') ) then
+            $success-code
+          (: Return an error if login fails. :)
+          else (401, "User does not have access to the data directory")
+      else $success-code
 };
 
 (: Build an HTTP response. :)
