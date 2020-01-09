@@ -104,7 +104,7 @@ declare namespace mods="http://www.loc.gov/mods/v3";
   };
   
   declare
-    %test:name("Derive MODS with optional parameters")
+    %test:name("Derive MODS: optional parameters")
     %test:args('POST', 'true', 'A Test Title', 'Sarah Sweeney|A.M. Clark|Syd Bauman', 'A. Duck')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '200'")
@@ -115,31 +115,68 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       %test:assertXPath("exists($result[2]//*:name[@displayLabel eq 'TAPAS Contributor']/*:namePart[. eq 'A. Duck'])")
   function txqt:derive-mods($method as xs:string, $file as xs:string, $title as 
      xs:string?, $authors as xs:string?, $contributors as xs:string?) {
-    let $optParams :=
-      map {
-          'title': $title,
-          'authors': $authors,
-          'contributors': $contributors
-        }
     let $reqParts :=
-      (
-        if ( $file eq 'true' ) then
-          $txqt:testData?('formData')
-        else ()
-        ,
-        for $paramName in ('title', 'authors', 'contributors')
-        let $header :=
-          txqt:set-http-header("Content-Disposition", 
-            concat(' form-data; name="',$paramName,'"'))
-        return
-          if ( empty($optParams?($paramName)) ) then ()
-          else (
-              $header,
-              txqt:set-http-body("text/text", "text", $optParams?($paramName))
-            )
-      )
+      txqt:set-mods-formdata($file, $title, $authors, $contributors)
     let $request := 
       txqt:request-mods-derivative($txqt:user?('name'), $txqt:user?('password'), 
+        $method, $reqParts)
+    return http:send-request($request)
+  };
+  
+  declare
+    %test:name("Store MODS")
+    %test:args('GET', 'false')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '405'")
+    %test:args('POST', 'false')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '400'")
+    %test:args('POST', 'true')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '200'")
+      %test:assertXPath("count($result) eq 2")
+      %test:assertXPath("not($result[2]//*[namespace-uri(.) ne 'http://www.loc.gov/mods/v3'])")
+  function txqt:store-mods($method as xs:string, $file as xs:string) {
+    txqt:store-mods($method, $file, (), (), ())
+  };
+  
+  declare
+    %test:name("Store MODS: dependency checks")
+    %test:args('POST', 'true', 'nonexistentProj', 'nonexistentDoc')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '500'")
+    %test:args('POST', 'true', 'testProj01', 'nonexistentDoc')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '500'")
+  function txqt:store-mods($method as xs:string, $file as xs:string, $projId 
+     as xs:string, $docId as xs:string) {
+    let $reqParts := txqt:set-mods-formdata($file, (), (), ())
+    let $baseUrl := $txqt:endpoint?('store-mods')
+    let $customUrl := replace($baseUrl, $txqt:testData?('projId'), $projId)
+    let $customUrl := replace($customUrl, $txqt:testData?('docId'), $docId)
+    let $customUrl := xs:anyURI($customUrl)
+    let $request :=
+      txqt:request-mods-general($customUrl, $txqt:user?('name'), 
+        $txqt:user?('password'), $method, $reqParts)
+    return http:send-request($request)
+  };
+  
+  declare
+    %test:name("Store MODS: optional parameters")
+    %test:args('POST', 'true', 'A Test Title', 'Sarah Sweeney|A.M. Clark|Syd Bauman', 'A. Duck')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '201'")
+      %test:assertXPath("count($result) eq 2")
+      %test:assertXPath("not($result[2]//*[namespace-uri(.) ne 'http://www.loc.gov/mods/v3'])")
+      %test:assertXPath("exists($result[2]//*:titleInfo[@displayLabel eq 'TAPAS Title']/*:title[. eq 'Test Title'])")
+      %test:assertXPath("exists($result[2]//*:name[@displayLabel eq 'TAPAS Author']/*:namePart[. eq 'A.M. Clark'])")
+      %test:assertXPath("exists($result[2]//*:name[@displayLabel eq 'TAPAS Contributor']/*:namePart[. eq 'A. Duck'])")
+   function txqt:store-mods($method as xs:string, $file as xs:string, $title as 
+     xs:string?, $authors as xs:string?, $contributors as xs:string?) {
+    let $reqParts :=
+      txqt:set-mods-formdata($file, $title, $authors, $contributors)
+    let $request :=
+      txqt:request-mods-storage($txqt:user?('name'), $txqt:user?('password'), 
         $method, $reqParts)
     return http:send-request($request)
   };
@@ -148,8 +185,14 @@ declare namespace mods="http://www.loc.gov/mods/v3";
   (:  SUPPORT FUNCTIONS  :)
   
   declare function txqt:request-mods-derivative($user as xs:string, $password as 
-     xs:string, $method as xs:string, $parts as node()*) as node() {
-    let $reqURL := xs:anyURI(concat($txqt:host,"/derive-mods"))
+     xs:string, $method as xs:string, $parts as node()*) {
+    txqt:request-mods-general($txqt:endpoint?('derive-mods'), $user, $password, 
+      $method, $parts)
+  };
+  
+  declare function txqt:request-mods-general($endpoint as xs:anyURI, $user as 
+     xs:string, $password as xs:string, $method as xs:string, $parts as node()*) 
+     as node() {
     let $multipart :=
       if ( empty($parts) ) then ()
       else if ( $parts[self::default] ) then
@@ -157,7 +200,13 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       else
         txqt:set-http-multipart('form-data', $parts)
     return
-      txqt:set-http-request($user, $password, $method, $reqURL, $multipart)
+      txqt:set-http-request($user, $password, $method, $endpoint, $multipart)
+  };
+  
+  declare function txqt:request-mods-storage($user as xs:string, $password as 
+     xs:string, $method as xs:string, $parts as node()*) {
+    txqt:request-mods-general($txqt:endpoint?('store-mods'), $user, $password, 
+      $method, $parts)
   };
   
   declare %private function txqt:set-http-body($media-type as xs:string, $method as 
@@ -193,4 +242,28 @@ declare namespace mods="http://www.loc.gov/mods/v3";
         $partSeq
       }
     </http:request>
+  };
+  
+  declare function txqt:set-mods-formdata($file as xs:string, $title as xs:string?, 
+     $authors as xs:string?, $contributors as xs:string?) as node()* {
+    let $optParams :=
+      map {
+          'title': $title,
+          'authors': $authors,
+          'contributors': $contributors
+        }
+    let $fileField :=
+      if ( $file eq 'true' ) then
+        $txqt:testData?('formData')
+      else ()
+    let $optFields :=
+      for $paramName in ('title', 'authors', 'contributors')
+      let $header :=
+        txqt:set-http-header("Content-Disposition", 
+          concat(' form-data; name="',$paramName,'"'))
+      let $body := txqt:set-http-body("text/text", "text", $optParams?($paramName))
+      return
+        if ( empty($optParams?($paramName)) ) then ()
+        else ($header, $body)
+    return ($fileField, $optFields)
   };
