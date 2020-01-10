@@ -8,9 +8,10 @@
     must be logged in as a user with DBA permissions to do this.
   -->
   <triggers>
-    <trigger class="org.exist.collections.triggers.XQueryTrigger">
+    <trigger event="create,update" class="org.exist.collections.triggers.XQueryTrigger">
       <!-- The URI to the XQuery library providing the trigger. -->
-      <parameter name="url" value="xmldb:exist:///db/exist-triggers.xql"/>
+      <parameter name="url" 
+        value="xmldb:exist:///db/apps/tapas-xq/modules/libraries/exist-triggers.xql"/>
       <!-- The namespace of the XQuery library. -->
       <parameter name="bindingPrefix" value="wtrig"/>
       

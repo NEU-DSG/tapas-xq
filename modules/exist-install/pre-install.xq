@@ -18,6 +18,7 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
  
   declare variable $owner := "tapas";
   declare variable $tempPass := $owner;
+  declare variable $group := "tapas";
   declare variable $storageDirBase := "/db";
   declare variable $dataDir := "tapas-data";
   declare variable $viewsDir := "tapas-view-pkgs";
@@ -28,6 +29,9 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
     return 
       if ( not(xmldb:collection-available($path)) ) then 
         let $createdPath := xmldb:create-collection($pathBase,$dirName)
+        let $ace := 
+          sm:add-group-ace(xs:anyURI(concat($storageDirBase,'/',$dataDir)), 
+            'tapas', true(), '-w-')
         return 
           if ( empty($createdPath) ) then
             util:log('error',concat('Could not create directory ',$path,
@@ -98,10 +102,11 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
     else ()
   };
 
+
 (
   (: Create user who will own the TAPAS collections. :)
   if ( not(sm:user-exists($owner)) ) then 
-    let $newUser := sm:create-account($owner, $tempPass, ())
+    let $newUser := sm:create-account($owner, $tempPass, $group)
     return 
       if ( not(sm:user-exists($owner)) ) then
         util:log('error',concat('Could not create user ',$owner,

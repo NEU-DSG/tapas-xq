@@ -48,7 +48,9 @@ declare namespace trigger='http://exist-db.org/xquery/trigger';
     document will be assigned to that group (rather than the user's primary group, 
     which is the default). :)
   declare function trigger:after-create-collection($uri as xs:anyURI) {
-    wtrig:edit-permissions($uri, $wtrig:coll-mode)
+    ( (:wtrig:edit-permissions($uri, $wtrig:coll-mode),:)
+      util:log('info', xmldb:collection-available($uri))
+    )
   };
   
   (:~ After a document is created within an eXist collection, give that document the 
