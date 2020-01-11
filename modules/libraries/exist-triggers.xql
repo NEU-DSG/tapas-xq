@@ -48,9 +48,7 @@ declare namespace trigger='http://exist-db.org/xquery/trigger';
     document will be assigned to that group (rather than the user's primary group, 
     which is the default). :)
   declare function trigger:after-create-collection($uri as xs:anyURI) {
-    ( (:wtrig:edit-permissions($uri, $wtrig:coll-mode),:)
-      util:log('info', xmldb:collection-available($uri))
-    )
+    wtrig:edit-permissions($uri, $wtrig:coll-mode)
   };
   
   (:~ After a document is created within an eXist collection, give that document the 
@@ -64,11 +62,11 @@ declare namespace trigger='http://exist-db.org/xquery/trigger';
   declare %private function wtrig:edit-permissions($uri as xs:anyURI, $mode as xs:string) {
     (: Make sure that the given mode is in the expected format. :)
     if ( matches($mode,'([r-][w-][x-]){3,3}') ) then
-    (
+     try {(
       sm:chmod($uri, $mode),
       if ( exists($wtrig:group-name) and $wtrig:group-name ne '' ) then
         sm:chgrp($uri, $wtrig:group-name)
       else ()
-    )
+    )} catch * { () }
     else () (: error :)
   };

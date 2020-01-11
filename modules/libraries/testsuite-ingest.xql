@@ -145,11 +145,13 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       %test:assertXPath("$result[1]/@status eq '400'")
     %test:args('POST', 'true')
       %test:assertExists
-      %test:assertXPath("$result[1]/@status eq '200'")
+      %test:assertXPath("$result[1]/@status eq '201'")
       %test:assertXPath("count($result) eq 2")
   function txqt:store-tei($method as xs:string, $file as xs:string) {
     let $reqParts :=
-      txqt:set-http-multipart('xml', $txqt:testData?('formData'))
+      if ( $file eq 'true' ) then
+        txqt:set-http-multipart('xml', $txqt:testData?('formData'))
+      else ()
     let $request :=
       txqt:request-tei-storage($txqt:user?('name'), $txqt:user?('password'), $method, 
         $reqParts)
@@ -160,7 +162,7 @@ declare namespace mods="http://www.loc.gov/mods/v3";
     %test:name("Store TEI: new document")
     %test:args('POST', 'true', 'testDoc02')
       %test:assertExists
-      %test:assertXPath("$result[1]/@status eq '200'")
+      %test:assertXPath("$result[1]/@status eq '201'")
       %test:assertXPath("count($result) eq 2")
   function txqt:store-tei($method as xs:string, $file as xs:string, $docId as 
      xs:string) {
@@ -184,7 +186,7 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       %test:assertXPath("$result[1]/@status eq '400'")
     %test:args('POST', 'true')
       %test:assertExists
-      %test:assertXPath("$result[1]/@status eq '200'")
+      %test:assertXPath("$result[1]/@status eq '201'")
       %test:assertXPath("count($result) eq 2")
       %test:assertXPath("not($result[2]//*[namespace-uri(.) ne 'http://www.loc.gov/mods/v3'])")
   function txqt:store-mods($method as xs:string, $file as xs:string) {
