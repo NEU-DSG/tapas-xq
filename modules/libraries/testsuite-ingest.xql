@@ -178,19 +178,16 @@ declare namespace mods="http://www.loc.gov/mods/v3";
   
   declare
     %test:name("Store MODS")
-    %test:args('GET', 'false')
+    %test:args('GET')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '405'")
-    %test:args('POST', 'false')
-      %test:assertExists
-      %test:assertXPath("$result[1]/@status eq '400'")
-    %test:args('POST', 'true')
+    %test:args('POST')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '201'")
       %test:assertXPath("count($result) eq 2")
       %test:assertXPath("not($result[2]//*[namespace-uri(.) ne 'http://www.loc.gov/mods/v3'])")
-  function txqt:store-mods($method as xs:string, $file as xs:string) {
-    txqt:store-mods($method, $file, (), (), ())
+  function txqt:store-mods($method as xs:string) {
+    txqt:store-mods($method, 'false', (), (), ())
   };
   
   declare
