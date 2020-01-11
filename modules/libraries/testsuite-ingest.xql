@@ -51,7 +51,8 @@ declare namespace mods="http://www.loc.gov/mods/v3";
   declare
     %test:setUp
   function txqt:_test-setup() {
-    sm:create-account($txqt:user?('name'), $txqt:user?('password'), 'tapas', ())
+    sm:create-account($txqt:user?('name'), $txqt:user?('password'), 'tapas', ()),
+    sm:create-account('faker', 'faker', 'guest', ())
     ,
     let $dbPath := "/db/tapas-data/"
     let $dbProjPath := 
@@ -68,14 +69,20 @@ declare namespace mods="http://www.loc.gov/mods/v3";
   declare
     %test:tearDown
   function txqt:_test-teardown() {
-    sm:remove-account($txqt:user?('name'))
-    ,
+    sm:remove-account($txqt:user?('name')),
+    sm:remove-account('faker'),
     xmldb:remove(concat("/db/tapas-data/",$txqt:testData?('projId')))
   };
   
   declare
     %test:name("Authentication checks")
-    %test:args('derive-mods', 'tapas-tester', 'wrongpassword')
+    %test:args('derive-mods', 'faker', 'faker')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '401'")
+    %test:args('store-tei', 'faker', 'faker')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '401'")
+    %test:args('store-mods', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
   function txqt:authenticate($endpointKey as xs:string, $user as xs:string, 
@@ -84,18 +91,20 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       switch ($endpointKey)
         case 'derive-mods' return
           txqt:request-mods-derivative#4
+        (:case 'store-tei' return
+          txqt:request-tei-storage#4:)
         default return ()
     let $method :=
       switch ($endpointKey)
         case 'delete-project' return 'DELETE'
         case 'delete-document' return 'DELETE'
         default return 'POST'
-    let $request :=
-      if ( empty($function) ) then ()
-      else
-        $function($user, $password, $method, <default/>)
     return
-      http:send-request($request)
+      if ( empty($function) ) then
+        <p>Endpoint "{$endpointKey}" is undefined!</p>
+      else
+        let $request := $function($user, $password, $method, <default/>)
+        return http:send-request($request)
   };
   
   declare
@@ -279,11 +288,11 @@ declare namespace mods="http://www.loc.gov/mods/v3";
      xs:string, $method as xs:string, $parts as node()*) {
     let $body :=
       if ( $parts[self::default] ) then
-        txqt:get-file('true')
+        txqt:set-http-multipart('xml', txqt:get-file('true'))
       else $parts
     return
       txqt:set-http-request($user, $password, $method, $txqt:endpoint?('store-tei'), 
-        $parts)
+        $body)
   };
   
   declare %private function txqt:set-http-body($media-type as xs:string, $method as 
