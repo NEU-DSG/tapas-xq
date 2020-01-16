@@ -226,7 +226,13 @@ declare function txq:test-request($method-type as xs:string, $params as map(*), 
           if ( sm:has-access(xs:anyURI('/db/tapas-data'),'rwx') ) then
             $success-code
           (: Return an error if login fails. :)
-          else (401, "User does not have access to the data directory")
+          else 
+            let $userId := 
+              try {
+                sm:id()//sm:username
+              } catch * { '' }
+            return
+              (401, concat("User ",$userId," does not have access to the data directory"))
       else $success-code
 };
 

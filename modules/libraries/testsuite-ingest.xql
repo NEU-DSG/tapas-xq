@@ -51,8 +51,13 @@ declare namespace mods="http://www.loc.gov/mods/v3";
   declare
     %test:setUp
   function txqt:_test-setup() {
-    sm:create-account($txqt:user?('name'), $txqt:user?('password'), 'tapas', ()),
-    sm:create-account('faker', 'faker', 'guest', ())
+    if ( sm:user-exists($txqt:user?('name')) ) then ()
+    else
+      sm:create-account($txqt:user?('name'), $txqt:user?('password'), 'tapas', ()),
+    
+    if ( sm:user-exists('faker') ) then ()
+    else
+      sm:create-account('faker', 'faker', 'guest', ())
     ,
     let $dbPath := "/db/tapas-data/"
     let $dbProjPath := 
@@ -60,17 +65,18 @@ declare namespace mods="http://www.loc.gov/mods/v3";
     let $dbDocPath := 
       xmldb:create-collection($dbProjPath, $txqt:testData?('docId'))
     let $fileName := concat($txqt:testData?('docId'),'.xml')
+    let $dbMods := (
+        xmldb:store($dbDocPath, $fileName, $txqt:testFile)
+      )
     return (
-      xmldb:store($dbDocPath, $fileName, $txqt:testFile),
-      sm:chmod($dbDocPath, 'rwxrwxr-x')
+        $dbMods,
+        session:invalidate()
       )
   };
   
   declare
     %test:tearDown
   function txqt:_test-teardown() {
-    sm:remove-account($txqt:user?('name')),
-    sm:remove-account('faker'),
     xmldb:remove(concat("/db/tapas-data/",$txqt:testData?('projId')))
   };
   
@@ -91,8 +97,10 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       switch ($endpointKey)
         case 'derive-mods' return
           txqt:request-mods-derivative#4
-        (:case 'store-tei' return
-          txqt:request-tei-storage#4:)
+        case 'store-tei' return
+          txqt:request-tei-storage#4
+        case 'store-mods' return
+          txqt:request-mods-storage#4
         default return ()
     let $method :=
       switch ($endpointKey)
@@ -104,7 +112,9 @@ declare namespace mods="http://www.loc.gov/mods/v3";
         <p>Endpoint "{$endpointKey}" is undefined!</p>
       else
         let $request := $function($user, $password, $method, <default/>)
-        return http:send-request($request)
+        return (
+            http:send-request($request)
+          )
   };
   
   declare
