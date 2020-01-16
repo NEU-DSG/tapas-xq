@@ -1,12 +1,12 @@
 xquery version "3.0";
 
-module namespace txqt="http://tapasproject.org/tapas-xq/testsuite";
-import module namespace test="http://exist-db.org/xquery/xqsuite" 
-  at "resource:org/exist/xquery/lib/xqsuite/xqsuite.xql";
-import module namespace http="http://expath.org/ns/http-client";
-
-declare namespace tei="http://www.tei-c.org/ns/1.0";
-declare namespace mods="http://www.loc.gov/mods/v3";
+  module namespace txqt="http://tapasproject.org/tapas-xq/testsuite";
+  import module namespace test="http://exist-db.org/xquery/xqsuite" 
+    at "resource:org/exist/xquery/lib/xqsuite/xqsuite.xql";
+  import module namespace http="http://expath.org/ns/http-client";
+  
+  declare namespace tei="http://www.tei-c.org/ns/1.0";
+  declare namespace mods="http://www.loc.gov/mods/v3";
 
 (:~
   @author Ashley M. Clark
@@ -74,11 +74,11 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       )
   };
   
-  declare
+  (:declare
     %test:tearDown
   function txqt:_test-teardown() {
     xmldb:remove(concat("/db/tapas-data/",$txqt:testData?('projId')))
-  };
+  };:)
   
   declare
     %test:name("Authentication checks")
@@ -166,6 +166,7 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '201'")
       %test:assertXPath("count($result) eq 2")
+      %test:assertXPath("doc-available('/db/tapas-data/testProj01/testDoc01/testDoc01.xml')")
   function txqt:store-tei($method as xs:string, $file as xs:string) {
     let $reqParts :=
       if ( $file eq 'true' ) then
@@ -183,6 +184,7 @@ declare namespace mods="http://www.loc.gov/mods/v3";
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '201'")
       %test:assertXPath("count($result) eq 2")
+      %test:assertXPath("doc-available('/db/tapas-data/testProj01/testDoc02/testDoc02.xml')")
   function txqt:store-tei($method as xs:string, $file as xs:string, $docId as 
      xs:string) {
     let $multipart :=
@@ -248,6 +250,25 @@ declare namespace mods="http://www.loc.gov/mods/v3";
     return http:send-request($request)
   };
   
+  declare
+    %test:name("Delete document folder")
+    %test:args('DELETE', 'testProj02', 'testDoc03')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '500'")
+    %test:args('DELETE', 'testProj01', 'testDoc02')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '200'")
+      %test:assertXPath("not(doc-available('/db/tapas-data/testProj01/testDoc02/testDoc02.xml'))")
+  function txqt:terminate($method as xs:string, $projId as xs:string, $docId as 
+     xs:string) {
+    let $endpoint := xs:anyURI(concat($txqt:host,'/',$projId,'/',$docId))
+    let $request :=
+      txqt:request-doc-deletion($endpoint, $txqt:user?('name'), $txqt:user?('password'), $method,
+        ())
+    return
+      http:send-request($request)
+  };
+  
   
   (:  SUPPORT FUNCTIONS  :)
   
@@ -267,6 +288,21 @@ declare namespace mods="http://www.loc.gov/mods/v3";
     if ( $key eq 'true' ) then
       $txqt:testData?('formData')
     else ()
+  };
+  
+  declare function txqt:request-doc-deletion($user as xs:string, $password as 
+     xs:string, $method as xs:string, $parts as node()*) {
+    txqt:request-doc-deletion($txqt:endpoint?('delete-document'), $user, $password, 
+      $method, $parts)
+  };
+  
+  declare function txqt:request-doc-deletion($endpoint as xs:anyURI, $user as 
+     xs:string, $password as xs:string, $method as xs:string, $parts as node()*) {
+    let $body :=
+      if ( $parts[self::default] ) then ()
+      else $parts
+    return
+      txqt:set-http-request($user, $password, $method, $endpoint, $body)
   };
   
   declare function txqt:request-mods-derivative($user as xs:string, $password as 
