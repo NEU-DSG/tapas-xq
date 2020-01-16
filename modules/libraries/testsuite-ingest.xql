@@ -82,6 +82,9 @@ xquery version "3.0";
   
   declare
     %test:name("Authentication checks")
+    %test:args('delete-document', 'faker', 'faker')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '401'")
     %test:args('derive-mods', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
@@ -95,6 +98,8 @@ xquery version "3.0";
      $password as xs:string) {
     let $function :=
       switch ($endpointKey)
+        case 'delete-document' return
+          txqt:request-doc-deletion#4
         case 'derive-mods' return
           txqt:request-mods-derivative#4
         case 'store-tei' return
