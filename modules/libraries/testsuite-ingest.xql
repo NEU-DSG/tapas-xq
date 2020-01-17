@@ -51,14 +51,6 @@ xquery version "3.0";
   declare
     %test:setUp
   function txqt:_test-setup() {
-    if ( sm:user-exists($txqt:user?('name')) ) then ()
-    else
-      sm:create-account($txqt:user?('name'), $txqt:user?('password'), 'tapas', ()),
-    
-    if ( sm:user-exists('faker') ) then ()
-    else
-      sm:create-account('faker', 'faker', 'guest', ())
-    ,
     let $dbPath := "/db/tapas-data/"
     let $dbProjPath := 
       xmldb:create-collection($dbPath, $txqt:testData?('projId'))
@@ -277,6 +269,9 @@ xquery version "3.0";
   
   (:  SUPPORT FUNCTIONS  :)
   
+  (:~
+    Given an endpoint URL, customize it for a different project and/or document.
+   :)
   declare %private function txqt:edit-document-url($endpoint as xs:anyURI, $projId 
      as xs:string?, $docId as xs:string?) as xs:anyURI {
     let $editProjId := 
@@ -289,18 +284,30 @@ xquery version "3.0";
     return xs:anyURI($editDocId)
   };
   
+  (:~
+    If $key is 'true', return the form data body for sending the default test file 
+    in the HTTP request.
+   :)
   declare %private function txqt:get-file($key as xs:string) {
     if ( $key eq 'true' ) then
       $txqt:testData?('formData')
     else ()
   };
   
+  (:~
+    Create an HTTP request for deleting a TEI document and its derivatives. This 
+    version assumes that the project and document identifiers are the default ones.
+   :)
   declare function txqt:request-doc-deletion($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-doc-deletion($txqt:endpoint?('delete-document'), $user, $password, 
       $method, $parts)
   };
   
+  (:~
+    Create an HTTP request for deleting a TEI document and its derivatives. This 
+    version can receive a customized URL.
+   :)
   declare function txqt:request-doc-deletion($endpoint as xs:anyURI, $user as 
      xs:string, $password as xs:string, $method as xs:string, $parts as node()*) {
     let $body :=
@@ -310,12 +317,19 @@ xquery version "3.0";
       txqt:set-http-request($user, $password, $method, $endpoint, $body)
   };
   
+  (:~
+    Create an HTTP request for deriving MODS metadata from a given TEI file.
+   :)
   declare function txqt:request-mods-derivative($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-mods-generic($txqt:endpoint?('derive-mods'), $user, $password, 
       $method, $parts)
   };
   
+  (:~
+    Create an HTTP request for obtaining MODS from a TEI file. This is a generic 
+    function that can be used for either the "derive" or "store" endpoints.
+   :)
   declare function txqt:request-mods-generic($endpoint as xs:anyURI, $user as 
      xs:string, $password as xs:string, $method as xs:string, $parts as node()*) 
      as node() {
@@ -329,12 +343,19 @@ xquery version "3.0";
       txqt:set-http-request($user, $password, $method, $endpoint, $multipart)
   };
   
+  (:~
+    Create an HTTP request for creating and storing MODS metadata from a 
+    previously-stored TEI file.
+   :)
   declare function txqt:request-mods-storage($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-mods-generic($txqt:endpoint?('store-mods'), $user, $password, 
       $method, $parts)
   };
   
+  (:~
+    Create an HTTP request for storing a given TEI document.
+   :)
   declare function txqt:request-tei-storage($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     let $body :=
@@ -346,6 +367,9 @@ xquery version "3.0";
         $body)
   };
   
+  (:~
+    Customize an <http:body> wrapper for an EXPath HTTP Client request.
+   :)
   declare %private function txqt:set-http-body($media-type as xs:string, $method as 
      xs:string, $content as item()*) as element() {
     <http:body media-type="{$media-type}" method="{$method}">
@@ -353,11 +377,17 @@ xquery version "3.0";
     </http:body>
   };
   
+  (:~
+    Customize an <http:header> wrapper for an EXPath HTTP Client request.
+   :)
   declare %private function txqt:set-http-header($name as xs:string, $value as 
      xs:string) as element() {
     <http:header name="{$name}" value="{$value}" />
   };
   
+  (:~
+    Customize an <http:multipart> wrapper for an EXPath HTTP Client request.
+   :)
   declare %private function txqt:set-http-multipart($multipart-subtype as xs:string, 
      $partSeq as item()*) as element() {
     <http:multipart media-type="multipart/{$multipart-subtype}" 
@@ -366,6 +396,9 @@ xquery version "3.0";
     </http:multipart>
   };
   
+  (:~
+    Customize an <http:request> wrapper for the EXPath HTTP Client.
+   :)
   declare %private function txqt:set-http-request($user as xs:string, $password as 
      xs:string, $method as xs:string, $href as xs:anyURI, $partSeq as item()*) 
      as element() {
@@ -381,6 +414,10 @@ xquery version "3.0";
     </http:request>
   };
   
+  (:~
+    Create form data for use when creating MODS. The form data simulates the fields 
+    required by TAPAS: TAPAS author(s), TAPAS contributor(s), and TAPAS title.
+   :)
   declare function txqt:set-mods-formdata($file as xs:string, $title as xs:string?, 
      $authors as xs:string?, $contributors as xs:string?) as node()* {
     let $optParams :=
