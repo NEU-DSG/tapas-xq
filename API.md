@@ -112,7 +112,6 @@ Parameters:
 | ------ | ------- |
 | collections | Comma-separated list of collection identifiers with which the work should be associated. |
 | is-public | Value of "true" or "false". Indicates if the XML document should be queryable by the public. Default value is false. (Note that if the document belongs to even one public collection, it should be queryable.) |
-| transforms | Comma-separated list of view packages compatible with this document. |
 
 If no TEI document is associated with the given doc-id, the response will have a status code of 500. The TEI file must be stored _before_ any of its derivatives.
 

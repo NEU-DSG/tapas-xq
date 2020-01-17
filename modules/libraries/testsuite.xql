@@ -23,7 +23,9 @@ xquery version "3.0";
             txqt:set-http-body("application/xml", "xml", $txqt:testFile)
           ),
         'docId': 'testDoc01',
-        'projId': 'testProj01'
+        'projId': 'testProj01',
+        'collections': "testing,public-collection",
+        'isPublic': 'true'
       };
   declare variable $txqt:user :=
     map {
@@ -244,7 +246,69 @@ xquery version "3.0";
     let $request :=
       txqt:request-mods-storage($txqt:user?('name'), $txqt:user?('password'), 
         $method, $reqParts)
-    return http:send-request($request)
+    return
+      http:send-request($request)
+  };
+  
+  declare
+    %test:name("Store TFE")
+    %test:args('GET', 'testProj01', 'testDoc01')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '405'")
+    %test:args('POST', 'nonexistentProj', 'nonexistentDoc')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '500'")
+    %test:args('POST', 'testProj01', 'nonexistentDoc')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '500'")
+    %test:args('POST', 'testProj01', 'testDoc01')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '201'")
+  function txqt:store-tfe($method as xs:string, $projId as xs:string, $docId as 
+     xs:string) {
+    let $allowParams := $method eq 'POST'
+    let $collections :=
+      if ( $allowParams ) then $txqt:testData?('collections') else ()
+    let $isPublic :=
+      if ( $allowParams ) then $txqt:testData?('isPublic') else ()
+    return
+      txqt:store-tfe($method, $projId, $docId, $collections, $isPublic)
+  };
+  
+  declare
+    %test:name("Store TFE: required parameters")
+    %test:args('POST', 'testProj01', 'testDoc01', '', '')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '400'")
+      %test:assertXPath("count($result) eq 2")
+      %test:assertXPath("$result[2]//li[contains(.,'collections')]/contains(., 'must be present')")
+      %test:assertXPath("$result[2]//li[contains(.,'is-public')]/contains(., 'must be present')")
+    %test:args('POST', 'testProj01', 'testDoc01', 'testing', 'notboolean')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '400'")
+      %test:assertXPath("count($result) eq 2")
+      %test:assertXPath("$result[2]//li[contains(.,'is-public')]/contains(., 'must be of type xs:boolean')")
+  function txqt:store-tfe($method as xs:string, $projId as xs:string, $docId as 
+     xs:string, $collections as xs:string?, $isPublic as xs:string?) {
+    let $baseUrl := $txqt:endpoint?('store-tfe')
+    let $customUrl := txqt:edit-document-url($baseUrl, $projId, $docId)
+    let $reqCollections :=
+      if ( empty($collections) or $collections eq '' ) then ()
+      else (
+          txqt:set-http-header("Content-Disposition",' form-data; name="collections"'),
+          txqt:set-http-body("text/text", "text", $collections)
+        )
+    let $reqPublicFlag :=
+      if ( empty($isPublic) or $isPublic eq '' ) then ()
+      else (
+          txqt:set-http-header("Content-Disposition",' form-data; name="is-public"'),
+          txqt:set-http-body("text/text", "text", $isPublic)
+        )
+    let $request :=
+      txqt:request-tfe-storage($customUrl, $txqt:user?('name'), 
+        $txqt:user?('password'), $method, ($reqCollections, $reqPublicFlag))
+    return
+      http:send-request($request)
   };
   
   declare
@@ -365,6 +429,40 @@ xquery version "3.0";
     return
       txqt:set-http-request($user, $password, $method, $txqt:endpoint?('store-tei'), 
         $body)
+  };
+  
+  (:~
+    Create an HTTP request for creating and storing a "TFE" file (TAPAS-specific
+    metadata) for a previously-stored TEI file. This version assumes that the 
+    project and document identifiers are the default ones.
+   :)
+  declare function txqt:request-tfe-storage($user as xs:string, $password as 
+     xs:string, $method as xs:string, $parts as node()*) {
+    txqt:request-tfe-storage($txqt:endpoint?('store-tfe'), $user, $password, 
+      $method, $parts)
+  };
+  
+  (:~
+    Create an HTTP request for creating and storing a "TFE" file (TAPAS-specific
+    metadata) for a previously-stored TEI file. This version can receive a 
+    customized URL.
+   :)
+  declare function txqt:request-tfe-storage($endpoint as xs:anyURI, $user as 
+     xs:string, $password as xs:string, $method as xs:string, $parts as node()*) {
+    let $useParts :=
+      if ( $parts[self::default] ) then (
+          txqt:set-http-header("Content-Disposition",' form-data; name="is-public"'),
+          txqt:set-http-body("text/text", "text", $txqt:testData?('isPublic')),
+          txqt:set-http-header("Content-Disposition",' form-data; name="collections"'),
+          txqt:set-http-body("text/text", "text", $txqt:testData?('collections'))
+        )
+      else $parts
+    let $multipart :=
+      if ( empty($useParts) ) then ()
+      else
+        txqt:set-http-multipart('form-data', $useParts)
+    return
+      txqt:set-http-request($user, $password, $method, $endpoint, $multipart)
   };
   
   (:~
