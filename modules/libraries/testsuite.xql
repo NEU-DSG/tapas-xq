@@ -268,6 +268,14 @@ xquery version "3.0";
     %test:args('POST', 'testProj01', 'testDoc01')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '201'")
+      %test:assertXPath("count($result) eq 2")
+      %test:assertXPath("doc-available($result[2]//p/text())")
+      %test:assertXPath("not(doc($result[2]//p/text())//*[namespace-uri(.) ne 'http://www.wheatoncollege.edu/TAPAS/1.0'])")
+      %test:assertXPath("exists(doc($result[2]//p/text())//*:project[. eq 'testProj01'])")
+      %test:assertXPath("exists(doc($result[2]//p/text())//*:document[. eq 'testDoc01'])")
+      %test:assertXPath("exists(doc($result[2]//p/text())//*:collection[. eq 'testing'])")
+      %test:assertXPath("exists(doc($result[2]//p/text())//*:collection[. eq 'public-collection'])")
+      %test:assertXPath("exists(doc($result[2]//p/text())//*:access[. eq 'true'])")
   function txqt:store-tfe($method as xs:string, $projId as xs:string, $docId as 
      xs:string) {
     let $allowParams := $method eq 'POST'
