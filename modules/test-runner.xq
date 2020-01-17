@@ -28,7 +28,18 @@ declare namespace http="http://expath.org/ns/http-client";
 :)
 
 let $exreq := doc('xmldb:exist:///db/apps/tapas-xq/resources/testdocs/exhttpSkeleton.xml')
-let $baseURL := replace(request:get-url(),'/modules/test-runner\.xq','')
+let $baseUrl := 
+  let $reqUrl := request:get-url()
+  return
+    if ( contains($reqUrl, '/tests') ) then
+      replace($reqUrl, '/tests','')
+    else
+      let $noRest :=
+        if ( contains($reqUrl, '/rest/') ) then
+          replace($reqUrl, '/rest(/db)?', '')
+        else $reqUrl
+      return
+        replace($noRest, '/modules/test-runner\.xq','')
 let $setup := (
     if ( sm:user-exists($txqt:user?('name')) ) then ()
     else
@@ -39,8 +50,8 @@ let $setup := (
       sm:create-account('faker', 'faker', 'guest', ())
     ,
     if ( contains(request:get-url(),'eXide') ) then ()
-    else if ( $exreq/http:request[not(@href)] or $exreq/http:request/@href ne $baseURL ) then
-      update insert attribute href { $baseURL } into $exreq/http:request
+    else if ( $exreq/http:request[not(@href)] or $exreq/http:request/@href ne $baseUrl ) then
+      update insert attribute href { $baseUrl } into $exreq/http:request
     else ()
   )
 return (
