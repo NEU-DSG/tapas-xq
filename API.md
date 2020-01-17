@@ -1,6 +1,6 @@
 # TAPAS-xq API
 
-_Last updated 2017-12-07._ For details, see the changelog below.
+_Last updated 2020-01-17._ For details, see the changelog below.
 
 ## For all requests
 
@@ -154,14 +154,26 @@ Returns the XML configuration file for a currently-installed view package.
 
 ## Maintenance requests
 
+### Update view packages from GitHub repository
+
+`POST exist/apps/tapas-xq/view-packages/update`
+
 ### Trigger file reindexing (manually)
 
 `POST exist/apps/tapas-xq/reindex`
 
-### Update view packages from GitHub repository
 ### Run XQSuite unit tests
 
+`GET exist/apps/tapas-xq/tests`
+
+Because it requires user administration powers, this endpoint can only be run by database administrators.
+
+
 ## Changelog
+
+### 2020-01-17
+
+* Added API endpoints for running unit tests and for updating view packages.
 
 ### 2017-12-07
 

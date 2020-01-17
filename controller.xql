@@ -120,6 +120,26 @@ else if ( local:get-parent-dir() eq 'view-packages' and local:get-extension($exi
     </forward>
   </dispatch>
 (:
+ : Update the view packages
+ : exist/apps/tapas-xq/view-packages/update      -> modules/update-view-packages.xq
+ :)
+else if ( local:get-parent-dir() eq 'view-packages' and $exist:resource eq 'update' ) then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/update-view-packages.xq')}" 
+       method="{request:get-method()}">
+    </forward>
+  </dispatch>
+(:
+ : Run unit tests
+ : exist/apps/tapas-xq/tests                     -> modules/get-package-configuration.xq
+ :)
+else if ( $exist:resource eq 'tests' ) then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/test-runner.xq')}" 
+       method="{request:get-method()}">
+    </forward>
+  </dispatch>
+(:
  : Get API documentation
  : exist/apps/tapas-xq                          -> modules/get-api.xq
  : exist/apps/tapas-xq/api                      -> modules/get-api.xq

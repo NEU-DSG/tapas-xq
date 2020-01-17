@@ -8,7 +8,7 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
 
 (:~
- : `POST exist/apps/tapas-xq/update-view-packages` 
+ : `POST exist/apps/tapas-xq/view-packages/update` 
  : Update the view packages stored in eXist, and the registry of those packages.
  : 
  : Returns status code 200.
