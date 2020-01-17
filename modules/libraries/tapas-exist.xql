@@ -91,10 +91,10 @@ declare function txq:get-body-xml() {
 declare function txq:get-file-content($file) {
   typeswitch($file)
     case node() return $file
-    case xs:string return try { txq:get-file-content(parse-xml(replace($file,'﻿',''))) }
-                          catch * { (422,"Provided file must be TEI-encoded XML") }
+    case xs:string return try { txq:get-file-content(parse-xml(replace($file, '﻿', ''))) }
+                          catch * { (422, "Provided file must be TEI-encoded XML") }
     case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
-    default return (422,"Provided file must be TEI-encoded XML")
+    default return (422, "Provided file must be TEI-encoded XML")
 };
 
 (: Check if the document is well-formed and valid TEI. :)
@@ -127,23 +127,27 @@ declare function txq:test-param($param-name as xs:string, $param-type as xs:stri
                       txq:get-param-xml($param-name)
                     (: If the expected type is boolean, then try to turn the 
                      : param value into a boolean. :)
-                    else if ( $param-type eq 'xs:boolean' ) then
-                      if ( txq:get-param($param-name) castable as xs:boolean ) then
+                    else if ( $param-type eq 'xs:boolean'
+                              and txq:get-param($param-name) castable as xs:boolean ) then
                         txq:get-param($param-name) cast as xs:boolean
-                      else 400
                     (: Otherwise, just get the param value. :)
                     else txq:get-param($param-name)
   (: Get the datatype of the param value. :)
   let $valType := functx:atomic-type($paramVal) 
   (: Check to make sure the datatype is correct :)
   return
-    if ( $paramVal instance of item()* ) then $paramVal
-    else if ( $valType eq $param-type ) then ()
-    else (400, concat("Parameter '",$param-name,"' must be of type ",$param-type))
+    if ( count($paramVal) eq 2 and $paramVal[1] instance of xs:integer ) then
+      $paramVal
+    (: Return nothing if the atomic type is as expected, or if the parameter 
+     : value is valid XML (invalid XML should be caught by the test above). :)
+    else if ( $valType eq $param-type or $param-type eq 'node()' ) then ()
+    else 
+      (400, concat("Parameter '",$param-name,"' must be of type ",$param-type))
 };
 
 (: Make sure that the incoming request matches the XQuery's expectations. :)
-declare function txq:test-request($method-type as xs:string, $params as map(*), $success-code as xs:integer) as item()* {
+declare function txq:test-request($method-type as xs:string, $params as map(*), 
+   $success-code as xs:integer) as item()* {
   (: Do not proceed unless the requester has been authenticated by eXist.
     
     NOTE: sm:is-authenticated() returns a NullPointerException when called from a 
