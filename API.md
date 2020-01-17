@@ -158,6 +158,8 @@ Returns the XML configuration file for a currently-installed view package.
 
 `POST exist/apps/tapas-xq/reindex`
 
+### Update view packages from GitHub repository
+### Run XQSuite unit tests
 
 ## Changelog
 
