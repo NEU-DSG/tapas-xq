@@ -6,7 +6,7 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `DELETE exist/db/apps/tapas-xq/:proj-id/:doc-id` 
+ : `DELETE exist/apps/tapas-xq/:proj-id/:doc-id` 
  : Delete document and derivatives.
  : 
  : Completely removes any files in the eXist collection associated with a 

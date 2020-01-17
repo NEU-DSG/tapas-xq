@@ -7,7 +7,7 @@ declare namespace tapas="http://www.wheatoncollege.edu/TAPAS/1.0";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `POST exist/db/apps/tapas-xq/:proj-id/:doc-id/tfe` 
+ : `POST exist/apps/tapas-xq/:proj-id/:doc-id/tfe` 
  : Store 'TAPAS-friendly-eXist' metadata in eXist.
  : 
  : Triggers the generation of a small XML file containing useful information 
