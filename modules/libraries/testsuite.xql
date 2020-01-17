@@ -79,6 +79,9 @@ xquery version "3.0";
     %test:args('delete-document', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
+    %test:args('delete-project', 'faker', 'faker')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '401'")
     %test:args('derive-mods', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
@@ -97,6 +100,8 @@ xquery version "3.0";
       switch ($endpointKey)
         case 'delete-document' return
           txqt:request-doc-deletion#4
+        case 'delete-project' return
+          txqt:request-project-deletion#4
         case 'derive-mods' return
           txqt:request-mods-derivative#4
         case 'store-tei' return
@@ -332,12 +337,33 @@ xquery version "3.0";
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '200'")
       %test:assertXPath("not(doc-available('/db/tapas-data/testProj01/testDoc02/testDoc02.xml'))")
+      %test:assertXPath("not(xmldb:collection-available('/db/tapas-data/testProj01/testDoc02'))")
   function txqt:terminate($method as xs:string, $projId as xs:string, $docId as 
      xs:string) {
     let $endpoint := txqt:edit-document-url($txqt:endpoint?('delete-document'), $projId, $docId)
     let $request :=
       txqt:request-doc-deletion($endpoint, $txqt:user?('name'), $txqt:user?('password'), $method,
         ())
+    return
+      http:send-request($request)
+  };
+  
+  declare
+    %test:name("Delete project folder")
+    %test:args('DELETE', 'testProj02')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '500'")
+    %test:args('DELETE', 'testProj01')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '200'")
+      %test:assertXPath("not(doc-available('/db/tapas-data/testProj01/testDoc01/testDoc01.xml'))")
+      %test:assertXPath("not(xmldb:collection-available('/db/tapas-data/testProj01'))")
+  function txqt:terminate-project($method as xs:string, $projId as xs:string) {
+    let $endpoint :=
+      txqt:edit-document-url($txqt:endpoint?('delete-project'), $projId, ())
+    let $request :=
+      txqt:request-project-deletion($endpoint, $txqt:user?('name'), 
+        $txqt:user?('password'), $method, ())
     return
       http:send-request($request)
   };
@@ -427,6 +453,34 @@ xquery version "3.0";
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-mods-generic($txqt:endpoint?('store-mods'), $user, $password, 
       $method, $parts)
+  };
+  
+  (:~
+    Create an HTTP request for deleting a project collection, and all files 
+    within it. This version assumes that the project and document identifiers 
+    are the default ones.
+   :)
+  declare function txqt:request-project-deletion($user as xs:string, $password as 
+     xs:string, $method as xs:string, $parts as node()*) {
+    let $body :=
+      if ( $parts[self::default] ) then ()
+      else $parts
+    return
+      txqt:request-tfe-storage($txqt:endpoint?('delete-project'), $user, 
+        $password, $method, $body)
+  };
+  
+  (:~
+    Create an HTTP request for deleting a project collection, and all files 
+    within it. This version can receive a customized URL.
+   :)
+  declare function txqt:request-project-deletion($endpoint as xs:anyURI, $user as 
+     xs:string, $password as xs:string, $method as xs:string, $parts as node()*) {
+    let $body :=
+      if ( $parts[self::default] ) then ()
+      else $parts
+    return
+      txqt:set-http-request($user, $password, $method, $endpoint, $body)
   };
   
   (:~
