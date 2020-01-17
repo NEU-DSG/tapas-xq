@@ -266,7 +266,7 @@ xquery version "3.0";
       %test:assertXPath("not(doc-available('/db/tapas-data/testProj01/testDoc02/testDoc02.xml'))")
   function txqt:terminate($method as xs:string, $projId as xs:string, $docId as 
      xs:string) {
-    let $endpoint := xs:anyURI(concat($txqt:host,'/',$projId,'/',$docId))
+    let $endpoint := txqt:edit-document-url($txqt:endpoint?('delete-document'), $projId, $docId)
     let $request :=
       txqt:request-doc-deletion($endpoint, $txqt:user?('name'), $txqt:user?('password'), $method,
         ())

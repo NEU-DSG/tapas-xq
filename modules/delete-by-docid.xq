@@ -57,11 +57,13 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                : so check to make sure the collection is gone. :)
                               if ( not(xmldb:collection-available($delDir)) ) then
                                 <p>Deleted document collection at {$delDir}.</p>
-                              else (500, concat("Document collection '",$delDir,"' could not be deleted; check user permissions"))
+                              else (500, concat("Document collection '",$delDir,
+                                "' could not be deleted; check user permissions"))
                         else (500, concat("Document collection '",$delDir,"' does not exist"))
                       else if ( $reqEstimate instance of item()* ) then
                         tgen:set-error($reqEstimate[2])
                       else tgen:get-error($estimateCode)
 return 
-  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  if ( $responseBody[2] ) then
+    txq:build-response($responseBody[1], $contentType, $responseBody[2])
   else txq:build-response($estimateCode, $contentType, $responseBody)
