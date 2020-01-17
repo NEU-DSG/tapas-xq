@@ -88,6 +88,9 @@ xquery version "3.0";
     %test:args('store-mods', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
+    %test:args('store-tfe', 'faker', 'faker')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '401'")
   function txqt:authenticate($endpointKey as xs:string, $user as xs:string, 
      $password as xs:string) {
     let $function :=
@@ -100,6 +103,8 @@ xquery version "3.0";
           txqt:request-tei-storage#4
         case 'store-mods' return
           txqt:request-mods-storage#4
+        case 'store-tfe' return
+          txqt:request-tfe-storage#4
         default return ()
     let $method :=
       switch ($endpointKey)
@@ -108,12 +113,11 @@ xquery version "3.0";
         default return 'POST'
     return
       if ( empty($function) ) then
-        <p>Endpoint "{$endpointKey}" is undefined!</p>
+        <p>There is no defined authentication test for endpoint 
+          "{$endpointKey}"!</p>
       else
         let $request := $function($user, $password, $method, <default/>)
-        return (
-            http:send-request($request)
-          )
+        return http:send-request($request)
   };
   
   declare
