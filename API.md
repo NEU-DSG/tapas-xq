@@ -13,7 +13,7 @@ Each request must contain _either_
 
 ### Status codes
 
-* Success (derivation): 200
+* Success (derivation, deletion): 200
 * Success (storage): 201
 * Log-in failed/insufficient permissions for executing request: 401
 * Unsupported HTTP method: 405
@@ -51,7 +51,7 @@ Returns an XML-encoded file of the MODS record with status code 200. eXist does 
 
 Content-type: multipart/form-data
 
-__`:type`__: A keyword representing the type of reader view to generate. For a registry including the valid values,
+__`:type`__: A keyword representing the type of reader view to generate. Visit the View Package Registry endpoint for the reader types that the application can generate.
 
 Parameters:
 
@@ -173,6 +173,7 @@ Because it requires user administration powers, this endpoint can only be run by
 ### 2020-01-17
 
 * Added API endpoints for running unit tests and for updating view packages.
+* Removed 'transforms' parameter from the TFE Storage endpoint.
 
 ### 2017-12-07
 
