@@ -50,12 +50,14 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $dataPath := concat("/db/tapas-data/",$projID,"/",$docID)
                         (: Create the project/document directory if this is not just
                          : a replacement version of the TEI, but a new resource. :)
-                        let $projDir := if (not(xmldb:collection-available(concat("/db/tapas-data/",$projID)))) then
-                                          xmldb:create-collection("/db/tapas-data/",$projID)
-                                        else ()
-                        let $docDir :=  if (not(xmldb:collection-available($dataPath))) then
-                                          xmldb:create-collection(concat("/db/tapas-data/",$projID),$docID)
-                                        else ()
+                        let $projDir := 
+                          if ( not(xmldb:collection-available(concat("/db/tapas-data/",$projID))) ) then
+                            xmldb:create-collection("/db/tapas-data/", $projID)
+                          else ()
+                        let $docDir :=  
+                          if ( not(xmldb:collection-available($dataPath)) ) then
+                            xmldb:create-collection(concat("/db/tapas-data/",$projID), $docID)
+                          else ()
                         (: xmldb:store() returns the path to the new resource, 
                          : or, on failure, an empty sequence. :)
                         let $isStored := xmldb:store($dataPath,concat($docID,".xml"),$teiXML)
@@ -63,9 +65,10 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                             if ( empty($isStored) ) then
                               (500, "The TEI file could not be stored; check user permissions")
                             else <p>{$isStored}</p>
-                      else if ( $reqEstimate instance of item()* ) then
-                        tgen:set-error($reqEstimate[2])
+                      else if ( count($reqEstimate) eq 2 ) then
+                        $reqEstimate
                       else tgen:get-error($estimateCode)
 return 
-  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  if ( count($responseBody) eq 2 ) then
+    txq:build-response($responseBody[1], $contentType, tgen:set-error($responseBody[2]))
   else txq:build-response($estimateCode, $contentType, $responseBody)

@@ -76,15 +76,15 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                         (: xmldb:store() returns the path to the new resource, 
                          : or, on failure, an empty sequence. :)
                         let $isStored := 
-                          xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID),"/tfe.xml",$tfe)
+                          xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID), "/tfe.xml", $tfe)
                         return 
                             if ( empty($isStored) ) then
                               (500, "The TFE file could not be stored; check user permissions")
                             else <p>{$isStored}</p>
-                      else if ( $reqEstimate instance of item()* ) then
-                        tgen:set-error($reqEstimate[2])
+                      else if ( count($reqEstimate) eq 2 ) then
+                        $reqEstimate
                       else tgen:get-error($estimateCode)
 return 
-  if ( $responseBody[2] ) then
-    txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  if ( count($responseBody) eq 2 ) then
+    txq:build-response($responseBody[1], $contentType, tgen:set-error($responseBody[2]))
   else txq:build-response($estimateCode, $contentType, $responseBody)

@@ -56,7 +56,7 @@ let $responseBody :=
         default return ''
   else if ( $estimateCode eq 401 ) then
     tgen:set-error("User does not have write access to the view packages directory")
-  else if ( $reqEstimate instance of item()* ) then
+  else if ( count($reqEstimate) eq 2 ) then
     tgen:set-error($reqEstimate[2])
   else tgen:get-error($estimateCode)
 return

@@ -101,12 +101,12 @@ return
               else concat("Programs of type '",$type,"' are not implemented")
             return ($code, $error)
       
-      else if ( $reqEstimate instance of item()* ) then
-        tgen:set-error($reqEstimate[2])
+      else if ( count($reqEstimate) eq 2 ) then
+        $reqEstimate
       else tgen:get-error($estimateCode)
     return 
-      if ( $responseBody[2] ) then 
-        txq:build-response($responseBody[1], $contentType, $responseBody[2])
+      if ( count($responseBody) eq 2 ) then
+        txq:build-response($responseBody[1], $contentType, tgen:set-error($responseBody[2]))
       else 
         txq:build-response($estimateCode, $contentType, $responseBody)
   else 
