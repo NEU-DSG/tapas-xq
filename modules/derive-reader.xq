@@ -55,7 +55,7 @@ declare variable $contentType := "text/html";
 
 (: The type of reader requested must be tested first, so that the map of expected 
   parameters can be augmented as needed. :)
-let $viewType := txq:test-param('type','xs:string')
+let $viewType := txq:get-param('type')
 let $simpleEstimate := txq:test-request($method, $parameters, $successCode)
 let $simpleEstimateCode := $simpleEstimate[1]
 return
@@ -67,7 +67,7 @@ return
       else tgen:get-error($simpleEstimateCode)
     return
       txq:build-response($simpleEstimateCode, $contentType, $errorDesc)
-  else if ( dpkg:is-valid-view-package($viewType[1]) ) then
+  else if ( $viewType[1] instance of xs:string and dpkg:is-valid-view-package($viewType) ) then
     (: Create a new map of the expected parameters using the always-present ones 
       listed above, as well as any parameters defined in the package config file. 
       At this point, the package type has already been tested, so it is removed from 

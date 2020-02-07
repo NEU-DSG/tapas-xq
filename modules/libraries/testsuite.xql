@@ -87,6 +87,9 @@ xquery version "3.0";
     %test:args('derive-mods', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
+    %test:args('derive-reader', 'faker', 'faker')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '401'")
     %test:args('store-tei', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
@@ -106,6 +109,8 @@ xquery version "3.0";
           txqt:request-project-deletion#4
         case 'derive-mods' return
           txqt:request-mods-derivative#4
+        case 'derive-reader' return
+          txqt:request-xhtml-derivative#4
         case 'store-tei' return
           txqt:request-tei-storage#4
         case 'store-mods' return
@@ -124,7 +129,7 @@ xquery version "3.0";
           "{$endpointKey}"!</p>
       else
         let $request := $function($user, $password, $method, <default/>)
-        return http:send-request($request)
+        return http:send-request($request)(: $request:)
   };
   
   declare
@@ -585,14 +590,10 @@ xquery version "3.0";
    :)
   declare %private function txqt:request-xhtml-derivative($user as xs:string, 
      $password as xs:string, $method as xs:string, $parts as node()*) {
-    let $multipart :=
-      if ( empty($parts) ) then ()
-      else if ( $parts[self::default] ) then
-        txqt:set-http-multipart('xml', $txqt:testData?('formData'))
-      else
-        txqt:set-http-multipart('form-data', $parts)
+    let $endpoint :=
+      concat($txqt:endpoint?('derive-reader'),'/',$txqt:testData?('defaultPkg'))
     return
-      txqt:request-xhtml-derivative($txqt:endpoint?('derive-reader'), $user, 
+      txqt:request-xhtml-derivative(xs:anyURI($endpoint), $user, 
         $password, $method, $parts)
   };
   

@@ -7,6 +7,11 @@ import module namespace txqt="http://tapasproject.org/tapas-xq/testsuite"
 import module namespace inspect="http://exist-db.org/xquery/inspection";
 
 declare namespace http="http://expath.org/ns/http-client";
+declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
+
+  declare option output:media-type "text/xml";
+  declare option output:method "xml";
+  declare option output:omit-xml-declaration "no";
 
 (:~
  : `GET exist/apps/tapas-xq/tests` 

@@ -1,6 +1,7 @@
 xquery version "3.0";
 
 module namespace txq="http://tapasproject.org/tapas-xq/exist";
+declare namespace tei="http://www.tei-c.org/ns/1.0";
 declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
@@ -123,7 +124,7 @@ declare function txq:validate($document) {
 declare function txq:test-param($param-name as xs:string, $param-type as xs:string) {
   let $paramVal :=  (: If the expected type is XML, then try to turn the param 
                      : value into XML. :)
-                    if ( $param-type eq 'node()' ) then
+                    if ( matches($param-type, 'node\(.*\)') ) then
                       txq:get-param-xml($param-name)
                     (: If the expected type is boolean, then try to turn the 
                      : param value into a boolean. :)
@@ -140,7 +141,8 @@ declare function txq:test-param($param-name as xs:string, $param-type as xs:stri
       $paramVal
     (: Return nothing if the atomic type is as expected, or if the parameter 
      : value is valid XML (invalid XML should be caught by the test above). :)
-    else if ( $valType eq $param-type or $param-type eq 'node()' ) then ()
+    else if ( $valType eq $param-type or matches($param-type, 'node\(.*\)') ) then
+      ()
     else 
       (400, concat("Parameter '",$param-name,"' must be of type ",$param-type))
 };
@@ -161,9 +163,10 @@ declare function txq:test-request($method-type as xs:string, $params as map(*),
       map:new(
           for $param-name in map:keys($params)
           let $param-type := map:get($params, $param-name)
-          let $testResult := txq:test-param($param-name,$param-type)
+          let $testResult := txq:test-param($param-name, $param-type)
           return 
-            if ( $testResult instance of item()* ) then map:entry($param-name,$testResult)
+            if ( $testResult instance of item()* ) then
+              map:entry($param-name, $testResult)
             else ()
         )
     (: HTTP 400 errors occur when the API call is wrong in some way. :)
