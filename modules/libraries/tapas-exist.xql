@@ -11,6 +11,7 @@ import module namespace map="http://www.w3.org/2005/xpath-functions/map";
 import module namespace md="http://exist-db.org/xquery/markdown";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace response="http://exist-db.org/xquery/response";
+import module namespace sm="http://exist-db.org/xquery/securitymanager";
 import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
 import module namespace transform="http://exist-db.org/xquery/transform";
 import module namespace util="http://exist-db.org/xquery/util";
@@ -151,13 +152,15 @@ declare function txq:test-param($param-name as xs:string, $param-type as xs:stri
 declare function txq:test-request($method-type as xs:string, $params as map(*), 
    $success-code as xs:integer) as item()* {
   (: Do not proceed unless the requester has been authenticated by eXist.
-    
-    NOTE: sm:is-authenticated() returns a NullPointerException when called from a 
-    library function. Uncomment this test when TAPAS upgrades eXist.
+    NOTE: In eXist v2.2, sm:is-authenticated() returns a NullPointerException when 
+    called from a library function.
    :)
-  (:if ( not(sm:is-authenticated()) ) then
-    (401, "Unauthorized")
-  else:)
+  let $hasAccess := try {
+      sm:is-authenticated()
+    } catch * { true() }
+  return
+  if ( not($hasAccess) ) then (401, "Unauthorized")
+  else
     (: Test each parameter against a map with expected datatypes.:)
     let $badParams := 
       map:new(

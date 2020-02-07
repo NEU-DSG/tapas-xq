@@ -160,7 +160,7 @@ declare function dpkg:get-updatable() as item()* {
     v3.0 and higher; uncomment the dpkg:is-tapas-user() call when TAPAS upgrades 
     eXist. :)
 declare function dpkg:has-write-access() as xs:boolean {
-  (:dpkg:is-tapas-user() and :) dpkg:can-write()
+  dpkg:is-tapas-user() and  dpkg:can-write()
 };
 
 (: Get the contents of $dpkg:github-vpkg-repo at the default git branch by 
@@ -513,18 +513,20 @@ function dpkg:is-environment-file-available() as xs:boolean {
 (: Test if the current, effective eXist user is the TAPAS user. :)
   (: 2017-04-06: This function will silently fail in eXist v2.2. DO NOT USE until 
     TAPAS upgrades to v3.0 or higher. :)
-(:declare
+declare
   %private
 function dpkg:is-tapas-user() as xs:boolean {
-  let $account := sm:id()
-  let $matchUser := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
-  return
-    (\: Use the 'effective' user if the 'real' user is acting as someone else. :\)
-    if ( $account[descendant::sm:effective] ) then
-      $matchUser($account//sm:effective/sm:username/text())
-    else
-      $matchUser($account//sm:real/sm:username/text())
-};:)
+  try {
+    let $account := sm:id()
+    let $matchUser := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
+    return
+      (: Use the 'effective' user if the 'real' user is acting as someone else. :)
+      if ( $account[descendant::sm:effective] ) then
+        $matchUser($account//sm:effective/sm:username/text())
+      else
+        $matchUser($account//sm:real/sm:username/text())
+  } catch * { true() }
+};
 
 (: Get a list of all files changed between commits in a given GitHub repository. :)
 declare

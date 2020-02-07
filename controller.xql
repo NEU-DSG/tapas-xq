@@ -109,6 +109,16 @@ else if ( $exist:resource eq 'view-packages' ) then
        method="{request:get-method()}"/>
   </dispatch>
 (:
+ : Update the view packages
+ : exist/apps/tapas-xq/view-packages/update      -> modules/update-view-packages.xq
+ :)
+else if ( local:get-parent-dir() eq 'view-packages' and $exist:resource eq 'update' ) then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <forward url="{concat($exist:controller, '/modules/update-view-packages.xq')}" 
+       method="{request:get-method()}">
+    </forward>
+  </dispatch>
+(:
  : Obtain the configuration file of an installed view package
  : exist/apps/tapas-xq/view-packages/:type      -> modules/get-package-configuration.xq
  :)
@@ -117,16 +127,6 @@ else if ( local:get-parent-dir() eq 'view-packages' and local:get-extension($exi
     <forward url="{concat($exist:controller, '/modules/get-package-configuration.xq')}" 
        method="{request:get-method()}">
       <add-parameter name="type" value="{$exist:resource}"/>
-    </forward>
-  </dispatch>
-(:
- : Update the view packages
- : exist/apps/tapas-xq/view-packages/update      -> modules/update-view-packages.xq
- :)
-else if ( local:get-parent-dir() eq 'view-packages' and $exist:resource eq 'update' ) then
-  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-    <forward url="{concat($exist:controller, '/modules/update-view-packages.xq')}" 
-       method="{request:get-method()}">
     </forward>
   </dispatch>
 (:
