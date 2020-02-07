@@ -510,21 +510,20 @@ function dpkg:is-environment-file-available() as xs:boolean {
   doc-available($dpkg:environment-defaults)
 };
 
-(: Test if the current, effective eXist user is the TAPAS user. :)
-  (: 2017-04-06: This function will silently fail in eXist v2.2. DO NOT USE until 
-    TAPAS upgrades to v3.0 or higher. :)
+(: Test if the current, effective eXist user is the TAPAS user. This function will 
+  silently fail in eXist v2.2. Same as txq:is-tapas-user(). :)
 declare
   %private
 function dpkg:is-tapas-user() as xs:boolean {
   try {
     let $account := sm:id()
-    let $matchUser := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
+    let $matchGrp := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
     return
       (: Use the 'effective' user if the 'real' user is acting as someone else. :)
       if ( $account[descendant::sm:effective] ) then
-        $matchUser($account//sm:effective/sm:username/text())
+        exists($account//sm:effective//sm:group[$matchGrp(text())])
       else
-        $matchUser($account//sm:real/sm:username/text())
+        exists($account//sm:real//sm:group[$matchGrp(text())])
   } catch * { true() }
 };
 

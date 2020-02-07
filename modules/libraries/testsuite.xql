@@ -9,6 +9,13 @@ xquery version "3.0";
   declare namespace mods="http://www.loc.gov/mods/v3";
 
 (:~
+  A suite of tests for the TAPAS-xq API.
+  
+  NOTES
+    eXist v2.2:     The test runner will not run, because setup cannot occur.
+    eXist v.3.6.1:  22 failures due to a bug when libraries try to run 
+                    authentication tests.
+  
   @author Ashley M. Clark
   @version 1.0
  :)

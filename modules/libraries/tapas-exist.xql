@@ -155,9 +155,7 @@ declare function txq:test-request($method-type as xs:string, $params as map(*),
     NOTE: In eXist v2.2, sm:is-authenticated() returns a NullPointerException when 
     called from a library function.
    :)
-  let $hasAccess := try {
-      sm:is-authenticated()
-    } catch * { true() }
+  let $hasAccess := txq:is-tapas-user()
   return
   if ( not($hasAccess) ) then (401, "Unauthorized")
   else
@@ -262,6 +260,21 @@ declare function txq:build-response($code as xs:integer, $content-type as xs:str
           tgen:get-error($content)
         else $content
       )
+};
+
+(: Test if the current, effective eXist user is the TAPAS user. This function will 
+  silently fail in eXist v2.2. Same as dpkg:is-tapas-user(). :)
+declare %private function txq:is-tapas-user() as xs:boolean {
+  try {
+    let $account := sm:id()
+    let $matchGrp := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
+    return
+      (: Use the 'effective' user if the 'real' user is acting as someone else. :)
+      if ( $account[descendant::sm:effective] ) then
+        exists($account//sm:effective//sm:group[$matchGrp(text())])
+      else
+        exists($account//sm:real//sm:group[$matchGrp(text())])
+  } catch * { true() }
 };
 
 (: Retrieve Markdown-flavored text and turn it into HTML. :)
