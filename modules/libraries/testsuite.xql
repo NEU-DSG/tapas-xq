@@ -25,7 +25,9 @@ xquery version "3.0";
         'docId': 'testDoc01',
         'projId': 'testProj01',
         'collections': "testing,public-collection",
-        'isPublic': 'true'
+        'isPublic': 'true',
+        'defaultPkg': 'tapas-generic',
+        'assetsBase': '/exist/rest/db/view-packages'
       };
   declare variable $txqt:user :=
     map {
@@ -159,6 +161,52 @@ xquery version "3.0";
     let $request := 
       txqt:request-mods-derivative($txqt:user?('name'), $txqt:user?('password'), 
         $method, $reqParts)
+    return http:send-request($request)
+  };
+  
+  declare
+    %test:name("Derive XHTML")
+    %test:args('GET', 'false', 'tapas-generic', '/exist/rest/db/view-packages/')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '405'")
+    %test:args('POST', 'false', 'tapas-generic', '')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '400'")
+    %test:args('POST', 'true', 'fakeViewPackage', '/exist/rest/db/view-packages/')
+      %test:assertExists
+      %test:assertXPath("$result[1]/@status eq '400'")
+  function txqt:derive-reader($method as xs:string, $file as xs:string, $type as 
+     xs:string, $assets-base as xs:string) {
+    let $endpoint := concat($txqt:endpoint?('derive-reader'),'/',$type)
+    let $allowFormParams := $method eq 'POST'
+    let $useUrl :=
+      let $urlParams :=
+        if ( $assets-base ne '' ) then 
+          concat('assets-base=', $assets-base)
+        else ''
+      return
+        if ( $allowFormParams ) then $endpoint
+        else concat($endpoint,'?', $urlParams)
+    let $multipart :=
+      if ( $allowFormParams ) then
+        let $parts := (
+          if ( $file eq 'false' ) then ()
+          else $txqt:testData?('formData')
+          ,
+          if ( $assets-base eq '' ) then ()
+          else (
+            txqt:set-http-header("Content-Disposition",' form-data; name="assets-base"'),
+            txqt:set-http-body("text/text", "text", $assets-base)
+          )
+        )
+        return 
+          if ( $parts ) then
+            txqt:set-http-multipart('form-data', $parts)
+          else ()
+      else ()
+    let $request :=
+      txqt:request-xhtml-derivative(xs:anyURI($useUrl), $txqt:user?('name'), 
+        $txqt:user?('password'), $method, $multipart)
     return http:send-request($request)
   };
   
@@ -527,6 +575,45 @@ xquery version "3.0";
       if ( empty($useParts) ) then ()
       else
         txqt:set-http-multipart('form-data', $useParts)
+    return
+      txqt:set-http-request($user, $password, $method, $endpoint, $multipart)
+  };
+  
+  (:~
+    Create an HTTP request for deriving a given type of XHTML reader from a given 
+    TEI file.
+   :)
+  declare %private function txqt:request-xhtml-derivative($user as xs:string, 
+     $password as xs:string, $method as xs:string, $parts as node()*) {
+    let $multipart :=
+      if ( empty($parts) ) then ()
+      else if ( $parts[self::default] ) then
+        txqt:set-http-multipart('xml', $txqt:testData?('formData'))
+      else
+        txqt:set-http-multipart('form-data', $parts)
+    return
+      txqt:request-xhtml-derivative($txqt:endpoint?('derive-reader'), $user, 
+        $password, $method, $parts)
+  };
+  
+  (:~
+    Create an HTTP request for deriving a given type of XHTML reader from a given 
+    TEI file. This version can receive a customized URL.
+   :)
+  declare %private function txqt:request-xhtml-derivative($endpoint as xs:anyURI, 
+     $user as xs:string, $password as xs:string, $method as xs:string, $parts as 
+     node()*) {
+    let $useParts :=
+      if ( $parts[self::default] ) then (
+          txqt:set-http-header("Content-Disposition",' form-data; name="assets-base"'),
+          txqt:set-http-body("text/text", "text", $txqt:testData?('assetsBase')),
+          $txqt:testData?('formData')
+        )
+      else $parts
+    let $multipart :=
+      if ( empty($useParts) ) then ()
+      else if ( $useParts[self::http:multipart] ) then $useParts
+      else txqt:set-http-multipart('form-data', $useParts)
     return
       txqt:set-http-request($user, $password, $method, $endpoint, $multipart)
   };
