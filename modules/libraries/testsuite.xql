@@ -129,7 +129,7 @@ xquery version "3.0";
           "{$endpointKey}"!</p>
       else
         let $request := $function($user, $password, $method, <default/>)
-        return http:send-request($request)(: $request:)
+        return http:send-request($request)
   };
   
   declare

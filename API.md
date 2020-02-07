@@ -57,8 +57,9 @@ Parameters:
 
 | Name | Description |
 | ------ | ------- |
-| assets-base | A file path representing the parent folder of any CSS/JS/image assets that will be referenced by the resulting HTML document. |
 | file | An XML-encoded TEI document. |
+
+Additional parameters may be required in order to create the requested type of reader.
 
 Returns XHTML generated from the TEI document with status code 200. eXist does not store any files as a result of this request.
 
