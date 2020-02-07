@@ -455,7 +455,7 @@ function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $bran
   let $zipFilename := $response//httpc:header[@name eq 'Content-Disposition']/@value/substring-after(data(.),'filename=')
   let $archivePath := 
     let $binary := xs:base64Binary($response//httpc:body/text())
-    return xmldb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
+    return xdb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
   let $unzipped := dpkg:unpack-zip-archive($archivePath, $dbPath)
   (: Identify any submodules; download and unpack their archives. :)
   let $submoduleDirs := dpkg:find-submodule-dirs($archivePath)
