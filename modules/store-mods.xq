@@ -52,9 +52,9 @@ let $projID := txq:get-param('proj-id')
 let $docID := txq:get-param('doc-id')
 let $docURI := concat("/db/tapas-data/",$projID,"/",$docID,"/",$docID,".xml")
 let $reqEstimate := if ( $projID eq '' or not(doc-available($docURI)) ) then
-                        (500, "TEI file must be available in database before MODS storage")
-                      else
-                        txq:test-request($method, $parameters, $successCode)
+                      (500, "TEI file must be available in database before MODS storage")
+                    else
+                      txq:test-request($method, $parameters, $successCode)
 let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $teiXML := doc($docURI)
@@ -78,15 +78,18 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                               else ()
                                             }
                                           </parameters>
-                        let $mods := transform:transform($teiXML, doc("../resources/tapas2mods.xsl"), $XSLparams)
-                        let $isStored := xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID),"mods.xml",$mods)
+                        let $mods :=
+                          transform:transform($teiXML, doc("../resources/tapas2mods.xsl"), $XSLparams)
+                        let $isStored :=
+                          xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID), "mods.xml", $mods)
                         return 
                             if ( empty($isStored) ) then
                               (500, "The MODS file could not be stored; check user permissions")
                             else $mods
-                      else if ( $reqEstimate instance of item()* ) then
-                        tgen:set-error($reqEstimate[2])
+                      else if ( count($reqEstimate) eq 2 ) then
+                        $reqEstimate
                       else tgen:get-error($estimateCode)
 return 
-  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  if ( count($responseBody) eq 2 ) then
+    txq:build-response($responseBody[1], $contentType, tgen:set-error($responseBody[2]))
   else txq:build-response($estimateCode, $contentType, $responseBody)

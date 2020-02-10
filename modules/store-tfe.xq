@@ -7,7 +7,7 @@ declare namespace tapas="http://www.wheatoncollege.edu/TAPAS/1.0";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `POST exist/db/apps/tapas-xq/:proj-id/:doc-id/tfe` 
+ : `POST exist/apps/tapas-xq/:proj-id/:doc-id/tfe` 
  : Store 'TAPAS-friendly-eXist' metadata in eXist.
  : 
  : Triggers the generation of a small XML file containing useful information 
@@ -56,9 +56,9 @@ let $projID := txq:get-param('proj-id')
 let $docID := txq:get-param('doc-id')
 let $docURI := concat("/db/tapas-data/",$projID,"/",$docID,"/",$docID,".xml")
 let $reqEstimate := if ( $projID eq '' or not(doc-available($docURI)) ) then
-                        (500, "TEI file must be available in database before TFE storage")
-                      else
-                        txq:test-request($method, $parameters, $successCode)
+                      (500, "TEI file must be available in database before TFE storage")
+                    else
+                      txq:test-request($method, $parameters, $successCode)
 let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $collections := <tapas:collections>{ 
@@ -75,14 +75,16 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                     </tapas:metadata>
                         (: xmldb:store() returns the path to the new resource, 
                          : or, on failure, an empty sequence. :)
-                        let $isStored := xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID),"/tfe.xml",$tfe)
+                        let $isStored := 
+                          xmldb:store(concat("/db/tapas-data/",$projID,"/",$docID), "/tfe.xml", $tfe)
                         return 
                             if ( empty($isStored) ) then
                               (500, "The TFE file could not be stored; check user permissions")
                             else <p>{$isStored}</p>
-                      else if ( $reqEstimate instance of item()* ) then
-                        tgen:set-error($reqEstimate[2])
+                      else if ( count($reqEstimate) eq 2 ) then
+                        $reqEstimate
                       else tgen:get-error($estimateCode)
 return 
-  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  if ( count($responseBody) eq 2 ) then
+    txq:build-response($responseBody[1], $contentType, tgen:set-error($responseBody[2]))
   else txq:build-response($estimateCode, $contentType, $responseBody)

@@ -30,8 +30,10 @@ import module namespace transform="http://exist-db.org/xquery/transform";
  : @return XHTML
  : 
  : @author Ashley M. Clark
- : @version 1.1
+ : @version 1.2
  :
+ : 2020-02-07: Added a simplified test of the incoming request. This allows problems
+ :   with the HTTP method to be flagged before a bad view package name.
  : 2017-02-01: Restructured this file to allow dynamic view package functionality. 
  :   The view package type is tested first; then the HTTP request is tested against 
  :   the parameters set in the configuration file; then any transformations are run. 
@@ -53,9 +55,19 @@ declare variable $contentType := "text/html";
 
 (: The type of reader requested must be tested first, so that the map of expected 
   parameters can be augmented as needed. :)
-let $viewType := txq:test-param('type','xs:string')
+let $viewType := txq:get-param('type')
+let $simpleEstimate := txq:test-request($method, $parameters, $successCode)
+let $simpleEstimateCode := $simpleEstimate[1]
 return
-  if ( $viewType[1] instance of xs:string and dpkg:is-valid-view-package($viewType) ) then
+  (: Do a simple test on the request method and parameter types. :)
+  if ( $simpleEstimateCode ne $successCode ) then
+    let $errorDesc :=
+      if ( count($simpleEstimate) eq 2 ) then
+        tgen:set-error($simpleEstimate[2])
+      else tgen:get-error($simpleEstimateCode)
+    return
+      txq:build-response($simpleEstimateCode, $contentType, $errorDesc)
+  else if ( $viewType[1] instance of xs:string and dpkg:is-valid-view-package($viewType) ) then
     (: Create a new map of the expected parameters using the always-present ones 
       listed above, as well as any parameters defined in the package config file. 
       At this point, the package type has already been tested, so it is removed from 
@@ -101,12 +113,12 @@ return
               else concat("Programs of type '",$type,"' are not implemented")
             return ($code, $error)
       
-      else if ( $reqEstimate instance of item()* ) then
-        tgen:set-error($reqEstimate[2])
+      else if ( count($reqEstimate) eq 2 ) then
+        $reqEstimate
       else tgen:get-error($estimateCode)
     return 
-      if ( $responseBody[2] ) then 
-        txq:build-response($responseBody[1], $contentType, $responseBody[2])
+      if ( count($responseBody) eq 2 ) then
+        txq:build-response($responseBody[1], $contentType, tgen:set-error($responseBody[2]))
       else 
         txq:build-response($estimateCode, $contentType, $responseBody)
   else 

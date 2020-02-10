@@ -6,7 +6,7 @@ import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libr
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
- : `DELETE exist/db/apps/tapas-xq/:doc-id` 
+ : `DELETE exist/apps/tapas-xq/:doc-id` 
  : Delete document and derivatives.
  : 
  : Completely removes any files in the eXist collection associated with a 
@@ -54,11 +54,13 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                  : so check to make sure the collection is gone. :)
                                 if ( not(xmldb:collection-available($delDir)) ) then
                                   <p>Deleted project collection at {$delDir}.</p>
-                                else (500, concat("Project collection '",$delDir,"' could not be deleted; check user permissions"))
+                                else (500, concat("Project collection '",$delDir,
+                                  "' could not be deleted; check user permissions"))
                           else (500, concat("Project collection '",$delDir,"' does not exist"))
-                      else if ( $reqEstimate instance of item()* ) then
-                        tgen:set-error($reqEstimate[2])
+                      else if ( count($reqEstimate) eq 2 ) then
+                        $reqEstimate
                       else tgen:get-error($estimateCode)
 return 
-  if ( $responseBody[2] ) then txq:build-response($responseBody[1], $contentType, $responseBody[2])
+  if ( count($responseBody) eq 2 ) then
+    txq:build-response($responseBody[1], $contentType, tgen:set-error($responseBody[2]))
   else txq:build-response($estimateCode, $contentType, $responseBody)

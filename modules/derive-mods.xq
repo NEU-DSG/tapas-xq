@@ -72,7 +72,8 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                                           </parameters>
                         let $mods := transform:transform($teiXML, doc("../resources/tapas2mods.xsl"), $XSLparams)
                         return $mods
-                      else if ( $reqEstimate instance of item()* ) then
+                      else if ( count($reqEstimate) eq 2 ) then
                         tgen:set-error($reqEstimate[2])
                       else tgen:get-error($estimateCode)
-return txq:build-response($estimateCode, $contentType, $responseBody)
+return
+  txq:build-response($estimateCode, $contentType, $responseBody)
