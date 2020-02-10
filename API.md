@@ -59,7 +59,7 @@ Parameters:
 | ------ | ------- |
 | file | An XML-encoded TEI document. |
 
-Use [the view package configuration file](#obtain-registry-of-installed-view-packages) to determine what additional parameters are required for the requested type of reader.
+Use [the view package configuration file](#obtain-the-configuration-file-of-an-installed-view-package) to determine what additional parameters are required for the requested type of reader.
 
 If, in the future, a [view package](https://github.com/NEU-DSG/tapas-view-packages) makes use of a different input source (such as a TAPAS collection or a project), the file parameter may be removed from this endpoint's requirements.
 
@@ -174,6 +174,11 @@ Due to bugs in authentication when multiple scripts or libraries are involved, t
 
 
 ## Changelog
+
+### 2020-02-10
+
+* In the Derive Reader endpoint, acknowledged that individual view packages may require additional parameters.
+* Expanded section on unit tests.
 
 ### 2020-01-17
 
