@@ -59,7 +59,9 @@ Parameters:
 | ------ | ------- |
 | file | An XML-encoded TEI document. |
 
-Additional parameters may be required in order to create the requested type of reader.
+Use [the view package configuration file](#obtain-registry-of-installed-view-packages) to determine what additional parameters are required for the requested type of reader.
+
+If, in the future, a [view package](https://github.com/NEU-DSG/tapas-view-packages) makes use of a different input source (such as a TAPAS collection or a project), the file parameter may be removed from this endpoint's requirements.
 
 Returns XHTML generated from the TEI document with status code 200. eXist does not store any files as a result of this request.
 
@@ -167,6 +169,8 @@ Returns the XML configuration file for a currently-installed view package.
 `GET exist/apps/tapas-xq/tests`
 
 Because it requires user administration powers, this endpoint can only be run by database administrators.
+
+Due to bugs in authentication when multiple scripts or libraries are involved, this endpoint will return an error in eXist v2.2. In eXist v3.6.1, most tests will fail. However, this is a limitation on the Test Suite, not the rest of this API. The tests will work if executed manually with `curl`.
 
 
 ## Changelog
