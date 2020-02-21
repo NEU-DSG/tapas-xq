@@ -526,7 +526,7 @@ xquery version "3.0";
       if ( $parts[self::default] ) then ()
       else $parts
     return
-      txqt:request-tfe-storage($txqt:endpoint?('delete-project'), $user, 
+      txqt:request-project-deletion($txqt:endpoint?('delete-project'), $user, 
         $password, $method, $body)
   };
   
