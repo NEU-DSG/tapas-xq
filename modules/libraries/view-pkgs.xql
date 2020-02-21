@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
   module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";

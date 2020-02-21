@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
   module namespace txq="http://tapasproject.org/tapas-xq/exist";
   declare namespace tei="http://www.tei-c.org/ns/1.0";

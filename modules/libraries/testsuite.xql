@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
   module namespace txqt="http://tapasproject.org/tapas-xq/testsuite";
   import module namespace test="http://exist-db.org/xquery/xqsuite" 
