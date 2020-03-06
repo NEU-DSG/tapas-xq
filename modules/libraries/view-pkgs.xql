@@ -165,7 +165,7 @@ xquery version "3.1";
       v3.0 and higher; uncomment the dpkg:is-tapas-user() call when TAPAS upgrades 
       eXist. :)
   declare function dpkg:has-write-access() as xs:boolean {
-    dpkg:is-tapas-user() and  dpkg:can-write()
+    dpkg:is-tapas-user() and dpkg:can-write()
   };
   
   (: Get the contents of $dpkg:github-vpkg-repo at the default git branch by 
@@ -236,59 +236,60 @@ xquery version "3.1";
         let $toUpdate := dpkg:get-updatable()
         return
           if ( count($toUpdate) gt 0 ) then
-          let $submodules := 
-            for $pkg in $toUpdate/descendant-or-self::package_ref[@submodule/data(.) eq 'true']
-            let $pkgID := $pkg/@name/data(.)
-            return dpkg:update-submodule($pkg)
-          let $repoPkgs := $toUpdate/descendant-or-self::package_ref[not(@submodule) or @submodule/data(.) eq 'false']
-          let $vpkgRepo :=
-            (: All view packages entirely housed within $dpkg:github-vpkg-repo should have 
-              the same Rails timestamp (and thus, the same commit SHA). If they don't, 
-              return an error. :)
-            let $timestamp := distinct-values($repoPkgs/git/@timestamp)
-            return
-              if ( count($timestamp) eq 0 ) then
-                doc($dpkg:registry)/view_registry/git
-              else if ( count($timestamp) eq 1 ) then
-                dpkg:update-package-repo($timestamp)
-              else () (: error :)
-          (: Copy the registry entries for unmodified packages, and expand entries for 
-            packages updated as part of the $dpkg:github-vpkg-repo. :)
-          let $otherPkgs := 
-            (
-              doc($dpkg:registry)//package_ref[not(@name = $toUpdate/@name/data(.))],
-              for $pkg in $repoPkgs
-              let $conf := dpkg:get-configuration($pkg/@name/data(.))
+            let $submodules := 
+              for $pkg in $toUpdate/descendant-or-self::package_ref[@submodule/data(.) eq 'true']
+              let $pkgID := $pkg/@name/data(.)
+              return dpkg:update-submodule($pkg)
+            let $repoPkgs :=
+              $toUpdate/descendant-or-self::package_ref[not(@submodule) or @submodule/data(.) eq 'false']
+            let $vpkgRepo :=
+              (: All view packages entirely housed within $dpkg:github-vpkg-repo should have 
+                the same Rails timestamp (and thus, the same commit SHA). If they don't, 
+                return an error. :)
+              let $timestamp := distinct-values($repoPkgs/git/@timestamp)
               return
-                <package_ref>
-                  { $pkg/@* }
-                  <conf>
-                    {
-                      if ( $conf ) then $conf/base-uri()
-                      else () (: error :)
-                    }
-                  </conf>
-                  <git>
-                    { $pkg/git/@* }
-                    { $vpkgRepo/@commit }
-                  </git>
-                </package_ref>
-            )
-          (: Recreate the registry of view packages. :)
-          let $newRegistry := 
-            <view_registry>
-              { dpkg:define-rails-api-attribute() }
-              { $vpkgRepo }
-              { 
-                for $pkg in ( $submodules, $otherPkgs )
-                order by $pkg/@name/data(.)
-                return $pkg
-              }
-            </view_registry>
-          (: Update the registry document by storing it again. :)
-          return 
-            xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
-        (: If there's nothing to update, don't do anything. :)
+                if ( count($timestamp) eq 0 ) then
+                  doc($dpkg:registry)/view_registry/git
+                else if ( count($timestamp) eq 1 ) then
+                  dpkg:update-package-repo($timestamp)
+                else () (: error :)
+            (: Copy the registry entries for unmodified packages, and expand entries for 
+              packages updated as part of the $dpkg:github-vpkg-repo. :)
+            let $otherPkgs := 
+              (
+                doc($dpkg:registry)//package_ref[not(@name = $toUpdate/@name/data(.))],
+                for $pkg in $repoPkgs
+                let $conf := dpkg:get-configuration($pkg/@name/data(.))
+                return
+                  <package_ref>
+                    { $pkg/@* }
+                    <conf>
+                      {
+                        if ( $conf ) then $conf/base-uri()
+                        else () (: error :)
+                      }
+                    </conf>
+                    <git>
+                      { $pkg/git/@* }
+                      { $vpkgRepo/@commit }
+                    </git>
+                  </package_ref>
+              )
+            (: Recreate the registry of view packages. :)
+            let $newRegistry := 
+              <view_registry>
+                { dpkg:define-rails-api-attribute() }
+                { $vpkgRepo }
+                { 
+                  for $pkg in ( $submodules, $otherPkgs )
+                  order by $pkg/@name/data(.)
+                  return $pkg
+                }
+              </view_registry>
+            (: Update the registry document by storing it again. :)
+            return 
+              xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
+          (: If there's nothing to update, don't do anything. :)
         else ()
       else () (: error :)
     else 

@@ -37,7 +37,7 @@ xquery version "3.1";
     configuration files.
   2015-10-26: Expanded XML validation and classified errors from that process
     as HTTP 422s.
-  2015-10-05: Rearranged function logic to accommodate complex error messages. 
+  2015-10-05: Rearranged function logic to accommodate complex error messages.
 :)
 
 
