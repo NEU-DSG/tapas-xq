@@ -78,7 +78,11 @@ xquery version "3.1";
   (: Query the TAPAS Rails API for its stored view packages. :)
   declare function dpkg:get-rails-packages() as node()* {
     let $railsAddr := xs:anyURI(dpkg:get-rails-api-url())
-    return dpkg:get-json-objects($railsAddr)
+    let $response := dpkg:get-json-objects($railsAddr)
+    return 
+      if ( $response[self::p] ) then
+        <p class="error">Could not connect to Rails.</p>
+      else $response
   };
   
   (: Get the registry entry for the view package matching a given identifier. :)
@@ -96,9 +100,10 @@ xquery version "3.1";
     XML database. Git commit timestamps are used for comparison. :)
   declare function dpkg:get-updatable() as item()* {
     let $railsPkgs := dpkg:get-rails-packages()
-    let $registryExists := doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
+    let $registryExists := 
+      doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
     let $upCandidates :=
-      for $railsPkg in $railsPkgs
+      for $railsPkg in $railsPkgs[fn:map]
       let $dirName := $railsPkg/fn:string[@key eq 'dir_name']/text()
       let $branch := $railsPkg/fn:string[@key eq 'git_branch']/text()
       let $isSubmodule := exists($branch) and $branch ne ''
@@ -143,8 +148,10 @@ xquery version "3.1";
           </package_ref>
         }
       return
+        if ( $railsPkgs/p[@class eq 'error'] ) then
+          $railsPkgs
         (: Flag for update the packages with no entry in the registry. :)
-        if ( not($registryExists) or not(exists($registryPkg)) ) then
+        else if ( not($registryExists) or not(exists($registryPkg)) ) then
           $makeEntry()
         else 
           (: Flag for update those packages where Rails' version has a newer git 
@@ -159,11 +166,6 @@ xquery version "3.1";
   };
   
   (: Determine if the current eXist user can write to the $dpkg:home-directory. :)
-    (: 2017-04-06: Half of the test is commented out for now! eXist v2.2 has a bug 
-      which causes sm:id() to error out when one XQuery calls a function in a library; 
-      see https://github.com/eXist-db/exist/issues/388. It should be fixed in eXist 
-      v3.0 and higher; uncomment the dpkg:is-tapas-user() call when TAPAS upgrades 
-      eXist. :)
   declare function dpkg:has-write-access() as xs:boolean {
     dpkg:is-tapas-user() and dpkg:can-write()
   };
@@ -192,6 +194,7 @@ xquery version "3.1";
       (: Get a ZIP archive of $dpkg:github-vpkg-repo, and unpack it into 
         $dpkg:home-directory. This process also obtains and unpacks any git submodules. :)
       let $mainRepo := dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $vpkgCommit)
+      
       (: Create the view package registry. :)
       let $registry := 
         <view_registry>
@@ -217,8 +220,7 @@ xquery version "3.1";
           }
         </view_registry>
       return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
-    else
-      () (: error :)
+    else () (: error :)
   };
   
   (: Determine if an identifier matches that of a valid view package. :)
@@ -375,56 +377,67 @@ xquery version "3.1";
       if ( exists(dpkg:make-directories($folder)) ) then
         if ( exists($downloadURL) ) then
           let $download := dpkg:send-request(xs:anyURI($downloadURL))
-          let $statusCode := $download/@statusCode/data(.)
+          let $statusCode := $download[1]/@status/data(.)
           return 
             if ( exists($folder) and $statusCode eq '200' ) then
-              let $body := $download/httpc:body
-              let $type := $body/@type/data(.)
-              let $encoding := $body/@encoding/data(.)
-              let $contents := 
-                if ( contains($type, 'xml') ) then
-                  document { $body/processing-instruction(), $body/node() }
-                else if ( exists($encoding) and $encoding eq 'URLEncoded' ) then
-                  xdb:decode($body/text())
-                else if ( exists($encoding) and $encoding eq 'Base64Encoded' ) then
-                  util:base64-decode($body/text())
-                else $body/text()
+              let $body := dpkg:get-response-body($download)
               return 
-                if ( exists($contents) and not(empty($contents)) ) then
-                  let $mimetype := concat('text/',$type)
-                  return xdb:store($folder,$filename,$contents,$mimetype)
+                if ( exists($body) and count($body) eq 1 ) then
+                  let $mimetype := 
+                    concat('text/',substring-after($body?('media-type'),'/'))
+                  return xdb:store($folder, $filename, $body?('content'), $mimetype)
                 else () (: error :)
             else () (: error :)
         else () (: error :)
       else () (: error :)
   };
   
+  declare function dpkg:get-response-body($http-response as item()*) as map(xs:string, item())* {
+    let $mediaTypes := $http-response[1]//http:body/@media-type/data(.)
+    let $bodies := subsequence($http-response, 2)
+    return
+      for $index in 1 to count($bodies)
+      let $body := $bodies[$index]
+      let $body :=
+        typeswitch ($body)
+          case xs:base64Binary return util:base64-decode($body)
+          default return $body
+      let $mediaType := $mediaTypes[$index]
+      return
+        map { 'media-type': $mediaType, 'content': $body }
+  };
+  
   (: Send out a query, and log any HTTP response that isn't "200 OK". :)
   declare %private function dpkg:get-json-objects($url as xs:string) as node()* {
     let $address := xs:anyURI($url)
     let $request := dpkg:send-request($address)
-    let $status := $request/@statusCode/data(.)
-    let $body := $request/httpc:body
+    let $status := $request[1]/@status/data(.)
+    let $body := dpkg:get-response-body($request)
     return
       if ( $status eq '200' ) then
-        let $jsonStr :=
-          if ( $body[@encoding eq 'Base64Encoded'] ) then
-            util:base64-decode($body/text())
-          else $body/text()
+        let $jsonStr := 
+          if ( $body?('media-type') = ('application/json', 'text/json') ) then
+            $body?('content')
+          else ()
         return 
-          if ( $jsonStr ) then
+          if ( exists($jsonStr) ) then
             let $pseudojson :=
               (: Check for json-to-xml() in the W3C function namespace. Fall back on 
                 Joe Wicentowski's implementation. :)
               let $json-to-xml := function-lookup(xs:QName('fn:json-to-xml'), 1)
-              return
+              let $xml :=
                 if ( empty($json-to-xml) ) then
                   jx:json-to-xml($jsonStr)
                 else $json-to-xml($jsonStr)
+              return
+                if ( $xml[self::document-node()] ) then $xml/* else $xml
             return 
-              ( $pseudojson[self::fn:map] | $pseudojson/fn:map )
-          else <p>ERROR: No response</p> (: error :)
-      else <p>ERROR: { $status }</p> (: error :)
+              typeswitch ($pseudojson)
+                case element(fn:map) return $pseudojson
+                case element(fn:array) return $pseudojson/fn:map
+                default return ()
+          else <p class="error">ERROR: No response</p> (: error :)
+      else <p class="error">ERROR: { $status }</p> (: error :)
   };
   
   (: Get the absolute path to the directory for a given view package ID. No attempt is 
@@ -454,42 +467,58 @@ xquery version "3.1";
       let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
       return xs:anyURI(string-join($urlParts,'/'))
     let $response := dpkg:send-request($zipURL)
-    let $zipFilename := $response//httpc:header[@name eq 'Content-Disposition']/@value/substring-after(data(.),'filename=')
-    let $archivePath := 
-      let $binary := xs:base64Binary($response//httpc:body/text())
-      return xdb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
-    let $unzipped := dpkg:unpack-zip-archive($archivePath, $dbPath)
-    (: Identify any submodules; download and unpack their archives. :)
-    let $submoduleDirs := dpkg:find-submodule-dirs($archivePath)
-    let $getSubmodules := 
-      for $localPath in $submoduleDirs
-      let $repoPath := substring-after($localPath, concat($dbPath,'/'))
-      let $subRepo := dpkg:get-submodule-identifier($repoID, $repoPath, $branch)
-      let $updateEntry := dpkg:get-updatable()[@submodule eq 'true'][contains(@name, $subRepo)]
-      let $commit := 
-        (: If the submodule matches a view package, use the specific commit used by Rails. :)
-        if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry/git/@commit/data(.)) ) then
-          $updateEntry/git/@commit/data(.)
-        (: If the submodule is not a view package, use the commit referenced by GitHub. :)
-        else dpkg:call-github-contents-api($repoID,$repoPath,$branch)/fn:string[@key eq 'sha']/text()
-      return 
-        if ( contains($subRepo,' ') ) then ()
-        else 
-          try {
-            dpkg:get-repo-archive($subRepo,$localPath,$commit),
-            (: If the submodule is a view package, return complete git(Hub) info. :)
-            if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry) ) then
-              <package_ref>
-                { $updateEntry/@* }
-                <git>
-                  { $updateEntry/git/@* }
-                </git>
-              </package_ref>
-            else ()
-          } catch * { () }
-    (: Delete the ZIP file after we're done with it. :)
-    let $deleteZip :=  xdb:remove($dpkg:home-directory, $zipFilename)
-    return $getSubmodules
+    let $body := dpkg:get-response-body($response)
+    return
+      if ( not(exists($body)) or $body?('content') ne 'application/zip' ) then () (: error? :)
+      else
+        let $binary := $body?('content')
+        let $zipFilename := 
+          let $contentDisposition := $response[1]//http:header[@name eq lower-case('Content-Disposition')]
+          return substring-after($contentDisposition/@value/data(.), 'filename=')
+        let $archivePath :=
+          xdb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
+        let $unzipped := dpkg:unpack-zip-archive($archivePath, $dbPath)
+        (: Identify any submodules; download and unpack their archives. :)
+        let $submoduleDirs := dpkg:find-submodule-dirs($archivePath)
+        let $updatablePkgs := dpkg:get-updatable()
+        let $railsIsAvailable := not(exists($updatablePkgs/p[@class eq 'error']))
+        let $getSubmodules := 
+          for $localPath in $submoduleDirs
+          let $repoPath := substring-after($localPath, concat($dbPath,'/'))
+          let $subRepo := dpkg:get-submodule-identifier($repoID, $repoPath, $branch)
+          let $updateEntry := dpkg:get-updatable()[@submodule eq 'true'][contains(@name, $subRepo)]
+          let $commit := 
+            (: If the submodule matches a view package, try to use the specific commit used by Rails. :)
+            if ( $repoID eq $dpkg:github-vpkg-repo and $railsIsAvailable and exists($updateEntry/git/@commit/data(.)) ) then
+              $updateEntry/git/@commit/data(.)
+            (: If Rails is not available, or the submodule is not a view package, use the commit referenced by GitHub. :)
+            else
+              dpkg:call-github-contents-api($repoID, $repoPath, $branch)/fn:string[@key eq 'sha']/text()
+          return 
+            if ( contains($subRepo, ' ') ) then ()
+            else 
+              try {
+                dpkg:get-repo-archive($subRepo, $localPath, $commit),
+                (: If the submodule is a view package tracked by Rails, return complete git(Hub) info. :)
+                if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry) ) then
+                  <package_ref>
+                    { $updateEntry/@* }
+                    <git>
+                      { $updateEntry/git/@* }
+                    </git>
+                  </package_ref>
+                else if ( not($railsIsAvailable) ) then (: TODO :)
+                  <package_ref>
+                    
+                    <git>
+                      
+                    </git>
+                  </package_ref>
+                else ()
+              } catch * { () }
+        (: Delete the ZIP file after we're done with it. :)
+        let $deleteZip :=  xdb:remove($dpkg:home-directory, $zipFilename)
+        return $getSubmodules
   };
   
   (: Identify the GitHub repository identifier of a different repository's submodule. :)
@@ -498,8 +527,8 @@ xquery version "3.1";
     let $gitURL := $submoduleObj/fn:string[@key eq 'git_url']/text()
     return
       if ( exists($gitURL) ) then 
-        let $baseless := substring-after($gitURL,concat($dpkg:github-api-base,'/'))
-        return substring-before($baseless,'/git/trees')
+        let $baseless := substring-after($gitURL, concat($dpkg:github-api-base,'/'))
+        return substring-before($baseless, '/git/trees')
       else concat("No GitHub URL in ",$repoID," for ",$repoPath) (: error :)
   };
   
@@ -537,7 +566,7 @@ xquery version "3.1";
       for $index in 1 to count($tokenizedPath)
       let $newDir := $tokenizedPath[$index]
       let $targetDir := 
-        let $tokens := subsequence($tokenizedPath,1,$index - 1)
+        let $tokens := subsequence($tokenizedPath, 1, $index - 1)
         let $parentPath := if ( $index le 1 ) then '' else string-join($tokens,'/')
         return $parentPath
       return 
@@ -550,32 +579,19 @@ xquery version "3.1";
     configuration has a host defined, the EXPath HTTP client is used instead of 
     eXist's. This gets around what seems to be a bug in the way eXist's HTTP client 
     resolves URLs that include port numbers. :)
-  declare %private function dpkg:send-request($url as xs:anyURI) as item()? {
+  declare function dpkg:send-request($url as xs:anyURI) as item()* {
     let $railsAPI := dpkg:get-rails-api-url()
     let $railsHost := dpkg:get-rails-api-host()
-    return
+    let $headers :=
       if ( $url eq $railsAPI and $railsHost ne '' ) then
-        let $request :=
-          <http:request method="GET" href="{$url}">
-            <http:header name="Host" value="{$railsHost}"/>
-          </http:request>
-        let $response := http:send-request($request, $url)
-        return 
-          (: Create a fake eXist-HTTPclient response for the EXPath HTTP client response
-            (thus saving the need to handle two formats elsewhere). :)
-          <httpc:response statusCode="{$response[1]/@status/data(.)}">
-            <httpc:headers/>
-            <httpc:body>
-              { $response[1]/http:body/@* }
-              {
-                typeswitch ($response[2])
-                  case xs:base64Binary return util:base64-decode($response[2])
-                  default return $response[2]
-              }
-            </httpc:body>
-          </httpc:response>
-      else 
-        httpc:get($url, false(), <httpc:headers/>)
+        <http:header name="Host" value="{$railsHost}"/>
+      else ()
+    let $request :=
+      <http:request method="GET" href="{$url}">
+        { $headers }
+      </http:request>
+    return
+      http:send-request($request, $url)
   };
   
   (: Unzip an archive. If there is a single outermost directory, it is ignored in 
