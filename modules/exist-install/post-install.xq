@@ -80,14 +80,19 @@ declare variable $moduleLoc := replace(system:get-module-load-path(),
       let $parentDir := concat($storageDirBase,'/',$viewsDir)
       let $registryName := 'registry.xml'
       let $registryPath := concat($parentDir,'/',$registryName)
+      let $warning := function () {
+          util:log('warn',
+            "Could not initialize the TAPAS view packages collection. Try logging in as the TAPAS user and updating the view packages.")
+        }
       return
         if ( doc-available($registryPath) and doc($registryPath)[descendant::package_ref] ) then
           ()
         else
           (: Try to log in as the 'tapas' user before initializing view packages. :)
           if ( dpkg:has-write-access() ) then
-            try { dpkg:initialize-packages() } catch * { () }
-          else
-            util:log('warn','Could not initialize the TAPAS view packages collection. Try logging in as the TAPAS user and updating the view packages.')
+            try { 
+              dpkg:initialize-packages()
+            } catch * { $warning() }
+          else $warning()
     else () (: error :)
 )
