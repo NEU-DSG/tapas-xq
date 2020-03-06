@@ -392,21 +392,6 @@ xquery version "3.1";
       else () (: error :)
   };
   
-  declare function dpkg:get-response-body($http-response as item()*) as map(xs:string, item())* {
-    let $mediaTypes := $http-response[1]//http:body/@media-type/data(.)
-    let $bodies := subsequence($http-response, 2)
-    return
-      for $index in 1 to count($bodies)
-      let $body := $bodies[$index]
-      let $body :=
-        typeswitch ($body)
-          case xs:base64Binary return util:base64-decode($body)
-          default return $body
-      let $mediaType := $mediaTypes[$index]
-      return
-        map { 'media-type': $mediaType, 'content': $body }
-  };
-  
   (: Send out a query, and log any HTTP response that isn't "200 OK". :)
   declare %private function dpkg:get-json-objects($url as xs:string) as node()* {
     let $address := xs:anyURI($url)
@@ -469,7 +454,7 @@ xquery version "3.1";
     let $response := dpkg:send-request($zipURL)
     let $body := dpkg:get-response-body($response)
     return
-      if ( not(exists($body)) or $body?('content') ne 'application/zip' ) then () (: error? :)
+      if ( not(exists($body)) or $body?('media-type') ne 'application/zip' ) then () (: error? :)
       else
         let $binary := $body?('content')
         let $zipFilename := 
@@ -519,6 +504,22 @@ xquery version "3.1";
         (: Delete the ZIP file after we're done with it. :)
         let $deleteZip :=  xdb:remove($dpkg:home-directory, $zipFilename)
         return $getSubmodules
+  };
+  
+  (: From an EXPath HTTP Client response, create a map for each body, with its contents and media-type. :)
+  declare function dpkg:get-response-body($http-response as item()*) as map(xs:string, item())* {
+    let $mediaTypes := $http-response[1]//http:body/@media-type/data(.)
+    let $bodies := subsequence($http-response, 2)
+    return
+      for $index in 1 to count($bodies)
+      let $body := $bodies[$index]
+      let $body :=
+        typeswitch ($body)
+          case xs:base64Binary return util:base64-decode($body)
+          default return $body
+      let $mediaType := $mediaTypes[$index]
+      return
+        map { 'media-type': $mediaType, 'content': $body }
   };
   
   (: Identify the GitHub repository identifier of a different repository's submodule. :)
