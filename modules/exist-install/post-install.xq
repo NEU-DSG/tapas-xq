@@ -85,8 +85,8 @@ declare variable $moduleLoc := replace(system:get-module-load-path(),
           ()
         else
           (: Try to log in as the 'tapas' user before initializing view packages. :)
-          if ( xdb:login($parentDir, $owner, $owner) ) then
-            dpkg:initialize-packages()
+          if ( dpkg:has-write-access() ) then
+            try { dpkg:initialize-packages() } catch * { () }
           else
             util:log('warn','Could not initialize the TAPAS view packages collection. Try logging in as the TAPAS user and updating the view packages.')
     else () (: error :)

@@ -73,7 +73,7 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
         else ()
         ,
         if ( $doChangeMode($permissions) ) then
-          let $chmod := sm:chmod($path, $dirMode)
+          let $chmod := ( sm:chmod($path, $dirMode), sm:chmod($path, '+t') )
           return
             let $newPermissions := sm:get-permissions(xs:anyURI($path))
             return

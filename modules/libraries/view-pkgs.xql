@@ -7,7 +7,6 @@ xquery version "3.1";
   import module namespace cprs="http://exist-db.org/xquery/compression";
   import module namespace file="http://exist-db.org/xquery/file";
   import module namespace http="http://expath.org/ns/http-client";
-  import module namespace httpc="http://exist-db.org/xquery/httpclient";
   import module namespace jx="http://joewiz.org/ns/xquery/json-xml"
     at "json-xml/json-xml.xqm";
   import module namespace sm="http://exist-db.org/xquery/securitymanager";
