@@ -173,7 +173,7 @@ xquery version "3.1";
   (: Get the contents of $dpkg:github-vpkg-repo at the default git branch by 
     retrieving its ZIP archive from GitHub. Set up the view package registry. :)
   declare function dpkg:initialize-packages() {
-    (: Only proceed if the current user is the TAPAS user. This ensures that the 
+    (: Only proceed if the current user is a TAPAS user. This ensures that the 
       contents of $dpkg:home-directory will be owned by that user. :)
     if ( dpkg:has-write-access() ) then
       (: Create <git> to hold data on $dpkg:github-vpkg-repo. :)
@@ -220,7 +220,7 @@ xquery version "3.1";
           }
         </view_registry>
       return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
-    else () (: error :)
+    else <p class="error">ERROR: unauthorized</p> (: error :)
   };
   
   (: Determine if an identifier matches that of a valid view package. :)
