@@ -114,12 +114,11 @@ xquery version "3.1";
         if ( $isSubmodule ) then $branch 
         else dpkg:get-default-git-branch()
       let $useRepo := 
-        if ( not($isSubmodule) ) then
-          $dpkg:github-vpkg-repo
-        else if ( exists($registryPkg) ) then
-          $registryPkg/git/@repo/data(.)
+        if ( not($isSubmodule) ) then $dpkg:github-vpkg-repo
+        else if ( exists($registryPkg) ) then $registryPkg/git/@repo/data(.)
         else
-          let $subRepo := dpkg:get-submodule-identifier($dpkg:github-vpkg-repo, $dirName, $useBranch)
+          let $subRepo := 
+            dpkg:get-submodule-identifier($dpkg:github-vpkg-repo, $dirName, $useBranch)
           return 
             if ( contains($subRepo, ' ') ) then 
               ' ' (: error :)
@@ -155,9 +154,9 @@ xquery version "3.1";
         else 
           (: Flag for update those packages where Rails' version has a newer git 
             timestamp than eXist's version. :)
-          let $gitTimeE := $registryPkg/git/@timestamp/data(.) cast as xs:dateTime
+          let $gitTimeE := $registryPkg/git/@timestamp/data(.)
           return 
-            if ( $gitTimeE lt $gitTimeR cast as xs:dateTime ) then
+            if ( $gitTimeE lt $gitTimeR ) then
               $makeEntry()
             (: If the package is up-to-date, do nothing. :)
             else ()
@@ -182,11 +181,12 @@ xquery version "3.1";
                             'branches', $defaultBranch )
         let $branchURL := string-join($urlParts,'/')
         let $responseObj := dpkg:get-json-objects($branchURL)
+        let $commitObj := $responseObj/fn:map[@key eq 'commit']
         let $timestamp :=
-          $responseObj/fn:map[@key eq 'commit']/fn:map[@key eq 'author']/fn:string[@key eq 'date']/text()
+          $commitObj/fn:map[@key eq 'commit']/fn:map[@key eq 'author']/fn:string[@key eq 'date']/text()
         return
           <git repo="{$dpkg:github-vpkg-repo}" branch="{$defaultBranch}"
-            commit="{$responseObj/fn:string[@key eq 'sha']/text()}"
+            commit="{$commitObj/fn:string[@key eq 'sha']/text()}"
             timestamp="{$timestamp}"/>
       (: Get the current commit on the default branch. :)
       let $vpkgCommit := $vpkgGitInfo/@commit/data(.)
@@ -352,11 +352,13 @@ xquery version "3.1";
   (: Query GitHub's API for a repository's commits matching the timestamp given by 
     Rails. :)
   declare %private function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, $dateTime as xs:string) {
-    if ( $dateTime castable as xs:dateTime ) then
+    try {
       let $apiURL := concat($dpkg:github-api-base,'/',$repoID,'/commits?sha=',$branch,'&amp;since=',$dateTime)
       let $pseudoJSON := dpkg:get-json-objects($apiURL)[1]
       return $pseudoJSON/fn:string[@key eq 'sha']/text()
-    else () (: error :)
+    } catch * {
+      () (: error :)
+    }
   };
   
   (: Get the name of the git branch to use by default. :)
