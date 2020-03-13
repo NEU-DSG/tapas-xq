@@ -451,11 +451,10 @@ xquery version "3.1";
       let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
       return xs:anyURI(string-join($urlParts,'/'))
     let $response := dpkg:send-request($zipURL)
-    let $body := dpkg:get-response-body($response)
     return
-      if ( not(exists($body)) or $body?('media-type') ne 'application/zip' ) then () (: error? :)
+      if ( count($response) lt 2 or not($response[1]//http:body/@media-type/data(.) = 'application/zip') ) then () (: error? :)
       else
-        let $binary := $body?('content')
+        let $binary := $response[2]
         let $zipFilename := 
           let $contentDisposition := $response[1]//http:header[@name eq lower-case('Content-Disposition')]
           return substring-after($contentDisposition/@value/data(.), 'filename=')
@@ -511,14 +510,17 @@ xquery version "3.1";
     let $bodies := subsequence($http-response, 2)
     return
       for $index in 1 to count($bodies)
-      let $body := $bodies[$index]
-      let $body :=
-        typeswitch ($body)
-          case xs:base64Binary return util:base64-decode($body)
-          default return $body
       let $mediaType := $mediaTypes[$index]
+      let $body := $bodies[$index]
+      let $bodyContent :=
+        (: Skip binary decoding if the file is a ZIP. :)
+        if ( $mediaType = "application/zip" ) then $body
+        else
+          typeswitch ($body)
+            case xs:base64Binary return util:base64-decode($body)
+            default return $body
       return
-        map { 'media-type': $mediaType, 'content': $body }
+        map { 'media-type': $mediaType, 'content': $bodyContent }
   };
   
   (: Identify the GitHub repository identifier of a different repository's submodule. :)
