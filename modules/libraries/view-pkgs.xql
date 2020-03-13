@@ -21,6 +21,7 @@ xquery version "3.1";
   @author Ashley M. Clark
   @version 1.1
  
+  2020-03-13: Finalized storage and unpacking of zipped view packages.
   2020-02-21: Converted pseudo-JSON format from XQJSON to W3C, with Joe Wicentowski's 
     implementation of json-to-xml() serving as a fallback when the W3C-namespaced 
     version isn't available. Added missing module import.
@@ -98,11 +99,46 @@ xquery version "3.1";
   (: Return package reference entries for each view package newer in Rails than in the 
     XML database. Git commit timestamps are used for comparison. :)
   declare function dpkg:get-updatable() as item()* {
-    let $railsPkgs := dpkg:get-rails-packages()
+    let $railsPkgs := 
+      try {
+        dpkg:get-rails-packages()
+      } catch Q{http://exist.sourceforge.net/NS/exist/java-binding}org.expath.httpclient.HttpClientException {
+        (: The request to Rails timed out, possibly because it is behind Northeastern's 
+          VPN. :)
+        ()
+      }
     let $registryExists := 
       doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
     let $upCandidates :=
-      for $railsPkg in $railsPkgs[fn:map]
+      if ( empty($railsPkgs) ) then
+        ()
+      else
+        dpkg:get-updatable-candidates-from-rails($railsPkgs)
+    return
+      if ( $upCandidates/p[@class eq 'error'] ) then
+        $upCandidates/p[@class eq 'error']
+      else if ( not($registryExists) ) then $upCandidates
+      else
+        for $candidate in $upCandidates
+        let $expectedDir := $candidate/fn:string[@key eq 'dir_name']/text()
+        let $registryPkg := 
+          if ( exists($expectedDir) ) then 
+            dpkg:get-registry-entry($expectedDir) 
+          else ()
+        (: Flag for update those packages where the external version has a newer git 
+          timestamp than eXist's version. :)
+        return
+          if ( not(exists($registryPkg)) 
+               or $registryPkg/git/@timestamp/data(.) lt $candidate/git/@timestamp/data(.) ) then
+            $candidate
+          (: If the package is up-to-date, do nothing. :)
+          else ()
+  };
+  
+  declare %private function dpkg:get-updatable-candidates-from-rails($rails-packages as element()*) {
+    if ( $rails-packages/p[@class eq 'error'] ) then $rails-packages/p
+    else
+      for $railsPkg in $rails-packages[fn:map]
       let $dirName := $railsPkg/fn:string[@key eq 'dir_name']/text()
       let $branch := $railsPkg/fn:string[@key eq 'git_branch']/text()
       let $isSubmodule := exists($branch) and $branch ne ''
@@ -133,8 +169,7 @@ xquery version "3.1";
             }
             <git>
               {
-                if ( $isSubmodule ) then
-                  (
+                if ( $isSubmodule ) then (
                     attribute repo { $useRepo },
                     attribute branch { $branch },
                     attribute commit { dpkg:get-commit-at($useRepo, $useBranch, $gitTimeR) }
@@ -145,22 +180,7 @@ xquery version "3.1";
             </git>
           </package_ref>
         }
-      return
-        if ( $railsPkgs/p[@class eq 'error'] ) then
-          $railsPkgs
-        (: Flag for update the packages with no entry in the registry. :)
-        else if ( not($registryExists) or not(exists($registryPkg)) ) then
-          $makeEntry()
-        else 
-          (: Flag for update those packages where Rails' version has a newer git 
-            timestamp than eXist's version. :)
-          let $gitTimeE := $registryPkg/git/@timestamp/data(.)
-          return 
-            if ( $gitTimeE lt $gitTimeR ) then
-              $makeEntry()
-            (: If the package is up-to-date, do nothing. :)
-            else ()
-    return $upCandidates
+      return $makeEntry()
   };
   
   (: Determine if the current eXist user can write to the $dpkg:home-directory. :)
@@ -584,18 +604,20 @@ xquery version "3.1";
     eXist's. This gets around what seems to be a bug in the way eXist's HTTP client 
     resolves URLs that include port numbers. :)
   declare function dpkg:send-request($url as xs:anyURI) as item()* {
-    let $railsAPI := dpkg:get-rails-api-url()
-    let $railsHost := dpkg:get-rails-api-host()
-    let $headers :=
-      if ( $url eq $railsAPI and $railsHost ne '' ) then
-        <http:header name="Host" value="{$railsHost}"/>
+    let $reqConfig :=
+      if ( $url eq dpkg:get-rails-api-url() ) then
+        let $railsHost := dpkg:get-rails-api-host()
+        return
+          if ( $railsHost ne '' ) then
+            <http:header name="Host" value="{$railsHost}"/>
+          else ()
       else ()
+    (: The request will time out after 15 seconds. :)
     let $request :=
-      <http:request method="GET" href="{$url}">
-        { $headers }
+      <http:request method="GET" href="{$url}" timeout="15">
+        { $reqConfig }
       </http:request>
-    return
-      http:send-request($request, $url)
+    return http:send-request($request, $url)
   };
   
   (: Unzip an archive. If there is a single outermost directory, it is ignored in 
