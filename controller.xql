@@ -131,13 +131,18 @@ else if ( local:get-parent-dir() eq 'view-packages' and local:get-extension($exi
   </dispatch>
 (:
  : Run unit tests
- : exist/apps/tapas-xq/tests                     -> modules/get-package-configuration.xq
+ : exist/apps/tapas-xq/tests                    -> modules/test-runner.xq
+ : exist/apps/tapas-xq/test-runner              -> modules/test-runner.xq
  :)
 else if ( $exist:resource eq 'tests' ) then
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
     <forward url="{concat($exist:controller, '/modules/test-runner.xq')}" 
        method="{request:get-method()}">
     </forward>
+  </dispatch>
+else if ( $exist:resource eq 'test-runner' ) then
+  <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+    <redirect url="tests"/>
   </dispatch>
 (:
  : Get API documentation
