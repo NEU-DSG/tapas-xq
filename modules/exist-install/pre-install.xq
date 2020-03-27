@@ -127,6 +127,7 @@ xquery version "3.0";
   local:create-dir($storageDirBase,  $dataDir),
   (: Create the view package directory. :)
   local:create-dir($storageDirBase, $viewsDir),
-  (: Create a directory for the collection configuration file. :)
-  local:mkcol("/db/system/config", concat($storageDirBase,'/',$dataDir))
+  (: Create a directory for the collection configuration files. :)
+  local:mkcol("/db/system/config", concat($storageDirBase,'/',$dataDir)),
+  local:mkcol("/db/system/config", concat($storageDirBase,'/',$viewsDir))
 )

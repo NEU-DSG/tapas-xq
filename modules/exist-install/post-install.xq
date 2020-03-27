@@ -35,28 +35,14 @@ declare variable $moduleLoc := replace(system:get-module-load-path(),
    '^(xmldb:exist//)?(embedded-eXist-server)?(.+)$', '$3');
 
 (
-  (: Store the collection configuration for the data directory. :)
+  (: Store the collection configuration for the data and view package directories. :)
   let $inputPath := concat($moduleLoc,'/resources/collection.xconf')
-  let $targetPath := concat('/db/system/config',$storageDirBase,'/',$dataDir)
+  let $targetCollections := ( $dataDir, $viewsDir )
   return
-    xdb:store($targetPath, 'collection.xconf', doc($inputPath))
-  ,
-  (: Make sure that the data directory and all of its resources are writable by the 
-    "tapas" group. :)
-  for $projCollection in xdb:get-child-collections(concat($storageDirBase,'/',$dataDir))
-  let $projPath := concat($storageDirBase,'/',$dataDir,'/',$projCollection)
-  return (
-      sm:chmod(xs:anyURI($projPath), 'rwxrwxr-x'),
-      for $docCollection in xdb:get-child-collections($projPath)
-      let $docCollPath := concat($projPath,'/',$docCollection)
-      return (
-          sm:chmod(xs:anyURI($docCollPath), 'rwxrwxr-x'),
-          for $docName in xdb:get-child-resources($docCollPath)
-          let $docPath := concat($docCollPath,'/',$docName)
-          return
-            sm:chmod(xs:anyURI($docPath), 'rw-rw-r--')
-        )
-    )
+    for $targetColl in $targetCollections
+    let $targetPath := concat('/db/system/config',$storageDirBase,'/',$targetColl)
+    return
+      xdb:store($targetPath, 'collection.xconf', doc($inputPath))
   ,
   (: Store the environment.xml file. :)
   let $environmentFileName := 'environment.xml'
@@ -82,17 +68,38 @@ declare variable $moduleLoc := replace(system:get-module-load-path(),
       let $registryPath := concat($parentDir,'/',$registryName)
       let $warning := function () {
           util:log('warn',
-            "Could not initialize the TAPAS view packages collection. Try logging in as the TAPAS user and updating the view packages.")
+            "Could not initialize the TAPAS view packages collection. "
+            ||"Try logging in as the TAPAS user and updating the view packages.")
         }
       return
         if ( doc-available($registryPath) and doc($registryPath)[descendant::package_ref] ) then
           ()
         else
-          (: Try to log in as the 'tapas' user before initializing view packages. :)
+          (: Check the current user's write access before initializing view packages. :)
           if ( dpkg:has-write-access() ) then
             try { 
               dpkg:initialize-packages()
             } catch * { $warning() }
           else $warning()
     else () (: error :)
+  ,
+  (: Make sure that the data directory and all of its resources are writable by the 
+    "tapas" group. :)
+  for $dir in ( $dataDir, $viewsDir )
+  let $path := concat($storageDirBase,'/',$dataDir)
+  return
+    for $projCollection in xdb:get-child-collections($path)
+    let $projPath := concat($path,'/',$projCollection)
+    return (
+        sm:chmod(xs:anyURI($projPath), 'rwxrwxr-x'),
+        for $docCollection in xdb:get-child-collections($projPath)
+        let $docCollPath := concat($projPath,'/',$docCollection)
+        return (
+            sm:chmod(xs:anyURI($docCollPath), 'rwxrwxr-x'),
+            for $docName in xdb:get-child-resources($docCollPath)
+            let $docPath := concat($docCollPath,'/',$docName)
+            return
+              sm:chmod(xs:anyURI($docPath), 'rw-rw-r--')
+          )
+      )
 )
