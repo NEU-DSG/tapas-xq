@@ -5,7 +5,6 @@
   
   <dependency processor="http://exist-db.org" semver-min="4.0.0"/>
   <!-- EXPath package dependencies -->
-  <dependency package="http://exist-db.org/apps/shared"/>
   <dependency package="http://exist-db.org/apps/markdown" semver-min="0.4"/>
   <dependency package="http://www.functx.com"/>
 </package>
