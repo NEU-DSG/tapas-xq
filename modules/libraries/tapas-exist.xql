@@ -6,7 +6,6 @@ xquery version "3.1";
   
   import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
   import module namespace functx="http://www.functx.com";
-  import module namespace httpc="http://exist-db.org/xquery/httpclient";
   import module namespace map="http://www.w3.org/2005/xpath-functions/map";
   import module namespace md="http://exist-db.org/xquery/markdown";
   import module namespace request="http://exist-db.org/xquery/request";
@@ -123,7 +122,7 @@ xquery version "3.1";
   declare function txq:make-param-map($pkgID as xs:string) as map(*) {
     let $parameters := dpkg:get-configuration($pkgID)/vpkg:parameters
     return
-      map:new(
+      map:merge(
         for $param in $parameters/vpkg:parameter
         return map:entry($param/@name/data(.), $param/@as/data(.))
       )
@@ -166,9 +165,15 @@ xquery version "3.1";
     return
     if ( not($hasAccess) ) then (401, "Unauthorized")
     else
+      let $forEachEntry :=
+        let $mapNs := "http://www.w3.org/2005/xpath-functions/map"
+        let $forEach := function-lookup(QName($mapNs, 'map:for-each'), 2)
+        return
+          if ( exists($forEach) ) then $forEach
+          else function-lookup(QName($mapNs, 'map:for-each-entry'), 2)
       (: Test each parameter against a map with expected datatypes.:)
       let $badParams := 
-        map:new(
+        map:merge(
             for $param-name in map:keys($params)
             let $param-type := map:get($params, $param-name)
             let $testResult := txq:test-param($param-name, $param-type)
@@ -179,7 +184,7 @@ xquery version "3.1";
           )
       (: HTTP 400 errors occur when the API call is wrong in some way. :)
       let $all400s := 
-        map:for-each-entry($badParams, 
+        $forEachEntry($badParams, 
             function ($key, $value) {
               if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 400 ) then
                 $key
@@ -190,7 +195,7 @@ xquery version "3.1";
       (: HTTP 422 errors occur when the API call is correct, but part of the 
         request is not actionable. :)
       let $all422s := 
-        map:for-each-entry($badParams, 
+        $forEachEntry($badParams, 
             function ($key, $value) {
               if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 422 ) then
                 $key
