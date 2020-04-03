@@ -77,6 +77,17 @@ xquery version "3.1";
     txq:get-file-content(request:get-data())
   };
   
+  (: Clean data to get XML, replacing any instances of U+FEFF that might make 
+   : eXist consider the XML "invalid." :)
+  declare function txq:get-file-content($file) {
+    typeswitch($file)
+      case node() return $file
+      case xs:string return try { txq:get-file-content(parse-xml(replace($file, '﻿', ''))) }
+                            catch * { (422, "Provided file must be TEI-encoded XML") }
+      case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
+      default return (422, "Provided file must be TEI-encoded XML")
+  };
+  
   (: Get a request parameter. :)
   declare function txq:get-param($param-name as xs:string) {
     let $param := request:get-parameter($param-name, 400)
@@ -100,17 +111,6 @@ xquery version "3.1";
           if ( $isXML[1] instance of xs:integer ) then
             $isXML
           else $file
-  };
-  
-  (: Clean data to get XML, replacing any instances of U+FEFF that might make 
-   : eXist consider the XML "invalid." :)
-  declare function txq:get-file-content($file) {
-    typeswitch($file)
-      case node() return $file
-      case xs:string return try { txq:get-file-content(parse-xml(replace($file, '﻿', ''))) }
-                            catch * { (422, "Provided file must be TEI-encoded XML") }
-      case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
-      default return (422, "Provided file must be TEI-encoded XML")
   };
   
   (: Make sure the current user is logged out (by logging in as guest). :)
