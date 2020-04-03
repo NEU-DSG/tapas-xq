@@ -40,9 +40,9 @@ declare variable $contentType := "application/xml";
 
 let $projID := txq:get-param('proj-id')
 let $reqEstimate := if ( $projID eq '' or $projID eq '/' ) then
-                        (400, "Parameter 'proj-id' must be present for project deletion")
-                      else
-                        txq:test-request($method, $parameters, $successCode) 
+                      (400, "Parameter 'proj-id' must be present for project deletion")
+                    else
+                      txq:test-request($method, $parameters, $successCode)
 let $estimateCode := $reqEstimate[1]
 let $responseBody :=  if ( $estimateCode = $successCode ) then
                         let $delDir := concat("/db/tapas-data/",$projID)

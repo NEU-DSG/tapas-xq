@@ -60,7 +60,7 @@ let $responseBody :=  if ( $estimateCode = $successCode ) then
                           else ()
                         (: xmldb:store() returns the path to the new resource, 
                          : or, on failure, an empty sequence. :)
-                        let $isStored := xmldb:store($dataPath,concat($docID,".xml"),$teiXML)
+                        let $isStored := xmldb:store($dataPath, concat($docID,".xml"), $teiXML)
                         return 
                             if ( empty($isStored) ) then
                               (500, "The TEI file could not be stored; check user permissions")

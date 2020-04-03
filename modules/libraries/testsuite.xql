@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
   module namespace txqt="http://tapasproject.org/tapas-xq/testsuite";
   import module namespace test="http://exist-db.org/xquery/xqsuite" 
@@ -429,6 +429,7 @@ xquery version "3.0";
   };
   
   
+  
   (:  SUPPORT FUNCTIONS  :)
   
   (:~
@@ -526,7 +527,7 @@ xquery version "3.0";
       if ( $parts[self::default] ) then ()
       else $parts
     return
-      txqt:request-tfe-storage($txqt:endpoint?('delete-project'), $user, 
+      txqt:request-project-deletion($txqt:endpoint?('delete-project'), $user, 
         $password, $method, $body)
   };
   

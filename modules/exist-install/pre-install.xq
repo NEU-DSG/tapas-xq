@@ -1,8 +1,8 @@
 xquery version "3.0";
 
-declare namespace sm="http://exist-db.org/xquery/securitymanager";
-declare namespace util="http://exist-db.org/xquery/util";
-declare namespace xmldb="http://exist-db.org/xquery/xmldb";
+  declare namespace sm="http://exist-db.org/xquery/securitymanager";
+  declare namespace util="http://exist-db.org/xquery/util";
+  declare namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 
 (:~ Before installing the package, eXist will:
@@ -52,7 +52,7 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
         $currentPermissions/sm:permission/@owner != $owner 
         or $currentPermissions/sm:permission/@group != $owner
       }
-    let $dirMode := "rwxrwxr-x"
+    let $dirMode := "rwxrwxr-t"
     let $doChangeMode := function ($currentPermissions) as xs:boolean {
         $currentPermissions/sm:permission/@mode ne $dirMode
       }
@@ -73,7 +73,14 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
         else ()
         ,
         if ( $doChangeMode($permissions) ) then
-          let $chmod := sm:chmod($path, $dirMode)
+          (: 2020-03-06: there's a bug in eXist 4.7.1 where the string "rwxrwxr-t" errors 
+            out, but "+t" doesn't. The bug should be fixed after eXist v5.1.1. :)
+          let $chmod :=
+            try {
+              sm:chmod($path, $dirMode)
+            } catch Q{http://exist.sourceforge.net/NS/exist/java-binding}org.exist.security.PermissionDeniedException {
+              ( sm:chmod($path, "rwxrwxr-x"), sm:chmod($path, '+t') )
+            }
           return
             let $newPermissions := sm:get-permissions(xs:anyURI($path))
             return
@@ -120,6 +127,7 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
   local:create-dir($storageDirBase,  $dataDir),
   (: Create the view package directory. :)
   local:create-dir($storageDirBase, $viewsDir),
-  (: Create a directory for the collection configuration file. :)
-  local:mkcol("/db/system/config", concat($storageDirBase,'/',$dataDir))
+  (: Create a directory for the collection configuration files. :)
+  local:mkcol("/db/system/config", concat($storageDirBase,'/',$dataDir)),
+  local:mkcol("/db/system/config", concat($storageDirBase,'/',$viewsDir))
 )
