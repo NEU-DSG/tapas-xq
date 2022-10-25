@@ -2,6 +2,7 @@ xquery version "3.0";
 
 import module namespace test="http://exist-db.org/xquery/xqsuite" at "resource:org/exist/xquery/lib/xqsuite/xqsuite.xql";
 import module namespace inspect="http://exist-db.org/xquery/inspection";
+import module namespace http="http://expath.org/ns/http-client";
 
 (:~
  : @author Ashley M. Clark
