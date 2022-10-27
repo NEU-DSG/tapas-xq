@@ -9,6 +9,5 @@
   <type>application</type>
   <target>tapas-xq</target>
   <prepare>modules/exist-install/pre-install.xq</prepare>
-  <finish/>
-  <permissions user="admin" password="" group="tapas" mode="rwxrwxr--"/>
+  <permissions user="admin" password="" group="tapas" mode="rw-rw-r--"/>
 </meta>
