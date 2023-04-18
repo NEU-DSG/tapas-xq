@@ -80,7 +80,9 @@ declare variable $txq:home-dir :=
       else 
         (: If the parameter exists, run a validation check on the file. :)
         let $file := txq:get-file-content($value)
-        let $isXML := txq:validate($file)
+        let $isXML := 
+          try { txq:validate($file) }
+          catch * { (422, "Provided file must be well-formed XML") }
         return 
           if ( $isXML[1] instance of xs:integer ) then
             $isXML
@@ -104,7 +106,7 @@ declare variable $txq:home-dir :=
   };
   
   (: Check if the document is well-formed and valid TEI. :)
-  declare function txq:validate($document) {
+  declare function txq:validate($document as item()) {
     let $wellformednessReport := validate:jing-report($document, doc('../../resources/well-formed.rng'))
     return
       if ( $wellformednessReport//status/text() eq "valid" ) then
