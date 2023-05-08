@@ -7,11 +7,14 @@ xquery version "3.0";
   import module namespace cprs="http://exist-db.org/xquery/compression";
   import module namespace file="http://exist-db.org/xquery/file";
   import module namespace http="http://expath.org/ns/http-client";
-  import module namespace httpc="http://exist-db.org/xquery/httpclient";
   import module namespace sm="http://exist-db.org/xquery/securitymanager";
   import module namespace util="http://exist-db.org/xquery/util";
   import module namespace xdb="http://exist-db.org/xquery/xmldb";
   import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";
+  (: 2023-05-08: The eXist HTTP client was deprecated in eXist v4 and removed in v5.
+    While we don't use the functions, we still use the HTTPC format for responses in 
+    this library. :)
+  declare namespace httpc="http://exist-db.org/xquery/httpclient";
 
 (:~
  : This library contains functions for dynamically updating and maintaining the view 
@@ -409,10 +412,10 @@ xquery version "3.0";
           else $body/text()
         return 
           if ( $jsonStr ) then
-            let $pseudojson := xqjson:parse-json($jsonStr)
+            let $pseudojson := (:xqjson::)json-to-xml($jsonStr)
             return 
-              ( $pseudojson[@type eq 'object'] 
-              | $pseudojson/item[@type eq 'object'] )
+              ( $pseudojson[self::fn:map](:[@type eq 'object']:) 
+              | $pseudojson/fn:map(:/item[@type eq 'object']:) )[1]
           else <p>ERROR: No response</p> (: error :)
       else <p>ERROR: { $status }</p> (: error :)
   };
@@ -452,10 +455,13 @@ xquery version "3.0";
       let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
       return xs:anyURI(string-join($urlParts,'/'))
     let $response := dpkg:send-request($zipURL)
-    let $zipFilename := $response//httpc:header[@name eq 'Content-Disposition']/@value/substring-after(data(.),'filename=')
+    let $zipFilename := 
+      $response//httpc:header[@name eq 'Content-Disposition']
+                             /@value/substring-after(data(.), 'filename=')
     let $archivePath := 
       let $binary := xs:base64Binary($response//httpc:body/text())
-      return xdb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
+      return
+        xdb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
     let $unzipped := dpkg:unpack-zip-archive($archivePath, $dbPath)
     (: Identify any submodules; download and unpack their archives. :)
     let $submoduleDirs := dpkg:find-submodule-dirs($archivePath)
@@ -574,7 +580,7 @@ xquery version "3.0";
     let $railsAPI := dpkg:get-rails-api-url()
     let $railsHost := dpkg:get-rails-api-host()
     return
-      if ( $url eq $railsAPI and $railsHost ne '' ) then
+      (:if ( $url eq $railsAPI and $railsHost ne '' ) then:)
         let $request :=
           <http:request method="GET" href="{$url}">
             <http:header name="Host" value="{$railsHost}"/>
@@ -594,8 +600,8 @@ xquery version "3.0";
               }
             </httpc:body>
           </httpc:response>
-      else 
-        httpc:get($url, false(), <httpc:headers/>)
+      (:else 
+        httpc:get($url, false(), <httpc:headers/>):)
   };
   
   (: Unzip an archive. If there is a single outermost directory, it is ignored in 

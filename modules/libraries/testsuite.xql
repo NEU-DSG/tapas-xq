@@ -679,12 +679,11 @@ xquery version "3.0";
    :)
   declare function txqt:set-mods-formdata($file as xs:string, $title as xs:string?, 
      $authors as xs:string?, $contributors as xs:string?) as node()* {
-    let $optParams :=
-      map {
-          'title': $title,
-          'authors': $authors,
-          'contributors': $contributors
-        }
+    let $optParams := map {
+        'title': $title,
+        'authors': $authors,
+        'contributors': $contributors
+      }
     let $fileField := txqt:get-file($file)
     let $optFields :=
       for $paramName in ('title', 'authors', 'contributors')

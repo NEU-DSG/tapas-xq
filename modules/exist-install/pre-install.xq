@@ -6,14 +6,14 @@ declare namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 
 (:~ Before installing the package, eXist will:
- :  * create a user for the app (if none exists);
- :  * create 'tapas-data' and 'tapas-view-pkgs' directories for the app (if none exists); and
- :  * change the owner/group of 'tapas-data' and 'tapas-view-pkgs' (if it hasn't been done).
- : 
- : NOTE: When tapas-xq is installed on a web-accessible server, the user 
- : password should be changed afterward from the default used in $tempPass.
- : 
- : @author Ashley M. Clark
+    * create a user for the app (if none exists);
+    * create 'tapas-data' and 'tapas-view-pkgs' directories for the app (if none exists); and
+    * change the owner/group of 'tapas-data' and 'tapas-view-pkgs' (if it hasn't been done).
+   
+   NOTE: When tapas-xq is installed on a web-accessible server, the user 
+   password should be changed afterward from the default used in $tempPass.
+   
+   @author Ashley M. Clark
  :)
  
   declare variable $owner := "tapas";

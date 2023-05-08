@@ -129,17 +129,16 @@ declare variable $txq:home-dir :=
   };
   
   declare function txq:test-param($param-name as xs:string, $param-type as xs:string) {
-    let $paramVal :=  (: If the expected type is XML, then try to turn the param 
-                       : value into XML. :)
-                      if ( matches($param-type, 'node\(.*\)') ) then
-                        txq:get-param-xml($param-name)
-                      (: If the expected type is boolean, then try to turn the 
-                       : param value into a boolean. :)
-                      else if ( $param-type eq 'xs:boolean'
-                                and txq:get-param($param-name) castable as xs:boolean ) then
-                          txq:get-param($param-name) cast as xs:boolean
-                      (: Otherwise, just get the param value. :)
-                      else txq:get-param($param-name)
+    let $paramVal :=  
+      (: If the expected type is XML, then try to turn the param value into XML. :)
+      if ( matches($param-type, 'node\(.*\)') ) then
+        txq:get-param-xml($param-name)
+      (: If the expected type is boolean, then try to turn the param value into a boolean. :)
+      else if ( $param-type eq 'xs:boolean'
+                and txq:get-param($param-name) castable as xs:boolean ) then
+          txq:get-param($param-name) cast as xs:boolean
+      (: Otherwise, just get the param value. :)
+      else txq:get-param($param-name)
     (: Get the datatype of the param value. :)
     let $valType := functx:atomic-type($paramVal) 
     (: Check to make sure the datatype is correct :)
@@ -147,7 +146,7 @@ declare variable $txq:home-dir :=
       if ( count($paramVal) eq 2 and $paramVal[1] instance of xs:integer ) then
         $paramVal
       (: Return nothing if the atomic type is as expected, or if the parameter 
-       : value is valid XML (invalid XML should be caught by the test above). :)
+        value is valid XML (invalid XML should be caught by the test above). :)
       else if ( $valType eq $param-type or matches($param-type, 'node\(.*\)') ) then
         ()
       else 
