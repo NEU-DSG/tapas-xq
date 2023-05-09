@@ -4,6 +4,7 @@ xquery version "3.0";
   import module namespace test="http://exist-db.org/xquery/xqsuite" 
     at "resource:org/exist/xquery/lib/xqsuite/xqsuite.xql";
   import module namespace http="http://expath.org/ns/http-client";
+  import module namespace xmldb="http://exist-db.org/xquery/xmldb";
   
   declare namespace tei="http://www.tei-c.org/ns/1.0";
   declare namespace mods="http://www.loc.gov/mods/v3";
@@ -18,6 +19,9 @@ xquery version "3.0";
   
   @author Ashley M. Clark
   @version 1.0
+  
+  2023-05-08: Include a base URL component in $txqt:host, since the EXPath HTTP Client 
+    requires it.
  :)
 
   declare variable $txqt:exreq := doc('../../resources/testdocs/exhttpSkeleton.xml');
@@ -680,10 +684,10 @@ xquery version "3.0";
   declare function txqt:set-mods-formdata($file as xs:string, $title as xs:string?, 
      $authors as xs:string?, $contributors as xs:string?) as node()* {
     let $optParams := map {
-        'title': $title,
-        'authors': $authors,
-        'contributors': $contributors
-      }
+          'title': $title,
+          'authors': $authors,
+          'contributors': $contributors
+        }
     let $fileField := txqt:get-file($file)
     let $optFields :=
       for $paramName in ('title', 'authors', 'contributors')

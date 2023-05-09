@@ -10,6 +10,11 @@ element environ {
   ## 'development-local', 'development-staging', and 'production'.
   attribute type { 'development-local' | 'development-staging' | 'production' },
   
+  ## The hostname for the eXist-DB service. Used for the test suite.
+  element existHostname {
+    xs:anyURI?
+  }?,
+  
   ## The base URL for eXist to communicate with an instance of Rails.
   element railsBaseURI {
     ## The host and port number of the base URL, if the base URL won't work 

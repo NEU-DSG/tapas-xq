@@ -1,7 +1,7 @@
 xquery version "1.0";
 
-import module namespace md="http://exist-db.org/xquery/markdown";
-import module namespace request="http://exist-db.org/xquery/request";
+  import module namespace md="http://exist-db.org/xquery/markdown";
+  import module namespace request="http://exist-db.org/xquery/request";
 
 (:~
   TAPAS-xq routing

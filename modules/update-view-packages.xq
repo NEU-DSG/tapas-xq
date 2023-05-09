@@ -3,26 +3,29 @@ xquery version "3.0";
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
-import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "libraries/view-pkgs.xql";
-import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "libraries/general-functions.xql";
-import module namespace txq="http://tapasproject.org/tapas-xq/exist" at "libraries/tapas-exist.xql";
+import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs"
+  at "libraries/view-pkgs.xql";
+import module namespace tgen="http://tapasproject.org/tapas-xq/general"
+  at "libraries/general-functions.xql";
+import module namespace txq="http://tapasproject.org/tapas-xq/exist"
+  at "libraries/tapas-exist.xql";
 
 (:~
- : `POST exist/apps/tapas-xq/view-packages/update` 
- : Update the view packages stored in eXist, and the registry of those packages.
- : 
- : Returns status code 200.
- : 
- : <ul>
- :  <lh>Request Expectations</lh>
- :  <li>Method: POST</li>
- :  <li>Content-Type: multipart/form-data</li>
- : </ul>
- :
- : @return XHTML
- : 
- : @author Ashley M. Clark
- : @version 1.0
+  `POST exist/apps/tapas-xq/view-packages/update` 
+  Update the view packages stored in eXist, and the registry of those packages.
+  
+  Returns status code 200.
+  
+  <ul>
+   <lh>Request Expectations</lh>
+   <li>Method: POST</li>
+   <li>Content-Type: multipart/form-data</li>
+  </ul>
+ 
+  @return XHTML
+  
+  @author Ashley M. Clark
+  @version 1.0
  :)
 
 (:  VARIABLES  :)

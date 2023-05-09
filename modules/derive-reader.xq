@@ -72,7 +72,10 @@ return
       listed above, as well as any parameters defined in the package config file. 
       At this point, the package type has already been tested, so it is removed from 
       the map. :)
-    let $testParams := map:new((map:remove($parameters,'type'), txq:make-param-map($viewType)))
+    let $testParams := map:merge( (
+        map:remove($parameters,'type'), 
+        txq:make-param-map($viewType)
+      ) )
     let $reqEstimate := txq:test-request($method, $testParams, $successCode)
     let $estimateCode := $reqEstimate[1]
     let $runStmt := dpkg:get-run-stmt($viewType)

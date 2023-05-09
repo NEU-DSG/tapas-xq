@@ -75,8 +75,8 @@ declare variable $moduleLoc := replace(system:get-module-load-path(),
               return true()
             else false()
         else false()
-  return
-    if ( $environmentSet ) then
+  return ()
+    (:if ( $environmentSet ) then
       let $parentDir := concat($storageDirBase,'/',$viewsDir)
       let $registryName := 'registry.xml'
       let $registryPath := concat($parentDir,'/',$registryName)
@@ -84,10 +84,10 @@ declare variable $moduleLoc := replace(system:get-module-load-path(),
         if ( doc-available($registryPath) and doc($registryPath)[descendant::package_ref] ) then
           ()
         else
-          (: Try to log in as the 'tapas' user before initializing view packages. :)
+          (\: Try to log in as the 'tapas' user before initializing view packages. :\)
           if ( xdb:login($parentDir, $owner, $owner) ) then
             dpkg:initialize-packages()
           else
             util:log('warn','Could not initialize the TAPAS view packages collection. Try logging in as the TAPAS user and updating the view packages.')
-    else () (: error :)
+    else () (\: error :\):)
 )

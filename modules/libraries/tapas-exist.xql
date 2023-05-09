@@ -1,22 +1,23 @@
 xquery version "3.0";
 
-module namespace txq="http://tapasproject.org/tapas-xq/exist";
-declare namespace tei="http://www.tei-c.org/ns/1.0";
-declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
-
-import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "view-pkgs.xql";
-import module namespace functx="http://www.functx.com";
-import module namespace httpc="http://exist-db.org/xquery/httpclient";
-import module namespace map="http://www.w3.org/2005/xpath-functions/map";
-import module namespace md="http://exist-db.org/xquery/markdown";
-import module namespace request="http://exist-db.org/xquery/request";
-import module namespace response="http://exist-db.org/xquery/response";
-import module namespace sm="http://exist-db.org/xquery/securitymanager";
-import module namespace tgen="http://tapasproject.org/tapas-xq/general" at "general-functions.xql";
-import module namespace transform="http://exist-db.org/xquery/transform";
-import module namespace util="http://exist-db.org/xquery/util";
-import module namespace validate="http://exist-db.org/xquery/validation";
-import module namespace xmldb="http://exist-db.org/xquery/xmldb";
+  module namespace txq="http://tapasproject.org/tapas-xq/exist";
+  declare namespace tei="http://www.tei-c.org/ns/1.0";
+  declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
+  
+  import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" 
+    at "view-pkgs.xql";
+  import module namespace functx="http://www.functx.com";
+  import module namespace map="http://www.w3.org/2005/xpath-functions/map";
+  import module namespace md="http://exist-db.org/xquery/markdown";
+  import module namespace request="http://exist-db.org/xquery/request";
+  import module namespace response="http://exist-db.org/xquery/response";
+  import module namespace sm="http://exist-db.org/xquery/securitymanager";
+  import module namespace tgen="http://tapasproject.org/tapas-xq/general" 
+    at "general-functions.xql";
+  import module namespace transform="http://exist-db.org/xquery/transform";
+  import module namespace util="http://exist-db.org/xquery/util";
+  import module namespace validate="http://exist-db.org/xquery/validation";
+  import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 (:~
   This library contains functions for carrying out requests in eXist-db. It 
@@ -56,7 +57,7 @@ declare variable $txq:home-dir :=
   declare function txq:make-param-map($pkgID as xs:string) as map(*) {
     let $parameters := dpkg:get-configuration($pkgID)/vpkg:parameters
     return
-      map:new(
+      map:merge(
         for $param in $parameters/vpkg:parameter
         return map:entry($param/@name/data(.), $param/@as/data(.))
       )
@@ -166,7 +167,7 @@ declare variable $txq:home-dir :=
     else
       (: Test each parameter against a map with expected datatypes.:)
       let $badParams := 
-        map:new(
+        map:merge(
             for $param-name in map:keys($params)
             let $param-type := map:get($params, $param-name)
             let $testResult := txq:test-param($param-name, $param-type)
@@ -177,7 +178,7 @@ declare variable $txq:home-dir :=
           )
       (: HTTP 400 errors occur when the API call is wrong in some way. :)
       let $all400s := 
-        map:for-each-entry($badParams, 
+        map:for-each($badParams, 
             function ($key, $value) {
               if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 400 ) then
                 $key
@@ -188,7 +189,7 @@ declare variable $txq:home-dir :=
       (: HTTP 422 errors occur when the API call is correct, but part of the 
         request is not actionable. :)
       let $all422s := 
-        map:for-each-entry($badParams, 
+        map:for-each($badParams, 
             function ($key, $value) {
               if ( $value[1] castable as xs:integer and xs:integer($value[1]) = 422 ) then
                 $key
