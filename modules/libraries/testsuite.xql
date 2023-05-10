@@ -25,7 +25,13 @@ xquery version "3.0";
  :)
 
   declare variable $txqt:exreq := doc('../../resources/testdocs/exhttpSkeleton.xml');
-  declare variable $txqt:host := $txqt:exreq//@href;
+  declare variable $txqt:host := 
+    concat(
+      if ( doc-available('/db/environment.xml') ) then
+        concat(doc('/db/environment.xml')//existHostname, '/')
+      else ()
+      ,
+      $txqt:exreq//@href);
   declare variable $txqt:testFile := doc('../../resources/testdocs/sampleTEI.xml');
   declare variable $txqt:testData := 
     map {
@@ -181,7 +187,7 @@ xquery version "3.0";
   };
   
   declare
-    %test:name("Derive XHTML")
+    %test:name("Derive XHTML: Alert to poorly-constructed requests")
     %test:args('GET', 'false', 'tapas-generic', '/exist/rest/db/view-packages/')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '405'")
@@ -464,7 +470,7 @@ xquery version "3.0";
     Create an HTTP request for deleting a TEI document and its derivatives. This 
     version assumes that the project and document identifiers are the default ones.
    :)
-  declare function txqt:request-doc-deletion($user as xs:string, $password as 
+  declare %private function txqt:request-doc-deletion($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-doc-deletion($txqt:endpoint?('delete-document'), $user, $password, 
       $method, $parts)
@@ -474,7 +480,7 @@ xquery version "3.0";
     Create an HTTP request for deleting a TEI document and its derivatives. This 
     version can receive a customized URL.
    :)
-  declare function txqt:request-doc-deletion($endpoint as xs:anyURI, $user as 
+  declare %private function txqt:request-doc-deletion($endpoint as xs:anyURI, $user as 
      xs:string, $password as xs:string, $method as xs:string, $parts as node()*) {
     let $body :=
       if ( $parts[self::default] ) then ()
@@ -486,7 +492,7 @@ xquery version "3.0";
   (:~
     Create an HTTP request for deriving MODS metadata from a given TEI file.
    :)
-  declare function txqt:request-mods-derivative($user as xs:string, $password as 
+  declare %private function txqt:request-mods-derivative($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-mods-generic($txqt:endpoint?('derive-mods'), $user, $password, 
       $method, $parts)
@@ -496,7 +502,7 @@ xquery version "3.0";
     Create an HTTP request for obtaining MODS from a TEI file. This is a generic 
     function that can be used for either the "derive" or "store" endpoints.
    :)
-  declare function txqt:request-mods-generic($endpoint as xs:anyURI, $user as 
+  declare %private function txqt:request-mods-generic($endpoint as xs:anyURI, $user as 
      xs:string, $password as xs:string, $method as xs:string, $parts as node()*) 
      as node() {
     let $multipart :=
@@ -513,7 +519,7 @@ xquery version "3.0";
     Create an HTTP request for creating and storing MODS metadata from a 
     previously-stored TEI file.
    :)
-  declare function txqt:request-mods-storage($user as xs:string, $password as 
+  declare %private function txqt:request-mods-storage($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-mods-generic($txqt:endpoint?('store-mods'), $user, $password, 
       $method, $parts)
@@ -524,7 +530,7 @@ xquery version "3.0";
     within it. This version assumes that the project and document identifiers 
     are the default ones.
    :)
-  declare function txqt:request-project-deletion($user as xs:string, $password as 
+  declare %private function txqt:request-project-deletion($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     let $body :=
       if ( $parts[self::default] ) then ()
@@ -538,7 +544,7 @@ xquery version "3.0";
     Create an HTTP request for deleting a project collection, and all files 
     within it. This version can receive a customized URL.
    :)
-  declare function txqt:request-project-deletion($endpoint as xs:anyURI, $user as 
+  declare %private function txqt:request-project-deletion($endpoint as xs:anyURI, $user as 
      xs:string, $password as xs:string, $method as xs:string, $parts as node()*) {
     let $body :=
       if ( $parts[self::default] ) then ()
@@ -550,7 +556,7 @@ xquery version "3.0";
   (:~
     Create an HTTP request for storing a given TEI document.
    :)
-  declare function txqt:request-tei-storage($user as xs:string, $password as 
+  declare %private function txqt:request-tei-storage($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     let $body :=
       if ( $parts[self::default] ) then
@@ -566,7 +572,7 @@ xquery version "3.0";
     metadata) for a previously-stored TEI file. This version assumes that the 
     project and document identifiers are the default ones.
    :)
-  declare function txqt:request-tfe-storage($user as xs:string, $password as 
+  declare %private function txqt:request-tfe-storage($user as xs:string, $password as 
      xs:string, $method as xs:string, $parts as node()*) {
     txqt:request-tfe-storage($txqt:endpoint?('store-tfe'), $user, $password, 
       $method, $parts)
@@ -577,7 +583,7 @@ xquery version "3.0";
     metadata) for a previously-stored TEI file. This version can receive a 
     customized URL.
    :)
-  declare function txqt:request-tfe-storage($endpoint as xs:anyURI, $user as 
+  declare %private function txqt:request-tfe-storage($endpoint as xs:anyURI, $user as 
      xs:string, $password as xs:string, $method as xs:string, $parts as node()*) {
     let $useParts :=
       if ( $parts[self::default] ) then (
@@ -681,7 +687,7 @@ xquery version "3.0";
     Create form data for use when creating MODS. The form data simulates the fields 
     required by TAPAS: TAPAS author(s), TAPAS contributor(s), and TAPAS title.
    :)
-  declare function txqt:set-mods-formdata($file as xs:string, $title as xs:string?, 
+  declare %private function txqt:set-mods-formdata($file as xs:string, $title as xs:string?, 
      $authors as xs:string?, $contributors as xs:string?) as node()* {
     let $optParams := map {
           'title': $title,
