@@ -26,45 +26,42 @@ xquery version "3.0";
 
   declare variable $txqt:exreq := doc('../../resources/testdocs/exhttpSkeleton.xml');
   declare variable $txqt:host := 
-    concat(
-      if ( doc-available('/db/environment.xml') ) then
-        concat(doc('/db/environment.xml')//existHostname, '/')
+    let $envFile := '/db/environment.xml'
+    let $envHost :=
+      if ( doc-available($envFile) and exists(doc($envFile)//existHostname) ) then
+        concat(doc($envFile)//existHostname, '/')
       else ()
-      ,
-      $txqt:exreq//@href);
+    return concat($envHost,$txqt:exreq//@href);
   declare variable $txqt:testFile := doc('../../resources/testdocs/sampleTEI.xml');
-  declare variable $txqt:testData := 
-    map {
-        'formData': (
-            txqt:set-http-header("Content-Disposition",' form-data; name="file"'),
-            txqt:set-http-body("application/xml", "xml", $txqt:testFile)
-          ),
-        'docId': 'testDoc01',
-        'projId': 'testProj01',
-        'collections': "testing,public-collection",
-        'isPublic': 'true',
-        'defaultPkg': 'tapas-generic',
-        'assetsBase': '/exist/rest/db/view-packages'
-      };
-  declare variable $txqt:user :=
-    map {
-        'name': 'tapas-tester',
-        'password': 'freesample'
-      };
-  declare variable $txqt:endpoint :=
-    map {
-        'derive-mods': xs:anyURI(concat($txqt:host,"/derive-mods")),
-        'derive-reader': xs:anyURI(concat($txqt:host,"/derive-reader")),
-        'store-tei': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
-          $txqt:testData?('docId'),"/tei")),
-        'store-mods': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
-          $txqt:testData?('docId'),"/mods")),
-        'store-tfe': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
-          $txqt:testData?('docId'),"/tfe")),
-        'delete-project': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'))),
-        'delete-document': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
-          $txqt:testData?('docId')))
-      };
+  declare variable $txqt:testData := map {
+      'formData': (
+          txqt:set-http-header("Content-Disposition",' form-data; name="file"'),
+          txqt:set-http-body("application/xml", "xml", $txqt:testFile)
+        ),
+      'docId': 'testDoc01',
+      'projId': 'testProj01',
+      'collections': "testing,public-collection",
+      'isPublic': 'true',
+      'defaultPkg': 'tapas-generic',
+      'assetsBase': '/exist/rest/db/view-packages'
+    };
+  declare variable $txqt:user := map {
+      'name': 'tapas-tester',
+      'password': 'freesample'
+    };
+  declare variable $txqt:endpoint := map {
+      'derive-mods': xs:anyURI(concat($txqt:host,"/derive-mods")),
+      'derive-reader': xs:anyURI(concat($txqt:host,"/derive-reader")),
+      'store-tei': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
+        $txqt:testData?('docId'),"/tei")),
+      'store-mods': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
+        $txqt:testData?('docId'),"/mods")),
+      'store-tfe': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
+        $txqt:testData?('docId'),"/tfe")),
+      'delete-project': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'))),
+      'delete-document': xs:anyURI(concat($txqt:host,'/',$txqt:testData?('projId'),'/',
+        $txqt:testData?('docId')))
+    };
 
 
 (:  FUNCTIONS  :)
@@ -94,7 +91,7 @@ xquery version "3.0";
   };:)
   
   declare
-    %test:name("Authentication checks")
+    %test:name("No user can use the API without permission.")
     %test:args('delete-document', 'faker', 'faker')
       %test:assertExists
       %test:assertXPath("$result[1]/@status eq '401'")
@@ -325,8 +322,7 @@ xquery version "3.0";
     let $request :=
       txqt:request-mods-storage($txqt:user?('name'), $txqt:user?('password'), 
         $method, $reqParts)
-    return
-      http:send-request($request)
+    return http:send-request($request)
   };
   
   declare
@@ -394,8 +390,7 @@ xquery version "3.0";
     let $request :=
       txqt:request-tfe-storage($customUrl, $txqt:user?('name'), 
         $txqt:user?('password'), $method, ($reqCollections, $reqPublicFlag))
-    return
-      http:send-request($request)
+    return http:send-request($request)
   };
   
   declare
@@ -414,8 +409,7 @@ xquery version "3.0";
     let $request :=
       txqt:request-doc-deletion($endpoint, $txqt:user?('name'), $txqt:user?('password'), $method,
         ())
-    return
-      http:send-request($request)
+    return http:send-request($request)
   };
   
   declare
@@ -434,8 +428,7 @@ xquery version "3.0";
     let $request :=
       txqt:request-project-deletion($endpoint, $txqt:user?('name'), 
         $txqt:user?('password'), $method, ())
-    return
-      http:send-request($request)
+    return http:send-request($request)
   };
   
   
