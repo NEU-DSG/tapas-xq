@@ -12,7 +12,7 @@ element environ {
   
   ## The hostname for the eXist-DB service. Used for the test suite.
   element existHostname {
-    xs:anyURI?
+    xs:anyURI
   }?,
   
   ## The base URL for eXist to communicate with an instance of Rails.

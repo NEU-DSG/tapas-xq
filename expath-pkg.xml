@@ -8,5 +8,4 @@
   <dependency package="http://exist-db.org/apps/shared"/>
   <dependency package="http://exist-db.org/apps/markdown"/>
   <dependency package="http://www.functx.com"/>
-  <dependency package="http://xqilla.sourceforge.net/pkg/xqjson"/>
 </package>

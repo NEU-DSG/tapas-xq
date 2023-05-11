@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
   module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs";
   (: 2023-05-08: The eXist HTTP client was deprecated in eXist v4 and removed in v5.
@@ -100,7 +100,8 @@ xquery version "3.0";
     XML database. Git commit timestamps are used for comparison. :)
   declare function dpkg:get-updatable() as item()* {
     let $railsPkgs := dpkg:get-rails-packages()
-    let $registryExists := doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
+    let $registryExists := 
+      doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
     let $upCandidates :=
       for $railsPkg in $railsPkgs
       let $dirName := $railsPkg/pair[@name eq 'dir_name']/text()
@@ -182,17 +183,17 @@ xquery version "3.0";
         let $urlParts := ( $dpkg:github-api-base, $dpkg:github-vpkg-repo, 
                             'branches', $defaultBranch )
         let $branchURL := string-join($urlParts,'/')
-        let $responseObj := dpkg:get-json-objects($branchURL)/pair[@name eq 'commit']
+        let $responseObj := dpkg:get-json-objects($branchURL)/*[@key eq 'commit']
         return
           <git repo="{$dpkg:github-vpkg-repo}" branch="{$defaultBranch}"
-            commit="{$responseObj/pair[@name eq 'sha']/text()}"
-            timestamp="{$responseObj/pair[@name eq 'commit']/pair[@name eq 'author']
-                        /pair[@name eq 'date']/text()}"/>
+            commit="{$responseObj/*[@key eq 'sha']/text()}"
+            timestamp="{$responseObj/*[@key eq 'commit']/*[@key eq 'author']
+                        /*[@key eq 'date']/text()}"/>
       (: Get the current commit on the default branch. :)
       let $vpkgCommit := $vpkgGitInfo/@commit/data(.)
       (: Get a ZIP archive of $dpkg:github-vpkg-repo, and unpack it into 
         $dpkg:home-directory. This process also obtains and unpacks any git submodules. :)
-      let $mainRepo := 
+      let $mainRepo :=
         dpkg:get-repo-archive($dpkg:github-vpkg-repo, $dpkg:home-directory, $vpkgCommit)
       (: Create the view package registry. :)
       let $registry := 
@@ -216,9 +217,14 @@ xquery version "3.0";
               </package_ref>
           }
         </view_registry>
-      return xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
+      return 
+        if ( exists($vpkgCommit) ) then
+          xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
+        else error(QName("http://tapasproject.org/tapas-xq/view-pkgs/err", 'VpkgInit'),
+          "Could not find a commit in GitHub API response.")
     else
-      () (: error :)
+      error(QName("http://tapasproject.org/tapas-xq/view-pkgs/err", 'VpkgUser'),
+        "This action must be completed by the 'tapas' user.") (: error :)
   };
   
   (: Determine if an identifier matches that of a valid view package. :)
@@ -240,7 +246,8 @@ xquery version "3.0";
             for $pkg in $toUpdate/descendant-or-self::package_ref[@submodule/data(.) eq 'true']
             let $pkgID := $pkg/@name/data(.)
             return dpkg:update-submodule($pkg)
-          let $repoPkgs := $toUpdate/descendant-or-self::package_ref[not(@submodule) or @submodule/data(.) eq 'false']
+          let $repoPkgs := 
+            $toUpdate/descendant-or-self::package_ref[not(@submodule) or @submodule/data(.) eq 'false']
           let $vpkgRepo :=
             (: All view packages entirely housed within $dpkg:github-vpkg-repo should have 
               the same Rails timestamp (and thus, the same commit SHA). If they don't, 
@@ -359,10 +366,10 @@ xquery version "3.0";
   
   (: Download a file using data from GitHub's 'Compare Commits' API. :)
   declare %private function dpkg:get-file-from-github($jsonObj as node(), $pathBase as xs:string) {
-    let $relPath := $jsonObj/pair[@name eq 'filename']/text()
+    let $relPath := $jsonObj/*[@key eq 'filename']/text()
     let $filename := tokenize($relPath,'/')[last()]
     let $folder := concat($pathBase, '/', substring-before($relPath,concat('/',$filename)))
-    let $downloadURL := $jsonObj/pair[@name eq 'raw_url']/text()
+    let $downloadURL := $jsonObj/*[@key eq 'raw_url']/text()
     return
       if ( exists(dpkg:make-directories($folder)) ) then
         if ( exists($downloadURL) ) then
@@ -436,7 +443,8 @@ xquery version "3.0";
   };
   
   (: Get and unpack an archive of the contents of a GitHub repository. :)
-  declare %private function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, $branch as xs:string) {
+  declare %private function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, 
+     $branch as xs:string) {
     let $zipURL := 
       let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
       return xs:anyURI(string-join($urlParts,'/'))
@@ -463,7 +471,8 @@ xquery version "3.0";
         if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry/git/@commit/data(.)) ) then
           $updateEntry/git/@commit/data(.)
         (: If the submodule is not a view package, use the commit referenced by GitHub. :)
-        else dpkg:call-github-contents-api($repoID,$repoPath,$branch)/pair[@name eq 'sha']/text()
+        else 
+          dpkg:call-github-contents-api($repoID,$repoPath,$branch)/*[@key eq 'sha']/data(.)
       return 
         if ( contains($subRepo,' ') ) then ()
         else 
@@ -488,7 +497,7 @@ xquery version "3.0";
   declare %private function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:string, 
      $branch as xs:string) as xs:string {
     let $submoduleObj := dpkg:call-github-contents-api($repoID, $repoPath, $branch)
-    let $gitURL := $submoduleObj/pair[@name eq 'git_url']/text()
+    let $gitURL := $submoduleObj/*[@key eq 'git_url']/text()
     return
       if ( exists($gitURL) ) then 
         let $baseless := substring-after($gitURL,concat($dpkg:github-api-base,'/'))
@@ -519,9 +528,10 @@ xquery version "3.0";
   (: Get a list of all files changed between commits in a given GitHub repository. :)
   declare %private function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, 
      $newCommit as xs:string) {
-    let $urlParts := ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
+    let $urlParts := 
+      ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
     let $url := string-join($urlParts,'/')
-    return dpkg:get-json-objects($url)/pair[@name eq 'files']/item[@type eq 'object']
+    return dpkg:get-json-objects($url)/*[@key eq 'files']/*[@key eq 'object']
   };
   
   (: Create all missing directories from an absolute path. :)
@@ -557,29 +567,29 @@ xquery version "3.0";
   declare %private function dpkg:send-request($url as xs:anyURI) as item()? {
     let $railsAPI := dpkg:get-rails-api-url()
     let $railsHost := dpkg:get-rails-api-host()
-    return
-      (:if ( $url eq $railsAPI and $railsHost ne '' ) then:)
-        let $request :=
-          <http:request method="GET" href="{$url}">
-            <http:header name="Host" value="{$railsHost}"/>
-          </http:request>
-        let $response := http:send-request($request, $url)
-        return 
-          (: Create a fake eXist-HTTPclient response for the EXPath HTTP client response
-            (thus saving the need to handle two formats elsewhere). :)
-          <httpc:response statusCode="{$response[1]/@status/data(.)}">
-            <httpc:headers/>
-            <httpc:body>
-              { $response[1]/http:body/@* }
-              {
-                typeswitch ($response[2])
-                  case xs:base64Binary return util:base64-decode($response[2])
-                  default return $response[2]
-              }
-            </httpc:body>
-          </httpc:response>
-      (:else 
-        httpc:get($url, false(), <httpc:headers/>):)
+    let $request :=
+      <http:request method="GET" href="{$url}">{ 
+        if ( $url eq $railsAPI and $railsHost ne '' ) then
+          <http:header name="Host" value="{$railsHost}"/>
+        else if ( contains($url, 'api.github.com') and not(contains($url, 'zipball')) ) then
+          <http:header name="Accept" value="application/vnd.github+json"/>
+        else ()
+      }</http:request>
+    let $response := http:send-request($request, $url)
+    return 
+      (: Create a fake eXist-HTTPclient response for the EXPath HTTP client response
+        (thus saving the need to handle two formats elsewhere). :)
+      <httpc:response statusCode="{$response[1]/@status/data(.)}">
+        <httpc:headers/>
+        <httpc:body>
+          { $response[1]/http:body/@* }
+          {
+            typeswitch ($response[2])
+              case xs:base64Binary return util:base64-decode($response[2])
+              default return $response[2]
+          }
+        </httpc:body>
+      </httpc:response>
   };
   
   (: Unzip an archive. If there is a single outermost directory, it is ignored in 
@@ -624,23 +634,20 @@ xquery version "3.0";
   };
   
   (: Update a list of files from a 'Compare Commits' API response from GitHub. :)
-  declare 
-    %private
-  function dpkg:update-files($targetDir as xs:string, $fileList as node()*) as xs:string* {
+  declare %private function dpkg:update-files($targetDir as xs:string, $fileList as node()*) 
+     as xs:string* {
     for $fileRef in $fileList
-    let $status := $fileRef/pair[@name eq 'status']/text()
+    let $status := $fileRef/*[@key eq 'status']/text()
     return
       if ( $status eq 'added' or $status eq 'modified' ) then
-        if ( $fileRef/pair[@name eq 'raw_url']/@type/data(.) ne 'null' ) then
+        if ( $fileRef/*[@key eq 'raw_url']/local-name(.) ne 'null' ) then
           dpkg:get-file-from-github($fileRef, $targetDir)
-        else () (: XD: download submodule :)
-      else () (: XD: delete files from eXist :)
+        else () (: TODO: download submodule :)
+      else () (: TODO: delete files from eXist :)
   };
   
   (: Update $dpkg:home-directory using the $dpkg:github-vpkg-repo. :)
-  declare 
-    %private
-  function dpkg:update-package-repo($timestamp as xs:string) {
+  declare %private function dpkg:update-package-repo($timestamp as xs:string) {
     let $defaultBranch := dpkg:get-default-git-branch()
     let $newCommit := dpkg:get-commit-at($dpkg:github-vpkg-repo, $defaultBranch, $timestamp)
     (: Get a list of files changed since the last time the registry was updated. :)
