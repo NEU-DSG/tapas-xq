@@ -1,20 +1,20 @@
 xquery version "3.1";
 
   module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs";
+(:  NAMESPACES  :)
   (: 2023-05-08: The eXist HTTP client was deprecated in eXist v4 and removed in v5.
     While we don't use the functions, we still use the HTTPC format for responses in 
     this library. :)
   declare namespace httpc="http://exist-db.org/xquery/httpclient";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
-
+(:  LIBRARIES  :)
   import module namespace cprs="http://exist-db.org/xquery/compression";
   import module namespace file="http://exist-db.org/xquery/file";
   import module namespace http="http://expath.org/ns/http-client";
   import module namespace sm="http://exist-db.org/xquery/securitymanager";
   import module namespace util="http://exist-db.org/xquery/util";
   import module namespace xdb="http://exist-db.org/xquery/xmldb";
-  (:import module namespace xqjson="http://xqilla.sourceforge.net/lib/xqjson";:)
   import module namespace zip="http://expath.org/ns/zip";
 
 (:~
@@ -24,6 +24,9 @@ xquery version "3.1";
   @author Ashley M. Clark
   @version 1.2
   
+  2023-05-17: Started filling in missing `error()` messages. Changed $dpkg:default-rails-api
+    from "http://railsapi.tapas.neu.edu/api/view_packages" to 
+    "https://railsapi.tapasproject.org/api/view_packages".
   2023-05-08: Removed xqjson:parse-json() in favor of fn:json-to-xml(). Changed 
     dpkg:send-request() to use the EXPath HTTP client every time, but kept eXist's HTTP 
     client response format.
@@ -40,7 +43,7 @@ xquery version "3.1";
 (:  VARIABLES  :)
 
   declare variable $dpkg:default-rails-api := 
-    'http://railsapi.tapas.neu.edu/api/view_packages';
+    'https://railsapi.tapasproject.org/api/view_packages';
   declare variable $dpkg:environment-defaults := '/db/environment.xml';
   declare variable $dpkg:github-api-base := 'https://api.github.com/repos';
   declare variable $dpkg:github-raw-base := 'https://raw.githubusercontent.com';
@@ -57,9 +60,10 @@ xquery version "3.1";
 
 (:  FUNCTIONS  :)
 
-  (: Get a configuration file for a given view package. :)
-  (: NOTE: It turns out this use of collection() is eXist-specific. It outputs all 
-    files in descendant collections. Saxon will not do the same. :)
+  (:~ Get a configuration file for a given view package. 
+    
+    NOTE: This use of collection() is eXist-specific. It outputs all files in descendant collections. 
+    Saxon will not do the same. :)
   declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
     let $parentDir := concat($dpkg:home-directory,'/',$pkgID)
     (: Since the configuration filename can begin with anything as long as it ends in 
@@ -67,8 +71,9 @@ xquery version "3.1";
     return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')][1]/vpkg:view_package
   };
   
-  (: Turn a relative filepath from a view package directory into an absolute filepath. :)
-  declare function dpkg:get-path-from-package($pkgID as xs:string, $relativePath as xs:string) {
+  (:~ Turn a relative filepath from a view package directory into an absolute filepath. :)
+  declare function dpkg:get-path-from-package($pkgID as xs:string, $relativePath as xs:string)
+     as xs:string {
     if ( dpkg:is-valid-view-package($pkgID) ) then
       let $pkgHome := dpkg:get-package-directory($pkgID)
       let $realRelativePath :=
@@ -76,27 +81,28 @@ xquery version "3.1";
           $relativePath
         else concat('/',$relativePath)
       return concat($pkgHome,$realRelativePath)
-    else () (: error :)
+    else 
+      error(dpkg:error-qname('InvalidViewPkg'), concat("There is no view package named '",$pkgID,"'"))
   };
   
-  (: Query the TAPAS Rails API for its stored view packages. :)
+  (:~ Query the TAPAS Rails API for its stored view packages. :)
   declare function dpkg:get-rails-packages() as node()* {
     let $railsAddr := xs:anyURI(dpkg:get-rails-api-url())
     return dpkg:get-json-objects($railsAddr)
   };
   
-  (: Get the registry entry for the view package matching a given identifier. :)
+  (:~ Get the registry entry for the view package matching a given identifier. :)
   declare function dpkg:get-registry-entry($pkgID as xs:string) as node()? {
     doc($dpkg:registry)//package_ref[@name eq $pkgID]
   };
   
-  (: Get the <run> element from a package's configuration file. :)
+  (:~ Get the <run> element from a package's configuration file. :)
   declare function dpkg:get-run-stmt($pkgID as xs:string) as node()? {
     let $config := dpkg:get-configuration($pkgID)
     return $config/vpkg:run
   };
   
-  (: Return package reference entries for each view package newer in Rails than in the 
+  (:~ Return package reference entries for each view package newer in Rails than in the 
     XML database. Git commit timestamps are used for comparison. :)
   declare function dpkg:get-updatable() as item()* {
     let $railsPkgs := dpkg:get-rails-packages()
@@ -134,8 +140,7 @@ xquery version "3.1";
               else ()
             }
             <git>{
-                if ( $isSubmodule ) then
-                  (
+                if ( $isSubmodule ) then (
                     attribute repo { $useRepo },
                     attribute branch { $branch },
                     attribute commit { dpkg:get-commit-at($useRepo, $useBranch, $gitTimeR) }
@@ -161,17 +166,12 @@ xquery version "3.1";
     return $upCandidates
   };
   
-  (: Determine if the current eXist user can write to the $dpkg:home-directory. :)
-    (: 2017-04-06: Half of the test is commented out for now! eXist v2.2 has a bug 
-      which causes sm:id() to error out when one XQuery calls a function in a library; 
-      see https://github.com/eXist-db/exist/issues/388. It should be fixed in eXist 
-      v3.0 and higher; uncomment the dpkg:is-tapas-user() call when TAPAS upgrades 
-      eXist. :)
+  (:~ Determine if the current eXist user can write to the $dpkg:home-directory. :)
   declare function dpkg:has-write-access() as xs:boolean {
     dpkg:is-tapas-user() and  dpkg:can-write()
   };
   
-  (: Get the contents of $dpkg:github-vpkg-repo at the default git branch by 
+  (:~ Get the contents of $dpkg:github-vpkg-repo at the default git branch by 
     retrieving its ZIP archive from GitHub. Set up the view package registry. :)
   declare function dpkg:initialize-packages() {
     (: Only proceed if the current user is the TAPAS user. This ensures that the 
@@ -220,19 +220,17 @@ xquery version "3.1";
       return 
         if ( exists($vpkgCommit) ) then
           xdb:store($dpkg:home-directory, $dpkg:registry-name, $registry)
-        else error(QName("http://tapasproject.org/tapas-xq/view-pkgs/err", 'VpkgInit'),
-          "Could not find a commit in GitHub API response.")
+        else error(dpkg:error-qname('GitHubApi'), "Could not find a commit in GitHub API response.")
     else
-      error(QName("http://tapasproject.org/tapas-xq/view-pkgs/err", 'VpkgUser'),
-        "This action must be completed by the 'tapas' user.") (: error :)
+      error(dpkg:error-qname('UserAuth'), "This action must be completed by the 'tapas' user.")
   };
   
-  (: Determine if an identifier matches that of a valid view package. :)
+  (:~ Determine if an identifier matches that of a valid view package. :)
   declare function dpkg:is-valid-view-package($name as xs:string) as xs:boolean {
     $name = $dpkg:valid-reader-types
   };
   
-  (: For each updatable package, find the git commit that Rails is using, then 
+  (:~ For each updatable package, find the git commit that Rails is using, then 
     download the package's files and create or update its registry entry. :)
   declare function dpkg:update-packages() {
     if ( doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref] ) then
@@ -261,9 +259,9 @@ xquery version "3.1";
               else () (: error :)
           (: Copy the registry entries for unmodified packages, and expand entries for 
             packages updated as part of the $dpkg:github-vpkg-repo. :)
-          let $otherPkgs := 
-            (
-              doc($dpkg:registry)//package_ref[not(@name = $toUpdate/@name/data(.))],
+          let $otherPkgs := (
+              doc($dpkg:registry)//package_ref[not(@name = $toUpdate/@name/data(.))]
+              ,
               for $pkg in $repoPkgs
               let $conf := dpkg:get-configuration($pkg/@name/data(.))
               return
@@ -293,8 +291,7 @@ xquery version "3.1";
               }
             </view_registry>
           (: Update the registry document by storing it again. :)
-          return 
-            xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
+          return xdb:store($dpkg:home-directory, $dpkg:registry-name, $newRegistry)
         (: If there's nothing to update, don't do anything. :)
         else ()
       else () (: error :)
@@ -308,21 +305,21 @@ xquery version "3.1";
 (:  SUPPORT FUNCTIONS  :)
   
   (: Query GitHub's API for repository contents, using a specified git branch. :)
-  declare %private function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $branch as xs:string) {
+  declare (:%private:) function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $branch as xs:string) {
     let $apiURL := 
       concat($dpkg:github-api-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
     return dpkg:get-json-objects($apiURL)
   };
   
   (: Test if the current user can write to $dpkg:home-directory. :)
-  declare %private function dpkg:can-write() {
+  declare (:%private:) function dpkg:can-write() {
     sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
   };
   
   (: Return the paths for any git submodules (as indicated by empty directories, which 
     git is not able to track). This should only be run after unpacking a GitHub 
     repository from a ZIP file, before that file is deleted. :)
-  declare %private function dpkg:find-submodule-dirs($zipPath as xs:string) as xs:string* {
+  declare (:%private:) function dpkg:find-submodule-dirs($zipPath as xs:string) as xs:string* {
     let $uri := xs:anyURI($zipPath)
     return
       if ( util:binary-doc-available($uri) ) then
@@ -347,17 +344,17 @@ xquery version "3.1";
   
   (: Query GitHub's API for a repository's commits matching the timestamp given by 
     Rails. :)
-  declare %private function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, 
+  declare (:%private:) function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, 
      $dateTime as xs:string) {
     if ( $dateTime castable as xs:dateTime ) then
       let $apiURL := concat($dpkg:github-api-base,'/',$repoID,'/commits?sha=',$branch,'&amp;since=',$dateTime)
       let $pseudoJSON := dpkg:get-json-objects($apiURL)[1]
-      return $pseudoJSON/pair[@name eq 'sha']/text()
+      return $pseudoJSON/*[@key eq 'sha']/text()
     else () (: error :)
   };
   
   (: Get the name of the git branch to use by default. :)
-  declare %private function dpkg:get-default-git-branch() as xs:string {
+  declare (:%private:) function dpkg:get-default-git-branch() as xs:string {
     if ( dpkg:is-environment-file-available() and 
         exists(doc($dpkg:environment-defaults)//defaultGitBranch/@name) ) then 
       doc($dpkg:environment-defaults)//defaultGitBranch/@name/data(.) 
@@ -365,10 +362,10 @@ xquery version "3.1";
   };
   
   (: Download a file using data from GitHub's 'Compare Commits' API. :)
-  declare %private function dpkg:get-file-from-github($jsonObj as node(), $pathBase as xs:string) {
+  declare (:%private:) function dpkg:get-file-from-github($jsonObj as node(), $pathBase as xs:string) {
     let $relPath := $jsonObj/*[@key eq 'filename']/text()
     let $filename := tokenize($relPath,'/')[last()]
-    let $folder := concat($pathBase, '/', substring-before($relPath,concat('/',$filename)))
+    let $folder := concat($pathBase,'/',substring-before($relPath,concat('/',$filename)))
     let $downloadURL := $jsonObj/*[@key eq 'raw_url']/text()
     return
       if ( exists(dpkg:make-directories($folder)) ) then
@@ -391,7 +388,7 @@ xquery version "3.1";
               return 
                 if ( exists($contents) and not(empty($contents)) ) then
                   let $mimetype := concat('text/',$type)
-                  return xdb:store($folder,$filename,$contents,$mimetype)
+                  return xdb:store($folder, $filename, $contents, $mimetype)
                 else () (: error :)
             else () (: error :)
         else () (: error :)
@@ -399,7 +396,7 @@ xquery version "3.1";
   };
   
   (: Send out a query, and log any HTTP response that isn't "200 OK". :)
-  declare %private function dpkg:get-json-objects($url as xs:string) as node()* {
+  declare (:%private:) function dpkg:get-json-objects($url as xs:string) as node()* {
     let $address := xs:anyURI($url)
     let $request := dpkg:send-request($address)
     let $status := $request/@statusCode/data(.)
@@ -423,19 +420,19 @@ xquery version "3.1";
   (: Get the absolute path to the directory for a given view package ID. No attempt is 
     made to check if the identifier matches an actual view package; this function just 
     builds the path for the collection where the package would be stored. :)
-  declare %private function dpkg:get-package-directory($pkgID as xs:string) {
+  declare (:%private:) function dpkg:get-package-directory($pkgID as xs:string) {
     concat($dpkg:home-directory,'/',$pkgID)
   };
   
   (: Get the host of the Rails API for use in a request header. :)
-  declare %private function dpkg:get-rails-api-host() as xs:string {
+  declare (:%private:) function dpkg:get-rails-api-host() as xs:string {
     if ( dpkg:is-environment-file-available() and doc($dpkg:environment-defaults)//railsBaseURI[@host] ) then
       doc($dpkg:environment-defaults)//railsBaseURI/@host/data(.) 
     else ''
   };
   
   (: Get the Rails API URL. :)
-  declare %private function dpkg:get-rails-api-url() as xs:string {
+  declare (:%private:) function dpkg:get-rails-api-url() as xs:string {
     if ( dpkg:is-environment-file-available() and 
         doc($dpkg:environment-defaults)//railsBaseURI[normalize-space(text()) ne ''] ) then
       concat(doc($dpkg:environment-defaults)//railsBaseURI/text(), '/api/view_packages') 
@@ -443,7 +440,7 @@ xquery version "3.1";
   };
   
   (: Get and unpack an archive of the contents of a GitHub repository. :)
-  declare %private function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, 
+  declare (:%private:) function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, 
      $branch as xs:string) {
     let $zipURL := 
       let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
@@ -457,7 +454,7 @@ xquery version "3.1";
       return
         if ( exists($binary) ) then
           xdb:store($dpkg:home-directory, $zipFilename, $binary, 'application/zip')
-        else '' (: error :)
+        else error(dpkg:error-qname('NoArchive'), "Compressed binary file not found.")
     let $unzipped := dpkg:unpack-zip-archive($archivePath, $dbPath)
     (: Identify any submodules; download and unpack their archives. :)
     let $submoduleDirs := dpkg:find-submodule-dirs($archivePath)
@@ -475,8 +472,7 @@ xquery version "3.1";
           dpkg:call-github-contents-api($repoID,$repoPath,$branch)/*[@key eq 'sha']/data(.)
       return 
         if ( contains($subRepo,' ') ) then ()
-        else 
-          try {
+        else try {
             dpkg:get-repo-archive($subRepo,$localPath,$commit),
             (: If the submodule is a view package, return complete git(Hub) info. :)
             if ( $repoID eq $dpkg:github-vpkg-repo and exists($updateEntry) ) then
@@ -494,7 +490,7 @@ xquery version "3.1";
   };
   
   (: Identify the GitHub repository identifier of a different repository's submodule. :)
-  declare %private function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:string, 
+  declare (:%private:) function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:string, 
      $branch as xs:string) as xs:string {
     let $submoduleObj := dpkg:call-github-contents-api($repoID, $repoPath, $branch)
     let $gitURL := $submoduleObj/*[@key eq 'git_url']/text()
@@ -506,7 +502,7 @@ xquery version "3.1";
   };
   
   (: Test if the eXist environment configuration, environment.xml, is available. :)
-  declare %private function dpkg:is-environment-file-available() as xs:boolean {
+  declare (:%private:) function dpkg:is-environment-file-available() as xs:boolean {
     doc-available($dpkg:environment-defaults)
   };
   
@@ -526,7 +522,7 @@ xquery version "3.1";
   };
   
   (: Get a list of all files changed between commits in a given GitHub repository. :)
-  declare %private function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, 
+  declare (:%private:) function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, 
      $newCommit as xs:string) {
     let $urlParts := 
       ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
@@ -535,7 +531,7 @@ xquery version "3.1";
   };
   
   (: Create all missing directories from an absolute path. :)
-  declare %private function dpkg:make-directories($absPath as xs:string) {
+  declare (:%private:) function dpkg:make-directories($absPath as xs:string) {
     let $tokenizedPath := tokenize($absPath,'/')
     return 
       for $index in 1 to count($tokenizedPath)
@@ -553,18 +549,23 @@ xquery version "3.1";
   (: If the Rails API URL doesn't match the default (production) Rails API, create 
     an attribute @rails-api with the custom URL. This attribute should be placed on 
     <view_registry> as necessary. :)
-  declare %private function dpkg:define-rails-api-attribute() as item()? {
+  declare (:%private:) function dpkg:define-rails-api-attribute() as item()? {
     let $railsAPI := dpkg:get-rails-api-url()
     return
       if ( $railsAPI eq $dpkg:default-rails-api ) then ()
       else attribute rails-api { $railsAPI }
   };
   
+  (:~ Create an error's QName in an app-specific namespace. :)
+  declare %private function dpkg:error-qname($name) {
+    QName("http://tapasproject.org/tapas-xq/view-pkgs/err", $name)
+  };
+  
   (: Send a GET request. If the URL matches the Rails API URL and the environmental 
     configuration has a host defined, the EXPath HTTP client is used instead of 
     eXist's. This gets around what seems to be a bug in the way eXist's HTTP client 
     resolves URLs that include port numbers. :)
-  declare %private function dpkg:send-request($url as xs:anyURI) as item()? {
+  declare (:%private:) function dpkg:send-request($url as xs:anyURI) as item()? {
     let $railsAPI := dpkg:get-rails-api-url()
     let $railsHost := dpkg:get-rails-api-host()
     let $request :=
@@ -583,18 +584,14 @@ xquery version "3.1";
         <httpc:headers/>
         <httpc:body>
           { $response[1]/http:body/@* }
-          {
-            typeswitch ($response[2])
-              case xs:base64Binary return util:base64-decode($response[2])
-              default return $response[2]
-          }
+          { $response[2] }
         </httpc:body>
       </httpc:response>
   };
   
   (: Unzip an archive. If there is a single outermost directory, it is ignored in 
     favor of its descendants. :)
-  declare %private function dpkg:unpack-zip-archive($archivePath as xs:string, 
+  declare (:%private:) function dpkg:unpack-zip-archive($archivePath as xs:string, 
      $dbPath as xs:string) {
     let $wrapperDirName := replace($archivePath, '^.*/(.+)\.zip$', '$1')
     let $outermostDir :=
@@ -616,8 +613,7 @@ xquery version "3.1";
       }
     (: Build a URI for a given directory or resource. If needed, remove the outermost 
       directory name, since we don't want to preserve it. :)
-    let $storageFn := 
-      function($path as xs:string, $type as xs:string, $param as item()*) as xs:anyURI { 
+    let $storageFn := function($path as xs:string, $type as xs:string, $param as item()*) as xs:anyURI { 
         let $usePath := 
           if ( exists($outermostDir) ) then 
             substring-after($path, $outermostDir)
@@ -634,7 +630,7 @@ xquery version "3.1";
   };
   
   (: Update a list of files from a 'Compare Commits' API response from GitHub. :)
-  declare %private function dpkg:update-files($targetDir as xs:string, $fileList as node()*) 
+  declare (:%private:) function dpkg:update-files($targetDir as xs:string, $fileList as node()*) 
      as xs:string* {
     for $fileRef in $fileList
     let $status := $fileRef/*[@key eq 'status']/text()
@@ -647,7 +643,7 @@ xquery version "3.1";
   };
   
   (: Update $dpkg:home-directory using the $dpkg:github-vpkg-repo. :)
-  declare %private function dpkg:update-package-repo($timestamp as xs:string) {
+  declare (:%private:) function dpkg:update-package-repo($timestamp as xs:string) {
     let $defaultBranch := dpkg:get-default-git-branch()
     let $newCommit := dpkg:get-commit-at($dpkg:github-vpkg-repo, $defaultBranch, $timestamp)
     (: Get a list of files changed since the last time the registry was updated. :)
@@ -665,7 +661,7 @@ xquery version "3.1";
   
   (: Given a package reference entry for a submodule of $dpkg:github-vpkg-repo, update 
     or create the local copy of that package. :)
-  declare %private function dpkg:update-submodule($update as node()) {
+  declare (:%private:) function dpkg:update-submodule($update as node()) {
     let $pkgID := $update/@name/data(.)
     let $pkgBranch := $update/git/@branch/data(.)
     let $targetDateTime := $update/git/@timestamp/data(.)
