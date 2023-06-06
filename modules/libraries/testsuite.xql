@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
   module namespace txqt="http://tapasproject.org/tapas-xq/testsuite";
   import module namespace test="http://exist-db.org/xquery/xqsuite" 
@@ -29,7 +29,7 @@ xquery version "3.0";
     let $envFile := '/db/environment.xml'
     let $envHost :=
       if ( doc-available($envFile) and exists(doc($envFile)//existHostname) ) then
-        concat(doc($envFile)//existHostname, '/')
+        concat(doc($envFile)//existHostname/data(.), '/')
       else ()
     return concat($envHost,$txqt:exreq//@href);
   declare variable $txqt:testFile := doc('../../resources/testdocs/sampleTEI.xml');
@@ -432,6 +432,7 @@ xquery version "3.0";
   };
   
   
+  
   (:  SUPPORT FUNCTIONS  :)
   
   (:~
@@ -529,7 +530,7 @@ xquery version "3.0";
       if ( $parts[self::default] ) then ()
       else $parts
     return
-      txqt:request-tfe-storage($txqt:endpoint?('delete-project'), $user, 
+      txqt:request-project-deletion($txqt:endpoint?('delete-project'), $user, 
         $password, $method, $body)
   };
   
@@ -666,7 +667,7 @@ xquery version "3.0";
      as element() {
     <http:request>
       {
-        $txqt:exreq/http:request/@* except $txqt:exreq/http:request/@href, 
+        $txqt:exreq/http:request/(@* except @href), 
         attribute username { $user },
         attribute password { $password },
         attribute method { $method },

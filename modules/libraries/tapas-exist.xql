@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
   module namespace txq="http://tapasproject.org/tapas-xq/exist";
   declare namespace tei="http://www.tei-c.org/ns/1.0";
@@ -11,6 +11,7 @@ xquery version "3.0";
   import module namespace md="http://exist-db.org/xquery/markdown";
   import module namespace request="http://exist-db.org/xquery/request";
   import module namespace response="http://exist-db.org/xquery/response";
+  import module namespace session="http://exist-db.org/xquery/session";
   import module namespace sm="http://exist-db.org/xquery/securitymanager";
   import module namespace tgen="http://tapasproject.org/tapas-xq/general" 
     at "general-functions.xql";
@@ -27,6 +28,7 @@ xquery version "3.0";
   @author Ashley M. Clark
   @version 1.1
   
+  2020-02-21: Placed functions in alphabetical order. Added missing module import.
   2020-02-07: Copied is-tapas-user() from the view packages library. Reformatted 
     and rearranged code.
   2017-12-07: Added function to get Markdown-flavored text and turn it into
@@ -36,31 +38,55 @@ xquery version "3.0";
     configuration files.
   2015-10-26: Expanded XML validation and classified errors from that process
     as HTTP 422s.
-  2015-10-05: Rearranged function logic to accommodate complex error messages. 
+  2015-10-05: Rearranged function logic to accommodate complex error messages.
 :)
 
 
 (: VARIABLES :)
 
-declare variable $txq:home-dir :=
-  let $noPrefix := 
-    replace(system:get-module-load-path(), 
-      '^(xmldb:exist://)?(embedded-eXist-server)?(.+)$', '$3')
-  return
-    if ( matches($noPrefix,'tapas-xq$') ) then $noPrefix
-    else replace($noPrefix,'(tapas-xq)(.+)$','$1')
-  ;
+  declare variable $txq:home-dir :=
+    let $noPrefix := 
+      replace(system:get-module-load-path(), 
+        '^(xmldb:exist://)?(embedded-eXist-server)?(.+)$', '$3')
+    return
+      if ( matches($noPrefix,'tapas-xq$') ) then $noPrefix
+      else replace($noPrefix,'(tapas-xq)(.+)$','$1')
+    ;
 
 (: FUNCTIONS :)
   
-  (: Create a map of expected request parameters using the configuration file. :)
-  declare function txq:make-param-map($pkgID as xs:string) as map(*) {
-    let $parameters := dpkg:get-configuration($pkgID)/vpkg:parameters
+  (: Build an HTTP response. :)
+  declare function txq:build-response($code as xs:integer, $content-type as xs:string, $content as item()) {
+    (: $content should always be XML or a string. If it is an integer, then this 
+     : function treats that integer as an error code. :)
+    let $isError := $content instance of xs:integer
+    let $returnCode :=  if ( $isError ) then
+                          $content
+                        else $code
     return
-      map:merge(
-        for $param in $parameters/vpkg:parameter
-        return map:entry($param/@name/data(.), $param/@as/data(.))
-      )
+        (
+          response:set-status-code($returnCode),
+          response:set-header("Content-Type", $content-type),
+          if ( $isError ) then
+            tgen:get-error($content)
+          else $content
+        )
+  };
+  
+  (: Get the body of the request (should only be XML). :)
+  declare function txq:get-body-xml() {
+    txq:get-file-content(request:get-data())
+  };
+  
+  (: Clean data to get XML, replacing any instances of U+FEFF that might make 
+   : eXist consider the XML "invalid." :)
+  declare function txq:get-file-content($file) {
+    typeswitch($file)
+      case node() return $file
+      case xs:string return try { txq:get-file-content(parse-xml(replace($file, '﻿', ''))) }
+                            catch * { (422, "Provided file must be TEI-encoded XML") }
+      case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
+      default return (422, "Provided file must be TEI-encoded XML")
   };
   
   (: Get a request parameter. :)
@@ -90,43 +116,20 @@ declare variable $txq:home-dir :=
           else $file
   };
   
-  (: Get the body of the request (should only be XML). :)
-  declare function txq:get-body-xml() {
-    txq:get-file-content(request:get-data())
+  (: Make sure the current user is logged out (by logging in as guest). :)
+  declare function txq:logout() {
+    xmldb:login('/db','guest','guest'),
+    session:invalidate()
   };
   
-  (: Clean data to get XML, replacing any instances of U+FEFF that might make 
-   : eXist consider the XML "invalid." :)
-  declare function txq:get-file-content($file) {
-    typeswitch($file)
-      case node() return $file
-      case xs:string return try { txq:get-file-content(parse-xml(replace($file, '﻿', ''))) }
-                            catch * { (422, "Provided file must be TEI-encoded XML") }
-      case xs:base64Binary return txq:get-file-content(util:binary-to-string($file))
-      default return (422, "Provided file must be TEI-encoded XML")
-  };
-  
-  (: Check if the document is well-formed and valid TEI. :)
-  declare function txq:validate($document as item()) {
-    let $wellformednessReport := validate:jing-report($document, doc('../../resources/well-formed.rng'))
+  (: Create a map of expected request parameters using the configuration file. :)
+  declare function txq:make-param-map($pkgID as xs:string) as map(*) {
+    let $parameters := dpkg:get-configuration($pkgID)/vpkg:parameters
     return
-      if ( $wellformednessReport//status/text() eq "valid" ) then
-        let $isTEI := <results>
-                        {
-                          let $validation := 
-                            transform:transform($document, doc('../../resources/isTEI.xsl'), <parameters/>)
-                          return
-                            for $message in tokenize($validation,'&#xA;')[. ne '']
-                            return <p>{$message}</p>
-                        }
-                      </results>
-        return
-          if ( $isTEI/* ) then
-            (422, for $error in $isTEI/p 
-                  let $text := $error/text()
-                  return concat(upper-case(substring($text,1,1)),substring($text,2)) )
-          else $isTEI
-      else (422, "Provided file must be well-formed XML")
+      map:merge(
+        for $param in $parameters/vpkg:parameter
+        return map:entry($param/@name/data(.), $param/@as/data(.))
+      )
   };
   
   declare function txq:test-param($param-name as xs:string, $param-type as xs:string) {
@@ -165,6 +168,12 @@ declare variable $txq:home-dir :=
     return
     if ( not($hasAccess) ) then (401, "Unauthorized")
     else
+      let $forEachEntry :=
+        let $mapNs := "http://www.w3.org/2005/xpath-functions/map"
+        let $forEach := function-lookup(QName($mapNs, 'map:for-each'), 2)
+        return
+          if ( exists($forEach) ) then $forEach
+          else function-lookup(QName($mapNs, 'map:for-each-entry'), 2)
       (: Test each parameter against a map with expected datatypes.:)
       let $badParams := 
         map:merge(
@@ -250,24 +259,6 @@ declare variable $txq:home-dir :=
         else $success-code
   };
   
-  (: Build an HTTP response. :)
-  declare function txq:build-response($code as xs:integer, $content-type as xs:string, $content as item()) {
-    (: $content should always be XML or a string. If it is an integer, then this 
-     : function treats that integer as an error code. :)
-    let $isError := $content instance of xs:integer
-    let $returnCode :=  if ( $isError ) then
-                          $content
-                        else $code
-    return
-        (
-          response:set-status-code($returnCode),
-          response:set-header("Content-Type", $content-type),
-          if ( $isError ) then
-            tgen:get-error($content)
-          else $content
-        )
-  };
-  
   (: Retrieve Markdown-flavored text and turn it into HTML. :)
   declare function txq:parse-markdown($filename as xs:string) as item()* {
     if ( util:binary-doc-available($filename) ) then
@@ -283,8 +274,26 @@ declare variable $txq:home-dir :=
     else ( 500, tgen:get-error(500) )
   };
   
-  (: Make sure the current user is logged out (by logging in as guest). :)
-  declare function txq:logout() {
-    xmldb:login('/db','guest','guest'),
-    session:invalidate()
+  (: Check if the document is well-formed and valid TEI. :)
+  declare function txq:validate($document) {
+    let $wellformednessReport := validate:jing-report($document, doc('../../resources/well-formed.rng'))
+    return
+      if ( $wellformednessReport//status/text() eq "valid" ) then
+        let $isTEI := 
+          <results>
+            {
+              let $validation := 
+                transform:transform($document, doc('../../resources/isTEI.xsl'), <parameters/>)
+              return
+                for $message in tokenize($validation,'&#xA;')[. ne '']
+                return <p>{$message}</p>
+            }
+          </results>
+        return
+          if ( $isTEI/* ) then
+            (422, for $error in $isTEI/p 
+                  let $text := $error/text()
+                  return concat(upper-case(substring($text,1,1)),substring($text,2)) )
+          else $isTEI
+      else (422, "Provided file must be well-formed XML")
   };

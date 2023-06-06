@@ -1,0 +1,3 @@
+[submodule "modules/libraries/json-xml"]
+	path = modules/libraries/json-xml
+	url = https://gist.github.com/d986da715facaad633db.git
