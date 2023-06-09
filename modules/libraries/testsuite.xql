@@ -4,6 +4,7 @@ xquery version "3.1";
   import module namespace test="http://exist-db.org/xquery/xqsuite" 
     at "resource:org/exist/xquery/lib/xqsuite/xqsuite.xql";
   import module namespace http="http://expath.org/ns/http-client";
+  import module namespace session="http://exist-db.org/xquery/session";
   import module namespace xmldb="http://exist-db.org/xquery/xmldb";
   
   declare namespace tei="http://www.tei-c.org/ns/1.0";

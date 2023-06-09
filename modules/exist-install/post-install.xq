@@ -5,10 +5,11 @@ declare namespace system="http://exist-db.org/xquery/system";
 declare namespace util="http://exist-db.org/xquery/util";
 declare namespace xdb="http://exist-db.org/xquery/xmldb";
 
-import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" at "/db/apps/tapas-xq/modules/libraries/view-pkgs.xql";
+import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs" 
+  at "/db/apps/tapas-xq/modules/libraries/view-pkgs.xql";
 
-
-(:~ After installing the package, eXist will:
+(:~
+   After installing the package, eXist will:
     * refresh the collection configuration file;
     * if there is no environment configuration file at /db/environment.xml, copy 
       the default configuration there;

@@ -5,7 +5,7 @@ xquery version "3.1";
   (: 2023-05-08: The eXist HTTP client was deprecated in eXist v4 and removed in v5.
     While we don't use the functions, we still use the HTTPC format for responses in 
     this library. :)
-  declare namespace httpc="http://exist-db.org/xquery/httpclient";
+  (:declare namespace httpc="http://exist-db.org/xquery/httpclient";:)
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 (:  LIBRARIES  :)
@@ -22,8 +22,13 @@ xquery version "3.1";
   packages available in eXist.
   
   @author Ashley M. Clark
-  @version 1.2
+  @version 1.3
   
+  2023-06-09: Revised dpkg:unpack-zip-archive() to extract files from the ZIP using EXPath's
+    ZIP module instead of eXist's compression module. The latter naively tries to store HTML 
+    as an XML document. The former explicitly states that "an HTML document is not necessarily 
+    a well-formed XML document", but even so, the output of zip:html-entry() MUST be a 
+    document node.
   2023-05-17: Started filling in missing `error()` messages. Changed $dpkg:default-rails-api
     from "http://railsapi.tapas.neu.edu/api/view_packages" to 
     "https://railsapi.tapasproject.org/api/view_packages".
@@ -91,8 +96,8 @@ xquery version "3.1";
           $relativePath
         else concat('/',$relativePath)
       return concat($pkgHome,$realRelativePath)
-    else 
-      error(dpkg:error-qname('InvalidViewPkg'), concat("There is no view package named '",$pkgID,"'"))
+    else error(dpkg:error-qname('InvalidViewPkg'), 
+      concat("There is no view package named '",$pkgID,"'"))
   };
   
   (:~
@@ -127,14 +132,7 @@ xquery version "3.1";
     XML database. Git commit timestamps are used for comparison.
    :)
   declare function dpkg:get-updatable() as item()* {
-    let $railsPkgs := 
-      try {
-        dpkg:get-rails-packages()
-      } catch Q{http://exist.sourceforge.net/NS/exist/java-binding}org.expath.httpclient.HttpClientException {
-        (: The request to Rails timed out, possibly because it is behind Northeastern's 
-          VPN. :)
-        ()
-      }
+    let $railsPkgs := dpkg:get-rails-packages()
     let $registryExists := 
       doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
     let $upCandidates :=
@@ -315,7 +313,8 @@ xquery version "3.1";
   (:~
     Query GitHub's API for repository contents, using a specified git branch.
    :)
-  declare (:%private:) function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, $branch as xs:string) {
+  declare (:%private:) function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, 
+     $branch as xs:string) {
     let $apiURL := 
       concat($dpkg:github-api-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
     return dpkg:get-json-objects($apiURL)
@@ -711,41 +710,66 @@ xquery version "3.1";
     Unzip an archive. If there is a single outermost directory, it is ignored in 
     favor of its descendants.
    :)
-  declare %private function dpkg:unpack-zip-archive($archivePath as xs:string, $dbPath as xs:string) {
+  declare (:%private:) function dpkg:unpack-zip-archive($archivePath as xs:string, $dbPath as xs:string) {
     let $wrapperDirName := replace($archivePath, '^.*/(.+)\.zip$', '$1')
-    let $outermostDir :=
-      let $allOutermost := zip:entries(xs:anyURI($archivePath))
-                            //zip:*[@name[count(tokenize(replace(.,'/$',''),'/')) eq 1]]
+    let $zipEntries := zip:entries(xs:anyURI($archivePath))
+    let $outermostDirs := $zipEntries//*[@name[matches(., '^[-\w]+/$')]]
+    let $ignorableDir :=
+      if ( count($outermostDirs) eq 1 ) then
+        $outermostDirs/@name/data(.)
+      else ()
+    return
+      for $entry in $zipEntries/zip:*[not($ignorableDir) or not(@name eq $ignorableDir)]
+      let $entryName := $entry/@name/data(.)
+      let $relativePath := 
+        substring-after($entryName, $ignorableDir) => replace('/$', '')
+      let $pathParts := tokenize($relativePath, '/')
+      let $parentDir :=
+        if ( count($pathParts) eq 1 ) then ()
+        else string-join(remove($pathParts, count($pathParts)), '/')
+      let $parentPath := concat('/db/tapas-view-pkgs','/',$parentDir)
+      let $parentAvailable := xdb:collection-available($parentPath)
       return
-        (: We only need to know the resource name if it is the only outermost 
-          directory in the zip file. :)
-        if ( count($allOutermost) eq 1 and local-name($allOutermost) eq 'dir' ) then
-          $allOutermost/@name/xs:string(.)
-        else ()
-    (: Filter out the single outermost directory (if there is one). :)
-    let $filterFn := 
-      function($path as xs:string, $type as xs:string, $param as item()*) as xs:boolean {
-        if ( exists($outermostDir) ) then
-          not($type eq 'folder' and $path eq $outermostDir)
-        else 
-          $path ne concat($wrapperDirName, '/')
-      }
-    (: Build a URI for a given directory or resource. If needed, remove the outermost 
-      directory name, since we don't want to preserve it. :)
-    let $storageFn := function($path as xs:string, $type as xs:string, $param as item()*) as xs:anyURI { 
-        let $usePath := 
-          if ( exists($outermostDir) ) then 
-            substring-after($path, $outermostDir)
-          else if ( matches($path, concat('^',$wrapperDirName)) ) then 
-            substring-after($path, concat($wrapperDirName, '/'))
-          else $path
-        return
-          concat($dbPath, '/', $usePath) cast as xs:anyURI 
-      }
-    (: Obtain the zip file and unpack it, using the functions above and eXist's 
-      compression module. :)
-    let $storedBinary := util:binary-doc($archivePath)
-    return cprs:unzip($storedBinary, $filterFn, (), $storageFn, ())
+        (: If the parent directory is not available, do nothing. :)
+        if ( not($parentAvailable) ) then
+          concat("Skipping ",$relativePath)
+        (: If this is an entry for a directory, create it inside its parent. :)
+        else if ( $entry[self::zip:dir] ) then
+          xdb:create-collection($parentPath, $pathParts[last()])
+        (: If this is an entry for a file, use context clues to figure out how to 
+          extract it from the ZIP file and how to store it in eXist. :)
+        else if ( $entry[self::zip:entry] ) then
+          let $filename := $pathParts[last()]
+          let $fileExtension := 
+            let $filename := lower-case($filename)
+            (: If the file was hidden, or has no file extension, assume it's a text 
+              file. :)
+            let $assumeTextFile :=
+              starts-with($filename, '.') or not(contains($filename, '.'))
+            return
+              if ( $assumeTextFile ) then 'txt'
+              else replace($filename, '^.+\.([\w]+)$', '$1')
+          return
+            switch ($fileExtension)
+              (: Store various flavors of XML as XML. :)
+              case 'xml' case 'rng' case 'svg' case 'xhtml' 
+              case 'xpl' case 'xsl' case 'xslt' return 
+                let $file := zip:xml-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store($parentPath, $filename, $file)
+              (: Extract HTML using the EXPath ZIP module, which ensures it will 
+                yield an XML serialization that can be stored. :)
+              case 'html' return
+                let $file := zip:html-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store($parentPath, $filename, $file, 'text/html')
+              (: Extract images (and others?) as binary files and store them as such. :)
+              case 'gif' case 'jpeg' case 'jpg' case 'png' case 'pxm' return
+                let $file := zip:binary-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store-as-binary($parentPath, $filename, $file)
+              (: Everything else is extracted as a text file and stored as binary. :)
+              default return
+                let $file := zip:text-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store-as-binary($parentPath, $filename, $file)
+        else "SOMETHING WENT WRONG" (: TODO: error :)
   };
   
   (:~
