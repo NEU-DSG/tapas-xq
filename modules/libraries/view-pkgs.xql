@@ -435,7 +435,7 @@ xquery version "3.1";
             $body?('content')
           else ()
         return 
-          if ( $jsonStr ) then
+          if ( exists($jsonStr) ) then
             let $pseudojson := json-to-xml($jsonStr)/*
             return 
               typeswitch ($pseudojson)
