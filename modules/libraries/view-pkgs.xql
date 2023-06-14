@@ -136,8 +136,7 @@ xquery version "3.1";
     let $registryExists := 
       doc-available($dpkg:registry) and doc($dpkg:registry)[descendant::package_ref]
     let $upCandidates :=
-      if ( empty($railsPkgs) ) then
-        ()
+      if ( empty($railsPkgs) ) then ()
       else
         dpkg:get-updatable-candidates-from-rails($railsPkgs)
     return
@@ -437,13 +436,13 @@ xquery version "3.1";
           else ()
         return 
           if ( $jsonStr ) then
-            let $pseudojson := json-to-xml($jsonStr)
+            let $pseudojson := json-to-xml($jsonStr)/*
             return 
               typeswitch ($pseudojson)
                 case element(fn:map) return $pseudojson
                 case element(fn:array) return $pseudojson/fn:map
                 default return ()
-          else <p class="error">ERROR: No response</p> (: error :)
+          else <p class="error">ERROR: Empty or non-JSON response</p> (: error :)
       else <p class="error">ERROR: { $status }</p> (: error :)
   };
   
@@ -509,7 +508,9 @@ xquery version "3.1";
           let $updateEntry := dpkg:get-updatable()[@submodule eq 'true'][contains(@name, $subRepo)]
           let $commit := 
             (: If the submodule matches a view package, try to use the specific commit used by Rails. :)
-            if ( $repoID eq $dpkg:github-vpkg-repo and $railsIsAvailable and exists($updateEntry/git/@commit/data(.)) ) then
+            if ( $repoID eq $dpkg:github-vpkg-repo 
+                  and $railsIsAvailable 
+                  and exists($updateEntry/git/@commit/data(.)) ) then
               $updateEntry/git/@commit/data(.)
             (: If Rails is not available, or the submodule is not a view package, use the commit referenced by GitHub. :)
             else
@@ -545,15 +546,20 @@ xquery version "3.1";
     From an EXPath HTTP Client response, create a map for each body, with its contents and media-type.
    :)
   declare function dpkg:get-response-body($http-response as item()*) as map(xs:string, item())* {
-    let $mediaTypes := $http-response[1]//http:body/@media-type/data(.)
-    let $bodies := subsequence($http-response, 2)
+    let $mediaTypes := 
+      let $contentType := $http-response[1]//http:header[@name eq 'content-type']/@value
+      return
+        if ( matches($contentType, '^[\w+-]+/[\w+-]+;') ) then
+          substring-before($contentType, ';')
+        else $contentType
+    let $bodies := tail($http-response)
     return
       for $index in 1 to count($bodies)
       let $mediaType := $mediaTypes[$index]
       let $body := $bodies[$index]
       let $bodyContent :=
         (: Skip binary decoding if the file is a ZIP. :)
-        if ( $mediaType = "application/zip" ) then $body
+        if ( contains($mediaType, "application/zip") ) then $body
         else
           typeswitch ($body)
             case xs:base64Binary return util:base64-decode($body)
