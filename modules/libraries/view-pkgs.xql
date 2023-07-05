@@ -22,8 +22,11 @@ xquery version "3.1";
   packages available in eXist.
   
   @author Ashley M. Clark
-  @version 1.3
+  @version 1.4
   
+  2023-07-05: Fixed a path in dpkg:unpack-zip-archive() that prevented submodule contents from 
+    being saved to the right place. Some functions (e.g. `dpkg:get-default-git-branch()` and
+    `dpkg:unpack-zip-archive()`) are now public by default.
   2023-06-09: Revised dpkg:unpack-zip-archive() to extract files from the ZIP using EXPath's
     ZIP module instead of eXist's compression module. The latter naively tries to store HTML 
     as an XML document. The former explicitly states that "an HTML document is not necessarily 
@@ -312,7 +315,7 @@ xquery version "3.1";
   (:~
     Query GitHub's API for repository contents, using a specified git branch.
    :)
-  declare (:%private:) function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, 
+  declare function dpkg:call-github-contents-api($repoID as xs:string, $repoPath as xs:string, 
      $branch as xs:string) {
     let $apiURL := 
       concat($dpkg:github-api-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
@@ -343,7 +346,7 @@ xquery version "3.1";
     git is not able to track). This should only be run after unpacking a GitHub 
     repository from a ZIP file, before that file is deleted. 
    :)
-  declare (:%private:) function dpkg:find-submodule-dirs($zipPath as xs:string) as xs:string* {
+  declare function dpkg:find-submodule-dirs($zipPath as xs:string) as xs:string* {
     let $uri := xs:anyURI($zipPath)
     return
       if ( util:binary-doc-available($uri) ) then
@@ -369,7 +372,7 @@ xquery version "3.1";
   (:~
     Query GitHub's API for a repository's commits matching the timestamp given by Rails.
    :)
-  declare (:%private:) function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, 
+  declare function dpkg:get-commit-at($repoID as xs:string, $branch as xs:string, 
      $dateTime as xs:string) { (: TODO: why not cast $dateTime as xs:dateTime here? :)
     if ( $dateTime castable as xs:dateTime ) then
       try {
@@ -386,7 +389,7 @@ xquery version "3.1";
   (:~
     Get the name of the git branch to use by default.
    :)
-  declare (:%private:) function dpkg:get-default-git-branch() as xs:string {
+  declare function dpkg:get-default-git-branch() as xs:string {
     if ( dpkg:is-environment-file-available() and 
         exists(doc($dpkg:environment-defaults)//defaultGitBranch/@name) ) then 
       doc($dpkg:environment-defaults)//defaultGitBranch/@name/data(.) 
@@ -451,7 +454,7 @@ xquery version "3.1";
     made to check if the identifier matches an actual view package; this function just 
     builds the path for the collection where the package would be stored.
    :)
-  declare %private function dpkg:get-package-directory($pkgID as xs:string) {
+  declare function dpkg:get-package-directory($pkgID as xs:string) {
     concat($dpkg:home-directory,'/',$pkgID)
   };
   
@@ -467,7 +470,7 @@ xquery version "3.1";
   (:~
     Get the Rails API URL.
    :)
-  declare (:%private:) function dpkg:get-rails-api-url() as xs:string {
+  declare function dpkg:get-rails-api-url() as xs:string {
     if ( dpkg:is-environment-file-available() and 
         doc($dpkg:environment-defaults)//railsBaseURI[normalize-space(text()) ne ''] ) then
       concat(doc($dpkg:environment-defaults)//railsBaseURI/text(), '/api/view_packages') 
@@ -477,7 +480,7 @@ xquery version "3.1";
   (:~
     Get and unpack an archive of the contents of a GitHub repository.
    :)
-  declare (:%private:) function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, 
+  declare function dpkg:get-repo-archive($repoID as xs:string, $dbPath as xs:string, 
      $branch as xs:string) {
     let $zipURL := 
       let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
@@ -538,7 +541,7 @@ xquery version "3.1";
                 else ()
               } catch * { () }
         (: Delete the ZIP file after we're done with it. :)
-        let $deleteZip :=  xdb:remove($dpkg:home-directory, $zipFilename)
+        (:let $deleteZip :=  xdb:remove($dpkg:home-directory, $zipFilename):)
         return $getSubmodules
   };
   
@@ -637,8 +640,7 @@ xquery version "3.1";
             else $subRepo
       let $gitTimeR := $railsPkg/fn:string[@key eq 'git_timestamp']/text()
       let $makeEntry := function() {
-          <package_ref name="{$dirName}">
-            {
+          <package_ref name="{$dirName}">{
               if ( $isSubmodule ) then
                 attribute submodule { true() }
               else ()
@@ -662,7 +664,8 @@ xquery version "3.1";
   (:~
     Get a list of all files changed between commits in a given GitHub repository.
    :)
-  declare %private function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, $newCommit as xs:string) {
+  declare function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, 
+     $newCommit as xs:string) {
     let $urlParts := ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
     let $url := string-join($urlParts,'/')
     return dpkg:get-json-objects($url)/fn:array[@key eq 'files']/fn:map
@@ -716,7 +719,7 @@ xquery version "3.1";
     Unzip an archive. If there is a single outermost directory, it is ignored in 
     favor of its descendants.
    :)
-  declare (:%private:) function dpkg:unpack-zip-archive($archivePath as xs:string, $dbPath as xs:string) {
+  declare function dpkg:unpack-zip-archive($archivePath as xs:string, $dbPath as xs:string) {
     let $wrapperDirName := replace($archivePath, '^.*/(.+)\.zip$', '$1')
     let $zipEntries := zip:entries(xs:anyURI($archivePath))
     let $outermostDirs := $zipEntries//*[@name[matches(., '^[-\w]+/$')]]
@@ -733,7 +736,8 @@ xquery version "3.1";
       let $parentDir :=
         if ( count($pathParts) eq 1 ) then ()
         else string-join(remove($pathParts, count($pathParts)), '/')
-      let $parentPath := concat('/db/tapas-view-pkgs','/',$parentDir)
+      let $parentPath :=
+        concat( if ( ends-with($dbPath,'/') ) then $dbPath else concat($dbPath,'/'), $parentDir)
       let $parentAvailable := xdb:collection-available($parentPath)
       return
         (: If the parent directory is not available, do nothing. :)
@@ -795,7 +799,7 @@ xquery version "3.1";
   (:~
     Update $dpkg:home-directory using the $dpkg:github-vpkg-repo.
    :)
-  declare %private function dpkg:update-package-repo($timestamp as xs:string) {
+  declare function dpkg:update-package-repo($timestamp as xs:string) {
     let $defaultBranch := dpkg:get-default-git-branch()
     let $newCommit := dpkg:get-commit-at($dpkg:github-vpkg-repo, $defaultBranch, $timestamp)
     (: Get a list of files changed since the last time the registry was updated. :)
