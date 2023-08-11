@@ -1,7 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="./exist-environment.rnc" type="application/relax-ng-compact-syntax"?>
 <environ type="development-local">
+  <!--
+    This file should be placed in the `/db` collection of eXist. It is used
+    to describe the environment for the TAPAS-xq application, especially 
+    when installing or updating view packages.
+    
+    The environment @type can be:
+      * "development-local" for eXist on a personal or work computer
+      * "development-staging" for a staging instance of eXist
+      * "production" for eXist in production
+  -->
   
+  <!--
+    The hostname for the eXist-DB service. Used for the TAPAS-xq test suite.
+  -->
+  <existHostname>http://localhost:8080</existHostname>
+  
+  <!--
+    The base URL for eXist to communicate with an instance of Rails. Used to
+    install or update view packages.
+  -->
   <railsBaseURI>http://127.0.0.1:3000</railsBaseURI>
+  
+  <!--
+    The default branch to use when querying GitHub repositories.
+  -->
   <defaultGitBranch name="develop"/>
 </environ>

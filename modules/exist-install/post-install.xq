@@ -32,8 +32,9 @@ declare variable $owner := "tapas";
 declare variable $storageDirBase := "/db";
 declare variable $dataDir := "tapas-data";
 declare variable $viewsDir := "tapas-view-pkgs";
-declare variable $moduleLoc := replace(system:get-module-load-path(), 
-   '^(xmldb:exist//)?(embedded-eXist-server)?(.+)$', '$3');
+declare variable $moduleLoc := "/db/apps/tapas-xq" 
+  (:replace(system:get-module-load-path(), 
+   '^(xmldb:exist///?)?(embedded-eXist-server)?(.+)$', '$3'):);
 
 (
   (: Store the collection configuration for the data and view package directories. :)
@@ -53,16 +54,17 @@ declare variable $moduleLoc := replace(system:get-module-load-path(),
     else 
       let $defaultConfigPath := concat($moduleLoc,'/', $environmentFileName)
       return
-        if ( util:binary-doc-available($defaultConfigPath) ) then
+        if ( doc-available($defaultConfigPath) ) then
           let $stored := xdb:store($storageDirBase, $environmentFileName, 
-             util:binary-doc($defaultConfigPath), 'text/xml' )
+             doc($defaultConfigPath), 'text/xml' )
           return 
             if ( exists($stored) and doc-available($stored) ) then 
               let $permissions := sm:chmod($environmentFilePath, 'rw-rw-r--')
               return true()
             else false()
         else false()
-  return ()
+  return
+    ()
     (:if ( $environmentSet ) then
       let $parentDir := concat($storageDirBase,'/',$viewsDir)
       let $registryName := 'registry.xml'

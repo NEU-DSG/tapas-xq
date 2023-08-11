@@ -28,8 +28,8 @@ element environ {
   ## The default branch to use when querying GitHub repositories.
   element defaultGitBranch {
     ## The name of the default git branch. Suggested values are 'develop' and 
-    ## 'master', but any branch name can be used if necessary.
-    attribute name { xs:string | 'develop' | 'master' },
+    ## 'main', but any branch name can be used if necessary.
+    attribute name { xs:string | 'develop' | 'main' | 'master' },
     empty
   }
 }
