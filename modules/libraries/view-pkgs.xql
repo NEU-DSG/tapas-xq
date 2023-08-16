@@ -22,9 +22,10 @@ xquery version "3.1";
   This library contains functions for dynamically updating and maintaining the view 
   packages available in eXist.
   
-  @author Ashley M. Clark
-  @version 1.4
+  @author Ash Clark
+  @version 1.5
   
+  2023-08-16: Added dpkg:get-response-status().
   2023-07-05: Fixed a path in dpkg:unpack-zip-archive() that prevented submodule contents from 
     being saved to the right place. Some functions (e.g. `dpkg:get-default-git-branch()` and
     `dpkg:unpack-zip-archive()`) are now public by default.
@@ -73,7 +74,9 @@ xquery version "3.1";
     return $pkg/@name/data(.);
 
 
-(:  FUNCTIONS  :)
+(:
+  FUNCTIONS
+ :)
 
   (:~
     Get a configuration file for a given view package.
@@ -503,7 +506,8 @@ xquery version "3.1";
         () (: error? :)
       else
         let $zipFilename := 
-          let $contentDisposition := $response[1]//http:header[@name eq lower-case('Content-Disposition')]
+          let $contentDisposition := 
+            $response[1]//http:header[@name eq lower-case('Content-Disposition')]
           return substring-after($contentDisposition/@value/data(.), 'filename=')
         let $binary := $response[2]
         let $archivePath :=
@@ -526,7 +530,8 @@ xquery version "3.1";
                   and $railsIsAvailable 
                   and exists($updateEntry/git/@commit/data(.)) ) then
               $updateEntry/git/@commit/data(.)
-            (: If Rails is not available, or the submodule is not a view package, use the commit referenced by GitHub. :)
+            (: If Rails is not available, or the submodule is not a view package, use the commit 
+              referenced by GitHub. :)
             else
               dpkg:call-github-contents-api($repoID, $repoPath, $branch)/fn:string[@key eq 'sha']/text()
           return 
@@ -558,6 +563,8 @@ xquery version "3.1";
   
   (:~
     Retrieve the HTTP status code from an HTTP response.
+    
+    @return The HTTP code as a string, if available. Otherwise, an empty sequence.
    :)
   declare function dpkg:get-response-status($http-response as item()*) as xs:string? {
     if ( exists($http-response) ) then
@@ -567,6 +574,8 @@ xquery version "3.1";
   
   (:~
     From an EXPath HTTP Client response, create a map for each body, with its contents and media-type.
+    
+    @return One map for each response body. Each map contains "media-type" and "content".
    :)
   declare function dpkg:get-response-body($http-response as item()*) as map(xs:string, item())* {
     let $mediaTypes := 
@@ -659,6 +668,8 @@ xquery version "3.1";
   
   (:~
     Test if the eXist environment configuration, environment.xml, is available.
+    
+    @return True if the environment settings document exists.
    :)
   declare %private function dpkg:is-environment-file-available() as xs:boolean {
     doc-available($dpkg:environment-defaults)
@@ -667,6 +678,8 @@ xquery version "3.1";
   (:~
     Test if the current, effective eXist user is a TAPAS user. This function will not
     work as expected in eXist v2.2.
+    
+    @return True if the current user is "tapas"; otherwise, false.
    :)
   declare function dpkg:is-tapas-user() as xs:boolean {
     try {
@@ -697,8 +710,10 @@ xquery version "3.1";
   
   (:~
     Create all missing directories from an absolute path.
+    
+    @return A string if the collection was created. Otherwise, an empty sequence.
    :)
-  declare %private function dpkg:make-directories($absPath as xs:string) {
+  declare %private function dpkg:make-directories($absPath as xs:string) as xs:string? {
     let $tokenizedPath := tokenize($absPath,'/')
     return 
       for $index in 1 to count($tokenizedPath)
