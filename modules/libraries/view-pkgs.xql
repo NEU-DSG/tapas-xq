@@ -25,7 +25,11 @@ xquery version "3.1";
   @author Ash Clark
   @version 1.5
   
-  2023-08-16: Added dpkg:get-response-status().
+  2023-08-16: Added dpkg:get-response-status(). Rearranged functions into four categories:
+      - getting info on the view packages as they stand;
+      - getting info on the companion Rails app;
+      - preparing and executing updates; and
+      - sending and parsing HTTP requests (e.g. GitHub repositories).
   2023-07-05: Fixed a path in dpkg:unpack-zip-archive() that prevented submodule contents from 
     being saved to the right place. Some functions (e.g. `dpkg:get-default-git-branch()` and
     `dpkg:unpack-zip-archive()`) are now public by default.
@@ -75,8 +79,23 @@ xquery version "3.1";
 
 
 (:
-  FUNCTIONS
+    FUNCTIONS:
+    
+    - view packages
+    - Rails
+    - updating
+    - http requests
  :)
+
+  (:~ Create an error's QName in an app-specific namespace. :)
+  declare %private function dpkg:error-qname($name) {
+    QName("http://tapasproject.org/tapas-xq/view-pkgs/err", $name)
+  };
+
+
+(:
+    FUNCTIONS, view packages
+:)
 
   (:~
     Get a configuration file for a given view package.
@@ -92,10 +111,19 @@ xquery version "3.1";
   };
   
   (:~
+    Get the absolute path to the directory for a given view package ID. No attempt is 
+    made to check if the identifier matches an actual view package; this function just 
+    builds the path for the collection where the package would be stored.
+   :)
+  declare function dpkg:get-package-directory($pkgID as xs:string) {
+    concat($dpkg:home-directory,'/',$pkgID)
+  };
+  
+  (:~
     Turn a relative filepath from a view package directory into an absolute filepath.
    :)
   declare function dpkg:get-path-from-package($pkgID as xs:string, $relativePath as xs:string)
-    as xs:string {
+     as xs:string {
     if ( dpkg:is-valid-view-package($pkgID) ) then
       let $pkgHome := dpkg:get-package-directory($pkgID)
       let $realRelativePath :=
@@ -105,18 +133,6 @@ xquery version "3.1";
       return concat($pkgHome,$realRelativePath)
     else error(dpkg:error-qname('InvalidViewPkg'), 
       concat("There is no view package named '",$pkgID,"'"))
-  };
-  
-  (:~
-    Query the TAPAS Rails API for its stored view packages.
-   :)
-  declare function dpkg:get-rails-packages() as node()* {
-    let $railsAddr := xs:anyURI(dpkg:get-rails-api-url())
-    let $response := dpkg:get-json-objects($railsAddr)
-    return 
-      if ( $response[self::p] ) then
-        <p class="error">Could not connect to Rails.</p>
-      else $response
   };
   
   (:~
@@ -132,6 +148,42 @@ xquery version "3.1";
   declare function dpkg:get-run-stmt($pkgID as xs:string) as node()? {
     let $config := dpkg:get-configuration($pkgID)
     return $config/vpkg:run
+  };
+  
+  (:~
+    Determine if an identifier matches that of a valid view package.
+   :)
+  declare function dpkg:is-valid-view-package($name as xs:string) as xs:boolean {
+    $name = $dpkg:valid-reader-types
+  };
+
+
+(:
+    FUNCTIONS, Rails
+:)
+  
+  (:~
+    If the Rails API URL doesn't match the default (production) Rails API, create 
+    an attribute @rails-api with the custom URL. This attribute should be placed on 
+    <view_registry> as necessary.
+   :)
+  declare %private function dpkg:define-rails-api-attribute() as item()? {
+    let $railsAPI := dpkg:get-rails-api-url()
+    return
+      if ( $railsAPI eq $dpkg:default-rails-api ) then ()
+      else attribute rails-api { $railsAPI }
+  };
+  
+  (:~
+    Query the TAPAS Rails API for its stored view packages.
+   :)
+  declare function dpkg:get-rails-packages() as node()* {
+    let $railsAddr := xs:anyURI(dpkg:get-rails-api-url())
+    let $response := dpkg:get-json-objects($railsAddr)
+    return 
+      if ( $response[self::p] ) then
+        <p class="error">Could not connect to Rails.</p>
+      else $response
   };
   
   (:~
@@ -165,6 +217,98 @@ xquery version "3.1";
             $candidate
           (: If the package is up-to-date, do nothing. :)
           else ()
+  };
+  
+  (:~
+    Test if the eXist environment configuration, environment.xml, is available.
+    
+    @return True if the environment settings document exists.
+   :)
+  declare %private function dpkg:is-environment-file-available() as xs:boolean {
+    doc-available($dpkg:environment-defaults)
+  };
+
+
+(:
+    FUNCTIONS, updating
+:)
+  
+  (:~
+    Test if the current user can write to $dpkg:home-directory.
+   :)
+  declare %private function dpkg:can-write() {
+    sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
+  };
+  
+  (:~
+    Get the host of the Rails API for use in a request header.
+   :)
+  declare %private function dpkg:get-rails-api-host() as xs:string {
+    if ( dpkg:is-environment-file-available() and 
+         doc($dpkg:environment-defaults)//railsBaseURI[@host] ) then
+      doc($dpkg:environment-defaults)//railsBaseURI/@host/data(.) 
+    else ''
+  };
+  
+  (:~
+    Get the Rails API URL.
+   :)
+  declare function dpkg:get-rails-api-url() as xs:string {
+    if ( dpkg:is-environment-file-available() and 
+        doc($dpkg:environment-defaults)//railsBaseURI[normalize-space(text()) ne ''] ) then
+      concat(doc($dpkg:environment-defaults)//railsBaseURI/text(), '/api/view_packages') 
+    else $dpkg:default-rails-api
+  };
+  
+  (:~
+    Given a sequence of view packages defined by the Rails API, create a registry entry 
+    for each one.
+   :)
+  declare %private function dpkg:get-updatable-candidates-from-rails($rails-packages as element()+) {
+    if ( $rails-packages/p[@class eq 'error'] ) then $rails-packages/p
+    else
+      for $railsPkg in $rails-packages[fn:map]
+      let $dirName := $railsPkg/fn:string[@key eq 'dir_name']/text()
+      let $branch := $railsPkg/fn:string[@key eq 'git_branch']/text()
+      let $isSubmodule := exists($branch) and $branch ne ''
+      let $registryPkg := 
+        if ( exists($dirName) ) then 
+          dpkg:get-registry-entry($dirName) 
+        else ()
+      let $useBranch := 
+        if ( $isSubmodule ) then $branch 
+        else dpkg:get-default-git-branch()
+      let $useRepo := 
+        if ( not($isSubmodule) ) then $dpkg:github-vpkg-repo
+        else if ( exists($registryPkg) ) then $registryPkg/git/@repo/data(.)
+        else
+          let $subRepo := 
+            dpkg:get-submodule-identifier($dpkg:github-vpkg-repo, $dirName, $useBranch)
+          return 
+            if ( contains($subRepo, ' ') ) then 
+              ' ' (: error :)
+            else $subRepo
+      let $gitTimeR := $railsPkg/fn:string[@key eq 'git_timestamp']/text()
+      let $makeEntry := function() {
+          <package_ref name="{$dirName}">{
+              if ( $isSubmodule ) then
+                attribute submodule { true() }
+              else ()
+            }
+            <git>
+              {
+                if ( $isSubmodule ) then (
+                    attribute repo { $useRepo },
+                    attribute branch { $branch },
+                    attribute commit { dpkg:get-commit-at($useRepo, $useBranch, $gitTimeR) }
+                  )
+                else ()
+              }
+              { attribute timestamp { $gitTimeR } }
+            </git>
+          </package_ref>
+        }
+      return $makeEntry()
   };
   
   (:~
@@ -233,10 +377,123 @@ xquery version "3.1";
   };
   
   (:~
-    Determine if an identifier matches that of a valid view package.
+    Test if the current, effective eXist user is a TAPAS user. This function will not
+    work as expected in eXist v2.2.
+    
+    @return True if the current user is "tapas"; otherwise, false.
    :)
-  declare function dpkg:is-valid-view-package($name as xs:string) as xs:boolean {
-    $name = $dpkg:valid-reader-types
+  declare function dpkg:is-tapas-user() as xs:boolean {
+    try {
+      let $account := sm:id()
+      let $matchGrp := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
+      return
+        (: Use the 'effective' user if the 'real' user is acting as someone else. :)
+        if ( $account[descendant::sm:effective] ) then
+          exists($account//sm:effective//sm:group[$matchGrp(text())])
+        else
+          exists($account//sm:real//sm:group[$matchGrp(text())])
+    } catch * { false() }
+  };
+  
+  (:~
+    Create all missing directories from an absolute path.
+    
+    @return A string if the collection was created. Otherwise, an empty sequence.
+   :)
+  declare %private function dpkg:make-directories($absPath as xs:string) as xs:string? {
+    let $tokenizedPath := tokenize($absPath,'/')
+    return 
+      for $index in 1 to count($tokenizedPath)
+      let $newDir := $tokenizedPath[$index]
+      let $targetDir := 
+        let $tokens := subsequence($tokenizedPath, 1, $index - 1)
+        let $parentPath := if ( $index le 1 ) then '' else string-join($tokens,'/')
+        return $parentPath
+      return 
+        if ( not(xdb:collection-available(concat($targetDir,$newDir))) ) then
+          xdb:create-collection($targetDir,$newDir)
+        else ()
+  };
+  
+  (:~
+    Unzip an archive. If there is a single outermost directory, it is ignored in 
+    favor of its descendants.
+   :)
+  declare function dpkg:unpack-zip-archive($archivePath as xs:string, $dbPath as xs:string) {
+    let $wrapperDirName := replace($archivePath, '^.*/(.+)\.zip$', '$1')
+    let $zipEntries := zip:entries(xs:anyURI($archivePath))
+    let $outermostDirs := $zipEntries//*[@name[matches(., '^[-\w]+/$')]]
+    let $ignorableDir :=
+      if ( count($outermostDirs) eq 1 ) then
+        $outermostDirs/@name/data(.)
+      else ()
+    return
+      for $entry in $zipEntries/zip:*[not($ignorableDir) or not(@name eq $ignorableDir)]
+      let $entryName := $entry/@name/data(.)
+      let $relativePath := 
+        substring-after($entryName, $ignorableDir) => replace('/$', '')
+      let $pathParts := tokenize($relativePath, '/')
+      let $parentDir :=
+        if ( count($pathParts) eq 1 ) then ()
+        else string-join(remove($pathParts, count($pathParts)), '/')
+      let $parentPath :=
+        concat( if ( ends-with($dbPath,'/') ) then $dbPath else concat($dbPath,'/'), $parentDir)
+      let $parentAvailable := xdb:collection-available($parentPath)
+      return
+        (: If the parent directory is not available, do nothing. :)
+        if ( not($parentAvailable) ) then
+          concat("Skipping ",$relativePath)
+        (: If this is an entry for a directory, create it inside its parent. :)
+        else if ( $entry[self::zip:dir] ) then
+          xdb:create-collection($parentPath, $pathParts[last()])
+        (: If this is an entry for a file, use context clues to figure out how to 
+          extract it from the ZIP file and how to store it in eXist. :)
+        else if ( $entry[self::zip:entry] ) then
+          let $filename := $pathParts[last()]
+          let $fileExtension := 
+            let $filename := lower-case($filename)
+            (: If the file was hidden, or has no file extension, assume it's a text 
+              file. :)
+            let $assumeTextFile :=
+              starts-with($filename, '.') or not(contains($filename, '.'))
+            return
+              if ( $assumeTextFile ) then 'txt'
+              else replace($filename, '^.+\.([\w]+)$', '$1')
+          return
+            switch ($fileExtension)
+              (: Store various flavors of XML as XML. :)
+              case 'xml' case 'rng' case 'svg' case 'xhtml' 
+              case 'xpl' case 'xsl' case 'xslt' return 
+                let $file := zip:xml-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store($parentPath, $filename, $file)
+              (: Extract HTML using the EXPath ZIP module, which ensures it will 
+                yield an XML serialization that can be stored. :)
+              case 'html' return
+                let $file := zip:html-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store($parentPath, $filename, $file, 'text/html')
+              (: Extract images (and others?) as binary files and store them as such. :)
+              case 'gif' case 'jpeg' case 'jpg' case 'png' case 'pxm' return
+                let $file := zip:binary-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store-as-binary($parentPath, $filename, $file)
+              (: Everything else is extracted as a text file and stored as binary. :)
+              default return
+                let $file := zip:text-entry(xs:anyURI($archivePath), $entryName)
+                return xdb:store-as-binary($parentPath, $filename, $file)
+        else "SOMETHING WENT WRONG" (: TODO: error :)
+  };
+  
+  (:~
+    Update a list of files from a 'Compare Commits' API response from GitHub.
+   :)
+  declare %private function dpkg:update-files($targetDir as xs:string, $fileList as node()*) as xs:string* {
+    for $fileRef in $fileList
+    let $status := $fileRef/fn:string[@key eq 'status']/text()
+    return
+      if ( $status eq 'added' or $status eq 'modified' ) then
+        if ( $fileRef/fn:string[@key eq 'raw_url'] ) then
+          dpkg:get-file-from-github($fileRef, $targetDir)
+        else () (: TODO: download submodule :)
+      else () (: TODO: delete files from eXist :)
   };
   
   (:~
@@ -313,8 +570,81 @@ xquery version "3.1";
       dpkg:initialize-packages()
   };
   
+  (:~
+    Update $dpkg:home-directory using the $dpkg:github-vpkg-repo.
+   :)
+  declare function dpkg:update-package-repo($timestamp as xs:string) {
+    let $defaultBranch := dpkg:get-default-git-branch()
+    let $newCommit := dpkg:get-commit-at($dpkg:github-vpkg-repo, $defaultBranch, $timestamp)
+    (: Get a list of files changed since the last time the registry was updated. :)
+    let $oldCommit := doc($dpkg:registry)/view_registry/git/@commit/data(.)
+    let $fileList := dpkg:list-changed-files($dpkg:github-vpkg-repo, $oldCommit, $newCommit)
+    (: For each file in the list (that isn't a submodule view package), either 
+      download the file or delete it from eXist. :)
+    let $files := dpkg:update-files($dpkg:home-directory, $fileList)
+    (: Recreate the registry, using the same commit and timestamp for <git> under 
+      <view_registry> and each non-submodule <package_ref>. :)
+    return
+      <git repo="{$dpkg:github-vpkg-repo}" branch="{$defaultBranch}" 
+        commit="{$newCommit}" timestamp="{$timestamp}"/>
+  };
   
-(:  SUPPORT FUNCTIONS  :)
+  (:~
+    Given a package reference entry for a submodule of $dpkg:github-vpkg-repo, update 
+    or create the local copy of that package.
+   :)
+  declare %private function dpkg:update-submodule($update as node()) {
+    let $pkgID := $update/@name/data(.)
+    let $pkgBranch := $update/git/@branch/data(.)
+    let $targetDateTime := $update/git/@timestamp/data(.)
+    (: Determine the correct package identifier to use for the view package. If the 
+      package is a submodule, use its own package identifier, otherwise use 
+      tapas-view-package. :)
+    let $useRepo := 
+      if ( $update/git[@repo] ) then
+        $update/git/@repo/data(.)
+      else () (: error :)
+    let $useBranch := 
+      if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
+      else dpkg:get-default-git-branch()
+    let $newCommit := $update/git/@commit/data(.)
+    let $pkgDir := dpkg:get-package-directory($pkgID)
+    let $pkgEntry := dpkg:get-registry-entry($pkgID)
+    let $installUpdate :=
+      if ( $pkgEntry ) then
+        let $oldCommit := $pkgEntry/git/@commit/data(.)
+        let $changedFiles := dpkg:list-changed-files($useRepo, $oldCommit, $newCommit)
+        return dpkg:update-files($pkgDir, $changedFiles)
+      (: If the view package is a submodule and being added to eXist for the first 
+        time, install its files from a ZIP archive. :)
+      else 
+        dpkg:get-repo-archive($useRepo, dpkg:get-package-directory($pkgID), $useBranch)
+    (: If the update returns strings of filepaths, and the view package is proven to 
+      be populated, create or update the registry entry for the package. :)
+    return
+      typeswitch ($installUpdate)
+        case xs:string* return
+          let $conf := dpkg:get-configuration($pkgID)
+          return
+            if ( count(xdb:get-child-resources($pkgDir)) ge 1 ) then
+              let $entry := 
+                <package_ref>
+                  { $update/@* }
+                  <conf>{
+                    if ( $conf ) then $conf/base-uri()
+                    else () (: error :)
+                  }</conf>
+                  <git>{ $update/git/@* }</git>
+                </package_ref>
+              return $entry
+            else $installUpdate (: error :)
+        default return $installUpdate (: error :)
+  };
+  
+  
+(:
+  FUNCTIONS, http requests
+ :)
   
   (:~
     Query GitHub's API for repository contents, using a specified git branch.
@@ -324,25 +654,6 @@ xquery version "3.1";
     let $apiURL := 
       concat($dpkg:github-api-base,'/',$repoID,'/contents/',$repoPath,'?ref=',$branch)
     return dpkg:get-json-objects($apiURL)
-  };
-  
-  (:~
-    Test if the current user can write to $dpkg:home-directory.
-   :)
-  declare %private function dpkg:can-write() {
-    sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
-  };
-  
-  (:~
-    If the Rails API URL doesn't match the default (production) Rails API, create 
-    an attribute @rails-api with the custom URL. This attribute should be placed on 
-    <view_registry> as necessary.
-   :)
-  declare %private function dpkg:define-rails-api-attribute() as item()? {
-    let $railsAPI := dpkg:get-rails-api-url()
-    return
-      if ( $railsAPI eq $dpkg:default-rails-api ) then ()
-      else attribute rails-api { $railsAPI }
   };
   
   (:~
@@ -455,34 +766,6 @@ xquery version "3.1";
                 default return ()
           else
             <p class="error">ERROR: Empty or non-JSON response</p> (: error :)
-  };
-  
-  (:~
-    Get the absolute path to the directory for a given view package ID. No attempt is 
-    made to check if the identifier matches an actual view package; this function just 
-    builds the path for the collection where the package would be stored.
-   :)
-  declare function dpkg:get-package-directory($pkgID as xs:string) {
-    concat($dpkg:home-directory,'/',$pkgID)
-  };
-  
-  (:~
-    Get the host of the Rails API for use in a request header.
-   :)
-  declare %private function dpkg:get-rails-api-host() as xs:string {
-    if ( dpkg:is-environment-file-available() and doc($dpkg:environment-defaults)//railsBaseURI[@host] ) then
-      doc($dpkg:environment-defaults)//railsBaseURI/@host/data(.) 
-    else ''
-  };
-  
-  (:~
-    Get the Rails API URL.
-   :)
-  declare function dpkg:get-rails-api-url() as xs:string {
-    if ( dpkg:is-environment-file-available() and 
-        doc($dpkg:environment-defaults)//railsBaseURI[normalize-space(text()) ne ''] ) then
-      concat(doc($dpkg:environment-defaults)//railsBaseURI/text(), '/api/view_packages') 
-    else $dpkg:default-rails-api
   };
   
   (:~
@@ -614,86 +897,6 @@ xquery version "3.1";
       else concat("No GitHub URL in ",$repoID," for ",$repoPath) (: error :)
   };
   
-  
-  (:~
-    Given a sequence of view packages defined by the Rails API, create a registry entry 
-    for each one.
-   :)
-  declare %private function dpkg:get-updatable-candidates-from-rails($rails-packages as element()+) {
-    if ( $rails-packages/p[@class eq 'error'] ) then $rails-packages/p
-    else
-      for $railsPkg in $rails-packages[fn:map]
-      let $dirName := $railsPkg/fn:string[@key eq 'dir_name']/text()
-      let $branch := $railsPkg/fn:string[@key eq 'git_branch']/text()
-      let $isSubmodule := exists($branch) and $branch ne ''
-      let $registryPkg := 
-        if ( exists($dirName) ) then 
-          dpkg:get-registry-entry($dirName) 
-        else ()
-      let $useBranch := 
-        if ( $isSubmodule ) then $branch 
-        else dpkg:get-default-git-branch()
-      let $useRepo := 
-        if ( not($isSubmodule) ) then $dpkg:github-vpkg-repo
-        else if ( exists($registryPkg) ) then $registryPkg/git/@repo/data(.)
-        else
-          let $subRepo := 
-            dpkg:get-submodule-identifier($dpkg:github-vpkg-repo, $dirName, $useBranch)
-          return 
-            if ( contains($subRepo, ' ') ) then 
-              ' ' (: error :)
-            else $subRepo
-      let $gitTimeR := $railsPkg/fn:string[@key eq 'git_timestamp']/text()
-      let $makeEntry := function() {
-          <package_ref name="{$dirName}">{
-              if ( $isSubmodule ) then
-                attribute submodule { true() }
-              else ()
-            }
-            <git>
-              {
-                if ( $isSubmodule ) then (
-                    attribute repo { $useRepo },
-                    attribute branch { $branch },
-                    attribute commit { dpkg:get-commit-at($useRepo, $useBranch, $gitTimeR) }
-                  )
-                else ()
-              }
-              { attribute timestamp { $gitTimeR } }
-            </git>
-          </package_ref>
-        }
-      return $makeEntry()
-  };
-  
-  (:~
-    Test if the eXist environment configuration, environment.xml, is available.
-    
-    @return True if the environment settings document exists.
-   :)
-  declare %private function dpkg:is-environment-file-available() as xs:boolean {
-    doc-available($dpkg:environment-defaults)
-  };
-  
-  (:~
-    Test if the current, effective eXist user is a TAPAS user. This function will not
-    work as expected in eXist v2.2.
-    
-    @return True if the current user is "tapas"; otherwise, false.
-   :)
-  declare function dpkg:is-tapas-user() as xs:boolean {
-    try {
-      let $account := sm:id()
-      let $matchGrp := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
-      return
-        (: Use the 'effective' user if the 'real' user is acting as someone else. :)
-        if ( $account[descendant::sm:effective] ) then
-          exists($account//sm:effective//sm:group[$matchGrp(text())])
-        else
-          exists($account//sm:real//sm:group[$matchGrp(text())])
-    } catch * { false() }
-  };
-  
   declare %private function dpkg:is-valid-response($response as item()*) as xs:boolean {
     exists($response[1][self::http:*]) and not(exists($response[self::Q{}p[@type]]))
   };
@@ -706,31 +909,6 @@ xquery version "3.1";
     let $urlParts := ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
     let $url := string-join($urlParts,'/')
     return dpkg:get-json-objects($url)/fn:array[@key eq 'files']/fn:map
-  };
-  
-  (:~
-    Create all missing directories from an absolute path.
-    
-    @return A string if the collection was created. Otherwise, an empty sequence.
-   :)
-  declare %private function dpkg:make-directories($absPath as xs:string) as xs:string? {
-    let $tokenizedPath := tokenize($absPath,'/')
-    return 
-      for $index in 1 to count($tokenizedPath)
-      let $newDir := $tokenizedPath[$index]
-      let $targetDir := 
-        let $tokens := subsequence($tokenizedPath, 1, $index - 1)
-        let $parentPath := if ( $index le 1 ) then '' else string-join($tokens,'/')
-        return $parentPath
-      return 
-        if ( not(xdb:collection-available(concat($targetDir,$newDir))) ) then
-          xdb:create-collection($targetDir,$newDir)
-        else ()
-  };
-  
-  (:~ Create an error's QName in an app-specific namespace. :)
-  declare %private function dpkg:error-qname($name) {
-    QName("http://tapasproject.org/tapas-xq/view-pkgs/err", $name)
   };
   
   (:~
@@ -770,156 +948,4 @@ xquery version "3.1";
         <p class="error">Request to {$url} failed with response {
           dpkg:get-response-status($response) }: { dpkg:get-response-body($response)?content }</p>
       else $response
-  };
-  
-  (:~
-    Unzip an archive. If there is a single outermost directory, it is ignored in 
-    favor of its descendants.
-   :)
-  declare function dpkg:unpack-zip-archive($archivePath as xs:string, $dbPath as xs:string) {
-    let $wrapperDirName := replace($archivePath, '^.*/(.+)\.zip$', '$1')
-    let $zipEntries := zip:entries(xs:anyURI($archivePath))
-    let $outermostDirs := $zipEntries//*[@name[matches(., '^[-\w]+/$')]]
-    let $ignorableDir :=
-      if ( count($outermostDirs) eq 1 ) then
-        $outermostDirs/@name/data(.)
-      else ()
-    return
-      for $entry in $zipEntries/zip:*[not($ignorableDir) or not(@name eq $ignorableDir)]
-      let $entryName := $entry/@name/data(.)
-      let $relativePath := 
-        substring-after($entryName, $ignorableDir) => replace('/$', '')
-      let $pathParts := tokenize($relativePath, '/')
-      let $parentDir :=
-        if ( count($pathParts) eq 1 ) then ()
-        else string-join(remove($pathParts, count($pathParts)), '/')
-      let $parentPath :=
-        concat( if ( ends-with($dbPath,'/') ) then $dbPath else concat($dbPath,'/'), $parentDir)
-      let $parentAvailable := xdb:collection-available($parentPath)
-      return
-        (: If the parent directory is not available, do nothing. :)
-        if ( not($parentAvailable) ) then
-          concat("Skipping ",$relativePath)
-        (: If this is an entry for a directory, create it inside its parent. :)
-        else if ( $entry[self::zip:dir] ) then
-          xdb:create-collection($parentPath, $pathParts[last()])
-        (: If this is an entry for a file, use context clues to figure out how to 
-          extract it from the ZIP file and how to store it in eXist. :)
-        else if ( $entry[self::zip:entry] ) then
-          let $filename := $pathParts[last()]
-          let $fileExtension := 
-            let $filename := lower-case($filename)
-            (: If the file was hidden, or has no file extension, assume it's a text 
-              file. :)
-            let $assumeTextFile :=
-              starts-with($filename, '.') or not(contains($filename, '.'))
-            return
-              if ( $assumeTextFile ) then 'txt'
-              else replace($filename, '^.+\.([\w]+)$', '$1')
-          return
-            switch ($fileExtension)
-              (: Store various flavors of XML as XML. :)
-              case 'xml' case 'rng' case 'svg' case 'xhtml' 
-              case 'xpl' case 'xsl' case 'xslt' return 
-                let $file := zip:xml-entry(xs:anyURI($archivePath), $entryName)
-                return xdb:store($parentPath, $filename, $file)
-              (: Extract HTML using the EXPath ZIP module, which ensures it will 
-                yield an XML serialization that can be stored. :)
-              case 'html' return
-                let $file := zip:html-entry(xs:anyURI($archivePath), $entryName)
-                return xdb:store($parentPath, $filename, $file, 'text/html')
-              (: Extract images (and others?) as binary files and store them as such. :)
-              case 'gif' case 'jpeg' case 'jpg' case 'png' case 'pxm' return
-                let $file := zip:binary-entry(xs:anyURI($archivePath), $entryName)
-                return xdb:store-as-binary($parentPath, $filename, $file)
-              (: Everything else is extracted as a text file and stored as binary. :)
-              default return
-                let $file := zip:text-entry(xs:anyURI($archivePath), $entryName)
-                return xdb:store-as-binary($parentPath, $filename, $file)
-        else "SOMETHING WENT WRONG" (: TODO: error :)
-  };
-  
-  (:~
-    Update a list of files from a 'Compare Commits' API response from GitHub.
-   :)
-  declare %private function dpkg:update-files($targetDir as xs:string, $fileList as node()*) as xs:string* {
-    for $fileRef in $fileList
-    let $status := $fileRef/fn:string[@key eq 'status']/text()
-    return
-      if ( $status eq 'added' or $status eq 'modified' ) then
-        if ( $fileRef/fn:string[@key eq 'raw_url'] ) then
-          dpkg:get-file-from-github($fileRef, $targetDir)
-        else () (: TODO: download submodule :)
-      else () (: TODO: delete files from eXist :)
-  };
-  
-  (:~
-    Update $dpkg:home-directory using the $dpkg:github-vpkg-repo.
-   :)
-  declare function dpkg:update-package-repo($timestamp as xs:string) {
-    let $defaultBranch := dpkg:get-default-git-branch()
-    let $newCommit := dpkg:get-commit-at($dpkg:github-vpkg-repo, $defaultBranch, $timestamp)
-    (: Get a list of files changed since the last time the registry was updated. :)
-    let $oldCommit := doc($dpkg:registry)/view_registry/git/@commit/data(.)
-    let $fileList := dpkg:list-changed-files($dpkg:github-vpkg-repo, $oldCommit, $newCommit)
-    (: For each file in the list (that isn't a submodule view package), either 
-      download the file or delete it from eXist. :)
-    let $files := dpkg:update-files($dpkg:home-directory, $fileList)
-    (: Recreate the registry, using the same commit and timestamp for <git> under 
-      <view_registry> and each non-submodule <package_ref>. :)
-    return
-      <git repo="{$dpkg:github-vpkg-repo}" branch="{$defaultBranch}" 
-        commit="{$newCommit}" timestamp="{$timestamp}"/>
-  };
-  
-  (:~
-    Given a package reference entry for a submodule of $dpkg:github-vpkg-repo, update 
-    or create the local copy of that package.
-   :)
-  declare %private function dpkg:update-submodule($update as node()) {
-    let $pkgID := $update/@name/data(.)
-    let $pkgBranch := $update/git/@branch/data(.)
-    let $targetDateTime := $update/git/@timestamp/data(.)
-    (: Determine the correct package identifier to use for the view package. If the 
-      package is a submodule, use its own package identifier, otherwise use 
-      tapas-view-package. :)
-    let $useRepo := 
-      if ( $update/git[@repo] ) then
-        $update/git/@repo/data(.)
-      else () (: error :)
-    let $useBranch := 
-      if ( exists($pkgBranch) and $pkgBranch ne '' ) then $pkgBranch
-      else dpkg:get-default-git-branch()
-    let $newCommit := $update/git/@commit/data(.)
-    let $pkgDir := dpkg:get-package-directory($pkgID)
-    let $pkgEntry := dpkg:get-registry-entry($pkgID)
-    let $installUpdate :=
-      if ( $pkgEntry ) then
-        let $oldCommit := $pkgEntry/git/@commit/data(.)
-        let $changedFiles := dpkg:list-changed-files($useRepo, $oldCommit, $newCommit)
-        return dpkg:update-files($pkgDir, $changedFiles)
-      (: If the view package is a submodule and being added to eXist for the first 
-        time, install its files from a ZIP archive. :)
-      else 
-        dpkg:get-repo-archive($useRepo, dpkg:get-package-directory($pkgID), $useBranch)
-    (: If the update returns strings of filepaths, and the view package is proven to 
-      be populated, create or update the registry entry for the package. :)
-    return
-      typeswitch ($installUpdate)
-        case xs:string* return
-          let $conf := dpkg:get-configuration($pkgID)
-          return
-            if ( count(xdb:get-child-resources($pkgDir)) ge 1 ) then
-              let $entry := 
-                <package_ref>
-                  { $update/@* }
-                  <conf>{
-                    if ( $conf ) then $conf/base-uri()
-                    else () (: error :)
-                  }</conf>
-                  <git>{ $update/git/@* }</git>
-                </package_ref>
-              return $entry
-            else $installUpdate (: error :)
-        default return $installUpdate (: error :)
   };
