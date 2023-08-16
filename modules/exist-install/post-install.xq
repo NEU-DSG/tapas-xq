@@ -28,13 +28,16 @@ import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs"
    @author Ashley M. Clark
  :)
 
-declare variable $owner := "tapas";
-declare variable $storageDirBase := "/db";
-declare variable $dataDir := "tapas-data";
-declare variable $viewsDir := "tapas-view-pkgs";
-declare variable $moduleLoc := "/db/apps/tapas-xq" 
-  (:replace(system:get-module-load-path(), 
-   '^(xmldb:exist///?)?(embedded-eXist-server)?(.+)$', '$3'):);
+ (:  GLOBAL VARIABLES  :)
+  
+  declare variable $owner := "tapas";
+  declare variable $storageDirBase := "/db";
+  declare variable $dataDir := "tapas-data";
+  declare variable $viewsDir := "tapas-view-pkgs";
+  declare variable $moduleLoc := "/db/apps/tapas-xq";
+
+
+(:  MAIN QUERY  :)
 
 (
   (: Store the collection configuration for the data and view package directories. :)
@@ -50,19 +53,26 @@ declare variable $moduleLoc := "/db/apps/tapas-xq"
   let $environmentFileName := 'environment.xml'
   let $environmentFilePath := concat($storageDirBase, '/', $environmentFileName)
   let $environmentSet :=
+    (: Do nothing if /db/environment.xml already exists. :)
     if ( doc-available($environmentFilePath) ) then true()
     else 
+      (: If /db/environment.xml does not yet exist, copy the one included in the 
+        EXPath package. :)
       let $defaultConfigPath := concat($moduleLoc,'/', $environmentFileName)
       return
-        if ( doc-available($defaultConfigPath) ) then
-          let $stored := xdb:store($storageDirBase, $environmentFileName, 
-             doc($defaultConfigPath), 'text/xml' )
+        (: Make sure the starter file is available first. :)
+        if ( not(doc-available($defaultConfigPath)) ) then false()
+        else
+          let $stored := 
+            xdb:store($storageDirBase, $environmentFileName, doc($defaultConfigPath), 
+              'text/xml')
           return 
+            (: If /db/environment.xml was successfully created, modify its 
+              permissions. :)
             if ( exists($stored) and doc-available($stored) ) then 
               let $permissions := sm:chmod($environmentFilePath, 'rw-rw-r--')
               return true()
             else false()
-        else false()
   return
     ()
     (:if ( $environmentSet ) then
@@ -87,8 +97,8 @@ declare variable $moduleLoc := "/db/apps/tapas-xq"
     else () (\: error :\)
     :)
   ,
-  (: Make sure that the data directory and all of its resources are writable by the 
-    "tapas" group. :)
+  (: Make sure that the data directory, view package directory, and all of their 
+    resources are writable by the "tapas" group. :)
   for $dir in ( $dataDir, $viewsDir )
   let $path := concat($storageDirBase,'/',$dataDir)
   return

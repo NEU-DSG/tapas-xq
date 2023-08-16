@@ -2,6 +2,7 @@ xquery version "3.1";
 
   module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs";
 (:  NAMESPACES  :)
+  declare namespace err="http://www.w3.org/2005/xqt-errors";
   (: 2023-05-08: The eXist HTTP client was deprecated in eXist v4 and removed in v5.
     While we don't use the functions, we still use the HTTPC format for responses in 
     this library. :)
@@ -405,22 +406,24 @@ xquery version "3.1";
     let $folder := concat($pathBase, '/', substring-before($relPath,concat('/',$filename)))
     let $downloadURL := $jsonObj/fn:string[@key eq 'raw_url']/text()
     return
-      if ( exists(dpkg:make-directories($folder)) ) then
-        if ( exists($downloadURL) ) then
-          let $download := dpkg:send-request(xs:anyURI($downloadURL))
-          let $statusCode := $download[1]/@status/data(.)
-          return 
-            if ( exists($folder) and $statusCode eq '200' ) then
-              let $body := dpkg:get-response-body($download)
-              return 
-                if ( exists($body) and count($body) eq 1 ) then
-                  let $mimetype := 
-                    concat('text/',substring-after($body?('media-type'),'/'))
-                  return xdb:store($folder, $filename, $body?('content'), $mimetype) 
-                else () (: error :)
-            else () (: error :)
-        else () (: error :)
-      else () (: error :)
+      if ( not(exists(dpkg:make-directories($folder))) ) then
+        () (: error :)
+      else if ( not(exists($downloadURL)) or not($downloadURL castable as xs:anyURI) ) then
+        () (: error :)
+      else
+        let $download := dpkg:send-request(xs:anyURI($downloadURL))
+        return
+          (: Pass along errors generated in dpkg:send-request(). :)
+          if ( not(dpkg:is-valid-response($download)) ) then
+            $download
+          else
+            let $body := dpkg:get-response-body($download)
+            return 
+              if ( (:exists($folder) and:) exists($body) and count($body) eq 1 ) then
+                let $mimetype := 
+                  concat('text/',substring-after($body?('media-type'),'/'))
+                return xdb:store($folder, $filename, $body?('content'), $mimetype) 
+              else () (: error :)
   };
   
   (:~
@@ -428,11 +431,13 @@ xquery version "3.1";
    :)
   declare %private function dpkg:get-json-objects($url as xs:string) as node()* {
     let $address := xs:anyURI($url)
-    let $request := dpkg:send-request($address)
-    let $status := $request[1]/@status/data(.)
-    let $body := dpkg:get-response-body($request)
+    let $response := dpkg:send-request($address)
     return
-      if ( $status eq '200' ) then
+      (: Pass along errors generated in dpkg:send-request(). :)
+      if ( not(dpkg:is-valid-response($response)) ) then
+        $response
+      else
+        let $body := dpkg:get-response-body($response)
         let $jsonStr := 
           if ( $body?('media-type') = ('application/json', 'text/json') ) then
             $body?('content')
@@ -445,8 +450,8 @@ xquery version "3.1";
                 case element(fn:map) return $pseudojson
                 case element(fn:array) return $pseudojson/fn:map
                 default return ()
-          else <p class="error">ERROR: Empty or non-JSON response</p> (: error :)
-      else <p class="error">ERROR: { $status }</p> (: error :)
+          else
+            <p class="error">ERROR: Empty or non-JSON response</p> (: error :)
   };
   
   (:~
@@ -486,9 +491,15 @@ xquery version "3.1";
       let $urlParts := ($dpkg:github-api-base, $repoID, 'zipball', $branch)
       return xs:anyURI(string-join($urlParts,'/'))
     let $response := dpkg:send-request($zipURL)
-    let $isResponseZipped := $response[1]//http:body/@media-type/data(.) = 'application/zip'
+    let $status := dpkg:get-response-status($response)
+    let $isResponseZipped := function () as xs:boolean {
+        $response[1]//http:body/@media-type/data(.) = 'application/zip'
+      }
     return
-      if ( count($response) lt 2 or not($isResponseZipped) ) then
+      (: Pass along errors generated in dpkg:send-request(). :)
+      if ( not(dpkg:is-valid-response($response)) ) then
+        $response
+      else if ( count($response) lt 2 or not($isResponseZipped()) ) then
         () (: error? :)
       else
         let $zipFilename := 
@@ -546,6 +557,15 @@ xquery version "3.1";
   };
   
   (:~
+    Retrieve the HTTP status code from an HTTP response.
+   :)
+  declare function dpkg:get-response-status($http-response as item()*) as xs:string? {
+    if ( exists($http-response) ) then
+      $http-response[1]/@status/data(.)
+    else ()
+  };
+  
+  (:~
     From an EXPath HTTP Client response, create a map for each body, with its contents and media-type.
    :)
   declare function dpkg:get-response-body($http-response as item()*) as map(xs:string, item())* {
@@ -583,30 +603,6 @@ xquery version "3.1";
         let $baseless := substring-after($gitURL, concat($dpkg:github-api-base,'/'))
         return substring-before($baseless, '/git/trees')
       else concat("No GitHub URL in ",$repoID," for ",$repoPath) (: error :)
-  };
-  
-  (:~
-    Test if the eXist environment configuration, environment.xml, is available.
-   :)
-  declare %private function dpkg:is-environment-file-available() as xs:boolean {
-    doc-available($dpkg:environment-defaults)
-  };
-  
-  (:~
-    Test if the current, effective eXist user is a TAPAS user. This function will not
-    work as expected in eXist v2.2.
-   :)
-  declare function dpkg:is-tapas-user() as xs:boolean {
-    try {
-      let $account := sm:id()
-      let $matchGrp := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
-      return
-        (: Use the 'effective' user if the 'real' user is acting as someone else. :)
-        if ( $account[descendant::sm:effective] ) then
-          exists($account//sm:effective//sm:group[$matchGrp(text())])
-        else
-          exists($account//sm:real//sm:group[$matchGrp(text())])
-    } catch * { false() }
   };
   
   
@@ -662,6 +658,34 @@ xquery version "3.1";
   };
   
   (:~
+    Test if the eXist environment configuration, environment.xml, is available.
+   :)
+  declare %private function dpkg:is-environment-file-available() as xs:boolean {
+    doc-available($dpkg:environment-defaults)
+  };
+  
+  (:~
+    Test if the current, effective eXist user is a TAPAS user. This function will not
+    work as expected in eXist v2.2.
+   :)
+  declare function dpkg:is-tapas-user() as xs:boolean {
+    try {
+      let $account := sm:id()
+      let $matchGrp := function($text as xs:string) as xs:boolean { $text eq 'tapas' }
+      return
+        (: Use the 'effective' user if the 'real' user is acting as someone else. :)
+        if ( $account[descendant::sm:effective] ) then
+          exists($account//sm:effective//sm:group[$matchGrp(text())])
+        else
+          exists($account//sm:real//sm:group[$matchGrp(text())])
+    } catch * { false() }
+  };
+  
+  declare %private function dpkg:is-valid-response($response as item()*) as xs:boolean {
+    exists($response[1][self::http:*]) and not(exists($response[self::Q{}p[@type]]))
+  };
+  
+  (:~
     Get a list of all files changed between commits in a given GitHub repository.
    :)
   declare function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, 
@@ -712,7 +736,25 @@ xquery version "3.1";
       <http:request method="GET" href="{$url}" timeout="15">
         { $reqConfig }
       </http:request>
-    return http:send-request($request, $url)
+    let $response :=
+      (: Recover from any errors, but log them. :)
+      try { http:send-request($request, $url) }
+      catch * {
+        let $message :=
+          "TAPAS-xq could not send request to "||$url||". Full error: "
+          ||$err:code||" "||$err:value||"--"||$err:description
+        return (
+            util:log('warn', $message),
+            <p class="error">{ $message }</p>
+          )
+      }
+    return
+      if ( empty($response) or empty(dpkg:get-response-status($response)) ) then
+        $response
+      else if ( dpkg:get-response-status($response) ne '200' ) then
+        <p class="error">Request to {$url} failed with response {
+          dpkg:get-response-status($response) }: { dpkg:get-response-body($response)?content }</p>
+      else $response
   };
   
   (:~
