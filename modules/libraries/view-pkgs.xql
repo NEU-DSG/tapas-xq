@@ -87,56 +87,70 @@ xquery version "3.1";
     - http requests
  :)
 
-  (:~ Create an error's QName in an app-specific namespace. :)
-  declare %private function dpkg:error-qname($name) {
+  (:~
+    Create an error's QName in an app-specific namespace. 
+    
+    @return A qualified name in the TAPAS error namespace.
+   :)
+  declare %private function dpkg:error-qname($name as xs:string) as xs:QName {
     QName("http://tapasproject.org/tapas-xq/view-pkgs/err", $name)
   };
 
 
 (:
-    FUNCTIONS, view packages
-:)
+ :  FUNCTIONS, view packages
+ :)
 
   (:~
-    Get a configuration file for a given view package.
+    Get a configuration file for a given view package. 
     
-    NOTE: It turns out this use of collection() is eXist-specific. It outputs all 
-    files in descendant collections. Saxon will not do the same.
+    Since the configuration filename can begin with anything as long as it ends in 
+    'CONFIG.xml', this function takes the first-occurring file matching this criteria.
+    
+    @return The view package configuration file, <vpkg:view_package>.
    :)
   declare function dpkg:get-configuration($pkgID as xs:string) as item()* {
     let $parentDir := concat($dpkg:home-directory,'/',$pkgID)
-    (: Since the configuration filename can begin with anything as long as it ends in 
-      'CONFIG.xml', take the first-occurring file matching the config file criteria. :)
-    return collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')][1]/vpkg:view_package
+    return 
+      (: It turns out this use of collection() is eXist-specific. It outputs all
+        files in descendant collections. Saxon will not do the same. :)
+      collection($parentDir)[matches(base-uri(), 'CONFIG\.xml$')][1]/vpkg:view_package
   };
   
   (:~
     Get the absolute path to the directory for a given view package ID. No attempt is 
     made to check if the identifier matches an actual view package; this function just 
     builds the path for the collection where the package would be stored.
+    
+    @return The path to a view package collection in eXist.
    :)
-  declare function dpkg:get-package-directory($pkgID as xs:string) {
+  declare function dpkg:get-package-directory($pkgID as xs:string) as xs:string {
     concat($dpkg:home-directory,'/',$pkgID)
   };
   
   (:~
     Turn a relative filepath from a view package directory into an absolute filepath.
+    
+    @return An absolute filepath to a view package collection.
    :)
   declare function dpkg:get-path-from-package($pkgID as xs:string, $relativePath as xs:string)
      as xs:string {
-    if ( dpkg:is-valid-view-package($pkgID) ) then
+    if ( not(dpkg:is-valid-view-package($pkgID)) ) then
+      error(dpkg:error-qname('InvalidViewPkg'), 
+        concat("There is no view package named '",$pkgID,"'"))
+    else
       let $pkgHome := dpkg:get-package-directory($pkgID)
       let $realRelativePath :=
         if ( starts-with($relativePath,'/') ) then
           $relativePath
         else concat('/',$relativePath)
       return concat($pkgHome,$realRelativePath)
-    else error(dpkg:error-qname('InvalidViewPkg'), 
-      concat("There is no view package named '",$pkgID,"'"))
   };
   
   (:~
     Get the registry entry for the view package matching a given identifier.
+    
+    @return The <package_ref> description of the view package.
    :)
   declare function dpkg:get-registry-entry($pkgID as xs:string) as node()? {
     doc($dpkg:registry)//package_ref[@name eq $pkgID]
@@ -144,6 +158,8 @@ xquery version "3.1";
   
   (:~
     Get the <run> element from a package's configuration file.
+    
+    @return The <vpkg:run> element from the given view package's configuration.
    :)
   declare function dpkg:get-run-stmt($pkgID as xs:string) as node()? {
     let $config := dpkg:get-configuration($pkgID)
@@ -152,6 +168,8 @@ xquery version "3.1";
   
   (:~
     Determine if an identifier matches that of a valid view package.
+    
+    @return True if the string provided matches a registered view package.
    :)
   declare function dpkg:is-valid-view-package($name as xs:string) as xs:boolean {
     $name = $dpkg:valid-reader-types
@@ -159,13 +177,15 @@ xquery version "3.1";
 
 
 (:
-    FUNCTIONS, Rails
-:)
+ :  FUNCTIONS, Rails
+ :)
   
   (:~
     If the Rails API URL doesn't match the default (production) Rails API, create 
     an attribute @rails-api with the custom URL. This attribute should be placed on 
     <view_registry> as necessary.
+    
+    @return An attribute @rails-api.
    :)
   declare %private function dpkg:define-rails-api-attribute() as item()? {
     let $railsAPI := dpkg:get-rails-api-url()
@@ -181,7 +201,7 @@ xquery version "3.1";
     let $railsAddr := xs:anyURI(dpkg:get-rails-api-url())
     let $response := dpkg:get-json-objects($railsAddr)
     return 
-      if ( $response[self::p] ) then
+      if ( $response[self::p] ) then (: TODO: normalize error handling :)
         <p class="error">Could not connect to Rails.</p>
       else $response
   };
@@ -230,8 +250,8 @@ xquery version "3.1";
 
 
 (:
-    FUNCTIONS, updating
-:)
+ :  FUNCTIONS, updating
+ :)
   
   (:~
     Test if the current user can write to $dpkg:home-directory.
@@ -643,7 +663,7 @@ xquery version "3.1";
   
   
 (:
-  FUNCTIONS, http requests
+ : FUNCTIONS, http requests
  :)
   
   (:~
