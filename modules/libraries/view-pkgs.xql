@@ -79,16 +79,19 @@ xquery version "3.1";
 
 
 (:
-    FUNCTIONS:
+    FUNCTIONS,
+    Organized into these groups:
+      1. view packages
+      2. Rails
+      3. updating
+      4. http requests
     
-    - view packages
-    - Rails
-    - updating
-    - http requests
- :)
+    To get to a group quickly, search for "FUNCTIONS " + the group number you want 
+    to find.
+:)
 
   (:~
-    Create an error's QName in an app-specific namespace. 
+    Create an error's QName in an app-specific namespace.
     
     @return A qualified name in the TAPAS error namespace.
    :)
@@ -98,7 +101,7 @@ xquery version "3.1";
 
 
 (:
- :  FUNCTIONS, view packages
+ :  FUNCTIONS 1. view packages
  :)
 
   (:~
@@ -177,7 +180,7 @@ xquery version "3.1";
 
 
 (:
- :  FUNCTIONS, Rails
+ :  FUNCTIONS 2. Rails
  :)
   
   (:~
@@ -250,7 +253,7 @@ xquery version "3.1";
 
 
 (:
- :  FUNCTIONS, updating
+ :  FUNCTIONS 3. updating
  :)
   
   (:~
@@ -663,7 +666,7 @@ xquery version "3.1";
   
   
 (:
- : FUNCTIONS, http requests
+ :  FUNCTIONS 4. http requests
  :)
   
   (:~

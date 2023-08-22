@@ -3,7 +3,7 @@
     abbrev="tapas-xq" version="0.7.3" spec="1.0">
   <title>TAPAS-xq</title>
   
-  <dependency processor="http://exist-db.org" semver-min="4.7.1"/>
+  <dependency processor="http://exist-db.org" semver-min="5.3.0"/>
   <!-- EXPath package dependencies -->
   <dependency package="http://exist-db.org/apps/markdown" semver-min="0.4"/>
   <dependency package="http://www.functx.com"/>

@@ -4,9 +4,7 @@ xquery version "3.1";
   import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs"
     at "../libraries/view-pkgs.xql";
 (:  NAMESPACES  :)
-  (:declare default element namespace "http://www.wwp.northeastern.edu/ns/textbase";:)
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
-  declare namespace tei="http://www.tei-c.org/ns/1.0";
 (:  OPTIONS  :)
   (:declare option output:indent "no";:)
 
