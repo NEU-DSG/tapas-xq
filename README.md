@@ -35,7 +35,7 @@ The settings listed above are helpful because they prevent eXist (and the Saxon 
 
 <!-- For a full list of eXist configurations used in the development and production environments, please see the TAPAS server documentation. -->
 
-Once `conf.xml` has been edited and saved, you can start (or re-start) eXist. To start eXist from the command line, run `./bin/startup.sh` from the eXist home directory. You can then shut down eXist by hitting the <kbd>Control</kbd> and <kbd>C</kbd> keys to interrupt the process. (You may also be able to start eXist through your operating system's application menu.)
+Once `conf.xml` has been edited and saved, you can start (or re-start) eXist. To start eXist from the command line, run `./bin/startup.sh` from the eXist home directory. You can then shut down eXist by hitting the <kbd>Control</kbd> and <kbd>C</kbd> keys to interrupt the process.
 
 
 ### Deploying TAPAS-xq into eXist
@@ -87,7 +87,6 @@ Run [Apache Ant](https://ant.apache.org/manual/running.html) from within your lo
 In the terminal:
 
 ```
-git clone https://github.com/NEU-DSG/tapas-xq.git
 cd tapas-xq
 ant
 ```
