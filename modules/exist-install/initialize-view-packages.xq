@@ -23,8 +23,8 @@ xquery version "3.1";
 (:  MAIN QUERY  :)
 
 (: Make sure the 'tapas' user is logged in and has write access. :)
-if ( not(dpkg:has-write-access()) ) then
-  "Log in as the 'tapas' user before running this script!"
+if ( not(dpkg:can-write()) ) then
+  "Cannot write to the view packages directory. Are you logged in?"
 (: Make sure the environment settings file is available. :)
 else if ( not(doc-available($dpkg:environment-defaults)) ) then
   "Could not find /db/environment.xml"

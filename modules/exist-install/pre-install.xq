@@ -110,6 +110,8 @@ xquery version "3.0";
   };
 
 
+(:  MAIN QUERY  :)
+
 (
   (: Create user who will own the TAPAS collections. :)
   if ( not(sm:user-exists($owner)) ) then 

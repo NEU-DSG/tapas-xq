@@ -256,7 +256,7 @@ xquery version "3.1";
   (:~
     Test if the current user can write to $dpkg:home-directory.
    :)
-  declare %private function dpkg:can-write() {
+  declare function dpkg:can-write() {
     sm:has-access(xs:anyURI($dpkg:home-directory),'rwx')
   };
   
@@ -865,17 +865,6 @@ xquery version "3.1";
   };
   
   (:~
-    Retrieve the HTTP status code from an HTTP response.
-    
-    @return The HTTP code as a string, if available. Otherwise, an empty sequence.
-   :)
-  declare function dpkg:get-response-status($http-response as item()*) as xs:string? {
-    if ( exists($http-response) ) then
-      $http-response[1]/@status/data(.)
-    else ()
-  };
-  
-  (:~
     From an EXPath HTTP Client response, create a map for each body, with its contents and media-type.
     
     @return One map for each response body. Each map contains "media-type" and "content".
@@ -904,6 +893,17 @@ xquery version "3.1";
   };
   
   (:~
+    Retrieve the HTTP status code from an HTTP response.
+    
+    @return The HTTP code as a string, if available. Otherwise, an empty sequence.
+   :)
+  declare function dpkg:get-response-status($http-response as item()*) as xs:string? {
+    if ( exists($http-response) ) then
+      $http-response[1]/@status/data(.)
+    else ()
+  };
+  
+  (:~
     Identify the GitHub repository identifier of a different repository's submodule.
    :)
   declare %private function dpkg:get-submodule-identifier($repoID as xs:string, $repoPath as xs:string,
@@ -917,8 +917,16 @@ xquery version "3.1";
       else concat("No GitHub URL in ",$repoID," for ",$repoPath) (: error :)
   };
   
+  (:~
+    Determine if an HTTP response is usable.
+    
+    @return True if the server responded and no error occurred.
+   :)
   declare %private function dpkg:is-valid-response($response as item()*) as xs:boolean {
-    exists($response[1][self::http:*]) and not(exists($response[self::Q{}p[@type]]))
+    try {
+      count($response) ge 2 and dpkg:get-response-status($response) eq '200'
+      (:and not(exists($response[self::Q{}p[@type]])):)
+    } catch * { false() }
   };
   
   (:~
@@ -926,7 +934,8 @@ xquery version "3.1";
    :)
   declare function dpkg:list-changed-files($repoID as xs:string, $oldCommit as xs:string, 
      $newCommit as xs:string) {
-    let $urlParts := ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
+    let $urlParts := 
+      ( $dpkg:github-api-base, $repoID, 'compare', concat($oldCommit,'...',$newCommit) )
     let $url := string-join($urlParts,'/')
     return dpkg:get-json-objects($url)/fn:array[@key eq 'files']/fn:map
   };

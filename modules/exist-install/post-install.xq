@@ -10,7 +10,7 @@ import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs"
 
 (:~
    After installing the package, eXist will:
-    * refresh the collection configuration file;
+    * refresh the collection configuration files;
     * if there is no environment configuration file at /db/environment.xml, copy 
       the default configuration there;
     * if there is no view package registry, acquire the view packages from GitHub 
