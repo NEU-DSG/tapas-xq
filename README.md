@@ -12,6 +12,17 @@ TAPAS-xq provides an API for the [Ruby on Rails component of TAPAS](https://gith
 
 TAPAS-xq also provides scripts for maintaining and updating the TAPAS view packages with the help of the GitHub and TAPAS Rails APIs.
 
+## Table of Contents
+
+- [Setup and installation](#setup-and-installation)
+  - [Deploying TAPAS-xq into eXist](#deploying-tapas-xq-into-exist)
+    - [Installing the XAR file](#installing-the-xar-file)
+    - [Configuring eXist-to-Rails communication](#configuring-exist-to-rails-communication)
+  - [Updating view packages](#updating-view-packages)
+- [Contributing](#contributing)
+  - [Generating a XAR package](#generating-a-xar-package)
+- [Hungry for more TAPAS?](#hungry-for-more-tapas)
+
 
 ## Setup and installation
 
@@ -42,19 +53,21 @@ Once `conf.xml` has been edited and saved, you can start (or re-start) eXist. To
 
 First, you'll need a copy of the TAPAS-xq XAR file. The [latest stable TAPAS-xq package](https://github.com/NEU-DSG/tapas-xq/releases/latest) can be found in the GitHub repository. 
 
-Alternatively, you can clone the repository, and run the Ant build file to [generate the XAR file locally](#generating-a-xar-package).
+Alternatively, you can create a XAR file on your own computer. To do that, clone this repository and run the Ant build file to generate the XAR file. (See the [XAR generation section](#generating-a-xar-package) below for instructions.)
 
 
 #### Installing the XAR file
 
 In your browser, navigate to eXist's Dashboard at [localhost:8080/exist/apps/dashboard/index.html](http://localhost:8080/exist/apps/dashboard/index.html).
 
-Log in as the "admin" user. Once you've done so, a sidebar will appear on the left. Select "Package Manager" from the sidebar, then click the "Upload" button. A file upload window will appear where you can select the TAPAS-xq XAR file. Click "Open" to upload the package and install it.
+Log in as the "admin" user. (If you're on a fresh installation, the default password is an empty field.) Once you've logged in, a sidebar will appear on the left.
 
-The Package Manager will display an animation as it processes the package. When it has finished, TAPAS-xq will appear as an application in your list of installed packages.
+Select "Package Manager" from the sidebar, then click the "Upload" button. A file upload window will appear where you can select the TAPAS-xq XAR file. Click "Open" to upload the package and install it.
+
+The Package Manager will display an loading bar animation as it processes the package. When installation is complete, the list of installed applications will reload, and TAPAS-xq will appear in it.
 
 
-#### Configure eXist-to-Rails communication
+#### Configuring eXist-to-Rails communication
 
 TAPAS-xq uses `tapas_rails`'s View Packages API to decide which view packages should be installed from GitHub. You may need to change "environment.xml" to match the URL for Rails. When you install TAPAS-xq for the first time, it will place a copy of the configuration file in the "/db" collection.
 
@@ -62,18 +75,20 @@ If you've already installed TAPAS-xq (or plan to do so with a XAR from GitHub), 
 
 Currently, the default setting for the Rails URL is:
 
-    <railsBaseURI>http://127.0.0.1:3000</railsBaseURI>
+```xml
+<railsBaseURI>http://127.0.0.1:3000</railsBaseURI>
+```
 
-This should work for local development.
-
-If you have _not_ installed TAPAS-xq yet, you can make any edits directly to the copy of [environment.xml](./environment.xml) stored in this repository, then (re)build the XAR package using the instructions above.
-
-A plattr-specific configuration file is available at "environment.xml.plattr".
+This should work if you have TAPAS Rails running on your own computer.
 
 
-#### Update view packages
+### Updating view packages
 
-With eXist-to-Rails communication set and Rails running, you can tell TAPAS-xq to download the [view packages](https://github.com/NEU-DSG/tapas-view-packages) from GitHub by making a request to TAPAS-xq as either the admin or tapas user. For example, `curl -u tapas http://localhost:8080/exist/rest/db/apps/tapas-xq/modules/update-view-packages.xq`.
+With eXist-to-Rails communication set and Rails running, you can tell TAPAS-xq to download the [view packages](https://github.com/NEU-DSG/tapas-view-packages) from GitHub by making a request to TAPAS-xq as either the admin or tapas user. For example: 
+
+```shell
+curl -u tapas http://localhost:8080/exist/rest/db/apps/tapas-xq/modules/update-view-packages.xq
+```
 
 
 ## Contributing
@@ -86,7 +101,7 @@ Run [Apache Ant](https://ant.apache.org/manual/running.html) from within your lo
 
 In the terminal:
 
-```
+```shell
 cd tapas-xq
 ant
 ```
@@ -104,4 +119,4 @@ You can also see the current semantic version of TAPAS-xq with the command `ant 
 
 [TAPAS view packages repository](https://github.com/NEU-DSG/tapas-view-packages)
 
-[TAPAS public documents, documentation, and meeting notes](https://github.com/NEU-DSG/tapas-docs)
+[Public documents, documentation, and meeting notes for TAPAS](https://github.com/NEU-DSG/tapas-docs)
