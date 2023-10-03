@@ -3,8 +3,11 @@
     abbrev="tapas-xq" version="0.8.0" spec="1.0">
   <title>TAPAS-xq</title>
   
-  <!--<dependency processor="http://exist-db.org" semver-min="5.3.0" semver-max="6.2.0"/>
-  <!-\- EXPath package dependencies -\->
-  <dependency package="http://exist-db.org/apps/markdown" semver-min="0.4"/>
-  <dependency package="http://www.functx.com"/>-->
+  <dependency processor="basex" semver-min="10.0"/>
+  
+  <!--
+  <xquery>
+    <namespace></namespace>
+    <file></file>
+  </xquery>-->
 </package>
