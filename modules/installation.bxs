@@ -1,0 +1,20 @@
+## 
+## Prepare the TAPAS-xq environment in BaseX
+## 
+
+# Create the TAPAS database, if it doesn't already exist.
+CHECK tapas-data
+
+# TODO: Add indexes.
+# https://docs.basex.org/wiki/Commands#CREATE_INDEX
+
+# Create the TAPAS user for Rails.
+# The default password is "tapas". It should be changed for public instances.
+CREATE USER tapas tapas
+
+# Allow the Rails TAPAS user to write to the TAPAS database.
+GRANT WRITE ON tapas-data TO tapas
+
+# Display information about the new database.
+OPEN tapas-data
+INFO DATABASE

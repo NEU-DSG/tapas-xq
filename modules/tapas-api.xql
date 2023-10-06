@@ -8,6 +8,7 @@ xquery version "3.1";
   declare namespace http="http://expath.org/ns/http-client";
   declare namespace map="http://www.w3.org/2005/xpath-functions/map";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
+  declare namespace perm="http://basex.org/modules/perm";
   declare namespace request="http://exquery.org/ns/request";
   declare namespace rest="http://exquery.org/ns/restxq";
   declare namespace tei="http://www.tei-c.org/ns/1.0";
@@ -25,6 +26,23 @@ xquery version "3.1";
 
 
 (:  RESTXQ ENDPOINTS  :)
+  
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq")
+    %output:method("xhtml")
+    %output:media-type("text/html")
+  function tap:home() {
+    <html>
+      <head>
+        <title>TAPAS-xq</title>
+      </head>
+      <body>
+        <p>Hello world!</p>
+      </body>
+    </html>
+  };
+  
   
   (:~
     Derive XHTML (reading interface) production files from a TEI document. Returns generated XHTML with 
