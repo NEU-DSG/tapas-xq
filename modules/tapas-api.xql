@@ -2,9 +2,12 @@ xquery version "3.1";
 
   module namespace tap="http://tapasproject.org/tapas-xq/api";
 (:  LIBRARIES  :)
+  import module namespace tgen="http://tapasproject.org/tapas-xq/general"
+    at "general-functions.xql";
 (:  NAMESPACES  :)
   (:declare default element namespace "http://www.tei-c.org/ns/1.0";:)
   declare namespace array="http://www.w3.org/2005/xpath-functions/array";
+  declare namespace bin="http://expath.org/ns/binary";
   declare namespace http="http://expath.org/ns/http-client";
   declare namespace map="http://www.w3.org/2005/xpath-functions/map";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
@@ -132,6 +135,56 @@ xquery version "3.1";
   };
 
 
-(:  SUPPORT FUNCTIONS  :)
+(:
+    SUPPORT FUNCTIONS
+ :)
   
+  (: Build an HTTP response. :)
+  declare function tap:build-response($status-code as xs:string, $headers as item()*, $content as item()) {
+    (: If $content appears to be an integer, then this function treats that integer as an error code. :)
+    let $isError := 
+      $content instance of xs:integer or $content castable as xs:integer
+    let $returnCode := 
+      if ( $isError ) then
+        xs:integer($content)
+      else $status-code
+    return (
+        <rest:response>
+          <http:response status="{$status-code}">
+            { $headers }
+          </http:response>
+        </rest:response>
+        ,
+        if ( $isError ) then
+          tgen:get-error($content)
+        else $content
+      )
+  };
   
+  (: Clean data to get XML, replacing any instances of U+FEFF that might make 
+   : eXist consider the XML "invalid." :)
+  declare function tap:get-file-content($file) {
+    typeswitch($file)
+      case node() return $file
+      case xs:string return 
+        try {
+          tap:get-file-content(parse-xml(replace($file, '﻿', ''))) 
+        } catch * { 
+          (422, "Provided file must be TEI-encoded XML") 
+        }
+      case xs:base64Binary return 
+        let $decodedFile :=
+          try {
+            bin:decode-string($file)
+          } catch * { () }
+        return 
+          if ( empty($decodedFile) ) then
+            try {
+              bin:decode-string($file, 'UTF-16')
+            } catch * {
+              
+            }
+          else
+            tap:get-file-content($decodedFile)
+      default return (422, "Provided file must be TEI-encoded XML")
+  };
