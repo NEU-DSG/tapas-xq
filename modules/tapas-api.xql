@@ -139,15 +139,26 @@ xquery version "3.1";
     SUPPORT FUNCTIONS
  :)
   
-  (: Build an HTTP response. :)
-  declare function tap:build-response($status-code as xs:string, $headers as item()*, $content as item()) {
+  (:~
+    Build an HTTP response from only a status code.
+   :)
+  declare function tap:build-response($status-code as xs:integer) {
+    tap:build-response($status-code, (), ())
+  };
+  
+  (:~
+    Build an HTTP response.
+   :)
+  declare function tap:build-response($status-code as xs:integer, $content as item()*) {
+    tap:build-response($status-code, $content, ())
+  };
+  
+  (:~
+    Build an HTTP response.
+   :)
+  declare function tap:build-response($status-code as xs:integer, $content as item()*, $headers as item()*) {
     (: If $content appears to be an integer, then this function treats that integer as an error code. :)
-    let $isError := 
-      $content instance of xs:integer or $content castable as xs:integer
-    let $returnCode := 
-      if ( $isError ) then
-        xs:integer($content)
-      else $status-code
+    let $noContentProvided := empty($content)
     return (
         <rest:response>
           <http:response status="{$status-code}">
@@ -155,14 +166,16 @@ xquery version "3.1";
           </http:response>
         </rest:response>
         ,
-        if ( $isError ) then
-          tgen:get-error($content)
+        if ( $noContentProvided ) then
+          tgen:set-status-description($status-code)
         else $content
       )
   };
   
-  (: Clean data to get XML, replacing any instances of U+FEFF that might make 
-   : eXist consider the XML "invalid." :)
+  (:~
+    Clean data to get XML, replacing any instances of U+FEFF that might make a processor consider the 
+    XML "invalid."
+   :)
   declare function tap:get-file-content($file) {
     typeswitch($file)
       case node() return $file
@@ -173,18 +186,22 @@ xquery version "3.1";
           (422, "Provided file must be TEI-encoded XML") 
         }
       case xs:base64Binary return 
+        (: Try decoding the file as UTF-8 or UTF-16. :)
         let $decodedFile :=
-          try {
-            bin:decode-string($file)
-          } catch * { () }
-        return 
-          if ( empty($decodedFile) ) then
+          let $decodedFileUTF8 :=
             try {
-              bin:decode-string($file, 'UTF-16')
-            } catch * {
-              
-            }
-          else
-            tap:get-file-content($decodedFile)
+              bin:decode-string($file)
+            } catch * { () }
+          return
+            if ( empty($decodedFileUTF8) ) then
+              try {
+                bin:decode-string($file, 'UTF-16')
+              } catch * { () }
+          else $decodedFileUTF8
+        return
+          (: Return an error message if the binary file could not be decoded. :)
+          if ( empty($decodedFile) ) then
+            (422, "Could not read binary file as Unicode characters")
+          else tap:get-file-content($decodedFile)
       default return (422, "Provided file must be TEI-encoded XML")
   };
