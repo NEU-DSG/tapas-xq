@@ -135,7 +135,7 @@ xquery version "3.1";
         $utf16XmlDoc, $utf16XmlAsString, $utf16XmlAsBin64
       )
     return 
-      if ( count($inputSeq) lt 6 ) then
+      if ( count($inputSeq) ne 6 ) then
         unit:fail("Could not load one or more test inputs")
       else
         for $testInput at $i in $inputSeq
@@ -144,10 +144,10 @@ xquery version "3.1";
           switch ($i)
             case 1 return "UTF-8 node"
             case 2 return "UTF-8 string"
-            case 3 return "UTF-8 binary64"
+            case 3 return "UTF-8 base64Binary"
             case 4 return "UTF-16 node"
             case 5 return "UTF-16 string"
-            case 6 return "UTF-16 binary64"
+            case 6 return "UTF-16 base64Binary"
             default return unit:fail("Too many test inputs")
         return
           unit:assert(not($fileOut instance of element(tap:err)), 

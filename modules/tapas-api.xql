@@ -5,9 +5,10 @@ xquery version "3.1";
   import module namespace tgen="http://tapasproject.org/tapas-xq/general"
     at "general-functions.xql";
 (:  NAMESPACES  :)
-  (:declare default element namespace "http://www.tei-c.org/ns/1.0";:)
+  declare default element namespace "http://www.w3.org/1999/xhtml";
   declare namespace array="http://www.w3.org/2005/xpath-functions/array";
   declare namespace bin="http://expath.org/ns/binary";
+  declare namespace db="http://basex.org/modules/db";
   declare namespace http="http://expath.org/ns/http-client";
   declare namespace map="http://www.w3.org/2005/xpath-functions/map";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
@@ -15,6 +16,7 @@ xquery version "3.1";
   declare namespace request="http://exquery.org/ns/request";
   declare namespace rest="http://exquery.org/ns/restxq";
   declare namespace tei="http://www.tei-c.org/ns/1.0";
+  declare namespace update="http://basex.org/modules/update";
   declare namespace xhtml="http://www.w3.org/1999/xhtml";
 
 (:~
@@ -26,6 +28,7 @@ xquery version "3.1";
  
 (:  VARIABLES  :)
   
+  declare variable $tap:database-name := 'tapas-data';
 
 
 (:  RESTXQ ENDPOINTS  :)
@@ -36,7 +39,7 @@ xquery version "3.1";
     %output:method("xhtml")
     %output:media-type("text/html")
   function tap:home() {
-    <html>
+    <html lang="en">
       <head>
         <title>TAPAS-xq</title>
       </head>
@@ -69,19 +72,39 @@ xquery version "3.1";
   (:~
     Store a TEI document. Returns path to the TEI file within the database, with status code 201.
     
+    Originally ../legacy/store-tei.xq .
+    
     @param project-id the unique identifier of the project which owns the work
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
     @param file the TEI-encoded XML document to be stored
     @return XML
    :)
   declare
+    %updating
     %rest:POST
     %rest:path("/tapas-xq/{$project-id}/{$doc-id}/tei")
     %rest:form-param('file', '{$file}')
     %output:method("xml")
     %output:media-type("application/xml")
   function tap:store-core-file($project-id as xs:string, $doc-id as xs:string, $file as item()) {
-    (: TODO. Originally ../legacy/store-tei.xq :)
+    let $successCode := 201
+    let $fileXML := tap:get-file-content($file)
+    (:let $xmlFileIsTEI := TODO
+      :)
+    let $filepath := concat($project-id,'/',$doc-id,'/',$doc-id,'.xml')
+    let $possiblyErroneous := $fileXML
+    let $errors := tap:compile-errors($possiblyErroneous)
+    let $response :=
+      if ( exists($errors) ) then
+        tap:build-response($possiblyErroneous[1]/@code, $errors)
+      else tap:build-response($successCode)
+    return (
+        (: Only store TEI if there were no errors. :)
+        if ( exists($errors) ) then ()
+        else db:put($tap:database-name, $fileXML, $filepath)
+        ,
+        update:output($response)
+      )
   };
   
   
@@ -173,12 +196,45 @@ xquery version "3.1";
   };
   
   (:~
+    
+   :)
+  declare function tap:compile-errors($sequence as item()*) {
+    let $errors :=
+      for $item in $sequence
+      return
+        typeswitch ($item)
+          case element(tap:err) return $item
+          default return ()
+    return
+      if ( empty($errors) ) then ()
+      else if ( count($errors) eq 1 ) then
+        <p>Problem found: { normalize-space($errors) }</p>
+      else
+        <div>
+          <h1>Problems found!</h1>
+          <ul>{
+            for $err in $errors
+            return
+              <li>{ normalize-space($err) }</li>
+          }</ul>
+        </div>
+  };
+  
+  (:~
     Clean data to get XML, replacing any instances of U+FEFF that might make a processor consider the 
     XML "invalid."
    :)
   declare function tap:get-file-content($file) {
     typeswitch($file)
       case node() return $file
+      (: When files are sent with POST requests, BaseX puts those files in a map, with the filename as 
+        the key. :)
+      case map(xs:string, item()*) return 
+        let $filename := map:keys($file)
+        return
+          if ( count($filename) ne 1 ) then
+            tgen:set-error(422, "Can accept only one XML file at a time")
+          else tap:get-file-content($file?($filename))
       case xs:string return 
         let $cleanStr := replace($file, '﻿', '')
         let $xml :=
@@ -200,7 +256,7 @@ xquery version "3.1";
           return
             if ( empty($decodedFileUTF8) ) then
               try {
-                bin:decode-string($file, 'UTF-16')
+                bin:decode-string($file, 'utf-16')
               } catch * { () }
           else $decodedFileUTF8
         return
