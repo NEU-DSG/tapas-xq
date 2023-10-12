@@ -3,11 +3,13 @@ xquery version "3.0";
 (:~
   Library for generic XQuery functions.
   
-  @author Ashley M. Clark
+  @author Ash Clark
   @version 1.0
   
   2023-10-11:  Added tgen:set-status-description(), which will replace 
-    tgen:get-error().
+    tgen:get-error(). Refactored tgen:set-error() to return an XML-formatted error in the TAPAS API 
+    namespace. Passing these around will make it easier to check if an error has been returned, and to 
+    respond accordingly.
   2017-08-22:  Added get-document().
   2017-02-14:  Changed the prefix for this library from 'tapas-xq' to the 'tgen' 
     already used everywhere else.
@@ -17,6 +19,7 @@ xquery version "3.0";
 
   module namespace tgen="http://tapasproject.org/tapas-xq/general";
   
+  declare namespace tap="http://tapasproject.org/tapas-xq/api";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
 
 
@@ -62,7 +65,7 @@ xquery version "3.0";
         case 500 return "unable to access resource"
         case 501 return "functionality not implemented"
         default  return
-          if ( $code ge 500 ) then
+          if ( $code ge 500 and $code lt 600 ) then
             "server problem"
           else if ( $code ge 400 ) then
             "bad request"
@@ -81,11 +84,15 @@ xquery version "3.0";
   };
   
   (:~
-    Ensure that error messages are formatted in XML.
+    Format error messages in XML. This XML is intended to be passed between TAPAS-xq components, and 
+    perhaps later incorporated in an HTTP response to the user.
    :)
-  declare function tgen:set-error($content) {
-    typeswitch ($content)
-      case xs:string return <p>{$content}</p>
-      case node() return $content
-      default return $content
+  declare function tgen:set-error($status-code as xs:integer, $description as item()) {
+    let $useContent :=
+      typeswitch ($description)
+        case xs:string return <p>{$description}</p>
+        case node() return $description
+        default return $description
+    return
+      <tap:err code="{$status-code}">{ $useContent }</tap:err>
   };

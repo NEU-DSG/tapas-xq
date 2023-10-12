@@ -2,6 +2,8 @@ xquery version "3.1";
 
   module namespace txqt="http://tapasproject.org/tapas-xq/testsuite";
 (:  LIBRARIES  :)
+  import module namespace bin="http://expath.org/ns/binary";
+  import module namespace convert="http://basex.org/modules/convert";
   import module namespace db="http://basex.org/modules/db";
   import module namespace http="http://expath.org/ns/http-client";
   import module namespace tap="http://tapasproject.org/tapas-xq/api"
@@ -34,7 +36,8 @@ xquery version "3.1";
   
   declare variable $txqt:test-project := 'testProj01';
   declare variable $txqt:test-doc-name := 'testDoc01';
-  declare variable $txqt:test-doc := doc('../resources/testdocs/sampleTEI.xml');
+  declare variable $txqt:test-doc-path := '../resources/testdocs/sampleTEI.xml';
+  declare variable $txqt:test-doc := doc($txqt:test-doc-path);
 
 
 (:
@@ -112,4 +115,41 @@ xquery version "3.1";
         unit:assert-equals(count($response), 2),
         unit:assert(contains($msg, 'Error:'), "Message does not contain 'Error:' — "||$msg)
       )
+  };
+  
+  (:~
+    Ensure that tap:get-file-content() can retrieve a valid XML document when it has been serialized as 
+    a string, a node, or a binary file. UTF-8 and UTF-16 are acceptable encodings.
+   :)
+  declare %unit:test function txqt:get-valid-xml-content() {
+    (: UTF-8 test inputs, plus $txqt:test-doc :)
+    let $xmlAsString := unparsed-text($txqt:test-doc-path)
+    let $xmlAsBin64 := bin:encode-string($xmlAsString)
+    (: UTF-16 test inputs :)
+    let $utf16XmlPath := '../resources/testdocs/utf16.xml'
+    let $utf16XmlDoc := doc($utf16XmlPath)
+    let $utf16XmlAsString := unparsed-text($utf16XmlPath, 'utf-16')
+    let $utf16XmlAsBin64 := bin:encode-string($utf16XmlAsString, 'utf-16')
+    let $inputSeq := (
+        $txqt:test-doc, $xmlAsString, $xmlAsBin64, 
+        $utf16XmlDoc, $utf16XmlAsString, $utf16XmlAsBin64
+      )
+    return 
+      if ( count($inputSeq) lt 6 ) then
+        unit:fail("Could not load one or more test inputs")
+      else
+        for $testInput at $i in $inputSeq
+        let $fileOut := tap:get-file-content($testInput)
+        let $type :=
+          switch ($i)
+            case 1 return "UTF-8 node"
+            case 2 return "UTF-8 string"
+            case 3 return "UTF-8 binary64"
+            case 4 return "UTF-16 node"
+            case 5 return "UTF-16 string"
+            case 6 return "UTF-16 binary64"
+            default return unit:fail("Too many test inputs")
+        return
+          unit:assert(not($fileOut instance of element(tap:err)), 
+            "Can't process XML as "||$type||" — "||normalize-space($fileOut))
   };

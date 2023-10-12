@@ -180,11 +180,16 @@ xquery version "3.1";
     typeswitch($file)
       case node() return $file
       case xs:string return 
-        try {
-          tap:get-file-content(parse-xml(replace($file, '﻿', ''))) 
-        } catch * { 
-          (422, "Provided file must be TEI-encoded XML") 
-        }
+        let $cleanStr := replace($file, '﻿', '')
+        let $xml :=
+          try {
+            parse-xml($cleanStr)
+          } catch * { 
+            tgen:set-error(422, "Could not parse plain text as XML")
+          }
+        return 
+          if ( $xml instance of element(tap:err) ) then $xml
+          else tap:get-file-content($xml)
       case xs:base64Binary return 
         (: Try decoding the file as UTF-8 or UTF-16. :)
         let $decodedFile :=
@@ -201,7 +206,8 @@ xquery version "3.1";
         return
           (: Return an error message if the binary file could not be decoded. :)
           if ( empty($decodedFile) ) then
-            (422, "Could not read binary file as Unicode characters")
+            tgen:set-error(422, "Could not read binary file as Unicode characters")
           else tap:get-file-content($decodedFile)
-      default return (422, "Provided file must be TEI-encoded XML")
+      default return 
+        tgen:set-error(422, "Provided file must be TEI-encoded XML. Received unknown type")
   };
