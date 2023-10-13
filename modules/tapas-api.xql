@@ -17,7 +17,9 @@ xquery version "3.1";
   declare namespace rest="http://exquery.org/ns/restxq";
   declare namespace tei="http://www.tei-c.org/ns/1.0";
   declare namespace update="http://basex.org/modules/update";
+  declare namespace validate="http://basex.org/modules/validate";
   declare namespace xhtml="http://www.w3.org/1999/xhtml";
+  declare namespace xslt="http://basex.org/modules/xslt";
 
 (:~
   An API for the XML database component of TAPAS.
@@ -266,4 +268,18 @@ xquery version "3.1";
           else tap:get-file-content($decodedFile)
       default return 
         tgen:set-error(422, "Provided file must be TEI-encoded XML. Received unknown type")
+  };
+  
+  (:~
+    Determine if a well-formed XML document looks like TEI.
+   :)
+  declare function tap:validate-tei-minimally($document as node()) {
+    let $validationErrors := 
+      let $report :=
+        xslt:transform($document, doc('../resources/isTEI.xsl'))
+        => tokenize('&#xA;')
+      return tap:compile-errors($report[. ne ''])
+    return
+      if ( empty($validationErrors) ) then ()
+      else tgen:set-error(422, $validationErrors)
   };
