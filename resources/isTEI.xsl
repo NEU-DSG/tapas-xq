@@ -7,7 +7,9 @@
                 xmlns:iso="http://purl.oclc.org/dsdl/schematron"
                 xmlns:xhtml="http://www.w3.org/1999/xhtml"
                 xmlns:tei="http://www.tei-c.org/ns/1.0"
-                version="2.0"><!--Implementers: please note that overriding process-prolog or process-root is 
+                version="2.0">
+  <xsl:output method="text" media-type="text/text"/>
+  <!--Implementers: please note that overriding process-prolog or process-root is 
     the preferred method for meta-stylesheets to use where possible. -->
    <xsl:param name="archiveDirParameter"/>
    <xsl:param name="archiveNameParameter"/>

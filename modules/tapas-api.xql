@@ -204,9 +204,11 @@ xquery version "3.1";
     let $errors :=
       for $item in $sequence
       return
-        typeswitch ($item)
-          case element(tap:err) return $item
-          default return ()
+        if ( normalize-space($item) eq '' ) then ()
+        else
+          typeswitch ($item)
+            case element(tap:err) return $item
+            default return ()
     return
       if ( empty($errors) ) then ()
       else if ( count($errors) eq 1 ) then
@@ -275,13 +277,15 @@ xquery version "3.1";
   (:~
     Determine if a well-formed XML document looks like TEI.
    :)
-  declare function tap:validate-tei-minimally($document as node()) {
+  declare function tap:validate-tei-minimally($document as node()) as element(tap:err)? {
     let $validationErrors := 
       let $report :=
-        xslt:transform($document, doc('../resources/isTEI.xsl'))
+        xslt:transform-text($document, doc('../resources/isTEI.xsl'))
         => tokenize('&#xA;')
-      return tap:compile-errors($report[. ne ''])
+      for $msg in $report
+      return
+        <tap:err code="422">{ $msg }</tap:err>
     return
       if ( empty($validationErrors) ) then ()
-      else tgen:set-error(422, $validationErrors)
+      else tgen:set-error(422, tap:compile-errors($validationErrors))
   };
