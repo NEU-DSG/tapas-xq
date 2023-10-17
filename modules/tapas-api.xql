@@ -254,18 +254,20 @@ xquery version "3.1";
           let $decodedFileUTF8 :=
             try {
               bin:decode-string($file)
+              => tap:get-file-content()
             } catch * { () }
           return
-            if ( empty($decodedFileUTF8) ) then
+            if ( empty($decodedFileUTF8) or $decodedFileUTF8 instance of element(tap:err) ) then
               try {
                 bin:decode-string($file, 'utf-16')
+                => tap:get-file-content()
               } catch * { () }
-          else $decodedFileUTF8
+            else $decodedFileUTF8
         return
           (: Return an error message if the binary file could not be decoded. :)
           if ( empty($decodedFile) ) then
-            tgen:set-error(422, "Could not read binary file as Unicode characters")
-          else tap:get-file-content($decodedFile)
+            tgen:set-error(422, "Could not read binary file as encoded with UTF-8 or UTF-16")
+          else $decodedFile
       default return 
         tgen:set-error(422, "Provided file must be TEI-encoded XML. Received unknown type")
   };
