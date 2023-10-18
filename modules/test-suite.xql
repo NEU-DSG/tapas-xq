@@ -179,7 +179,8 @@ xquery version "3.1";
   declare %unit:test function txqt:validate-tei() {
     let $doc := doc('../resources/testdocs/sampleTEI.xml')
     let $invalidityReport := tap:validate-tei-minimally($doc)
-    return unit:assert(empty($invalidityReport))
+    return unit:assert(empty($invalidityReport),
+      count($invalidityReport)||" invalidities found, expected 0")
   };
   
   (:~
@@ -188,15 +189,19 @@ xquery version "3.1";
   declare %unit:test function txqt:report-invalid-tei() {
     let $doc := doc('../resources/testdocs/invalidTEI.xml')
     let $invalidityReport := tap:validate-tei-minimally($doc)
+    (: There should be two errors returned for this document:
+        1. outermost element is not a TEI element
+        2. outermost element is not 'TEI'
+     :)
+    let $hasTwoExpectedErrors :=
+      count($invalidityReport[. instance of element(tap:err)]
+                             [starts-with(lower-case(.), 'outermost element')]) eq 2
     return (
-        unit:assert(exists($invalidityReport), 
-          count($invalidityReport)||" invalidities found"),
-        unit:assert($invalidityReport instance of element(tap:err)),
-        (: There should be two errors returned for this document:
-          1. outermost element is not a TEI element
-          2. outermost element is not 'TEI'
-         :)
-        unit:assert(count($invalidityReport//*:li) eq 2)
+        unit:assert(exists($invalidityReport)),
+        unit:assert(count($invalidityReport) eq 2, 
+          count($invalidityReport)||" invalidities found, expected 2"),
+        unit:assert($hasTwoExpectedErrors,
+          "The validation report does not report the 2 expected errors")
       )
   };
   

@@ -91,14 +91,17 @@ xquery version "3.1";
   function tap:store-core-file($project-id as xs:string, $doc-id as xs:string, $file as item()) {
     let $successCode := 201
     let $fileXML := tap:get-file-content($file)
-    (:let $xmlFileIsTEI := TODO
-      :)
+    let $xmlFileIsTEI :=
+      if ( $fileXML instance of element(tap:err) ) then ()
+      else tap:validate-tei-minimally($fileXML)
     let $filepath := concat($project-id,'/',$doc-id,'/',$doc-id,'.xml')
-    let $possiblyErroneous := $fileXML
+    let $possiblyErroneous := ( $fileXML, $xmlFileIsTEI )
     let $errors := tap:compile-errors($possiblyErroneous)
     let $response :=
-      if ( exists($errors) ) then
-        tap:build-response($possiblyErroneous[1]/@code, $errors)
+      if ( exists($errors) and exists($possiblyErroneous[@code]) ) then
+        tap:build-response($possiblyErroneous[@code][1]/@code, $errors)
+      else if ( exists($errors) ) then
+        tap:build-response(400, $errors)
       else tap:build-response($successCode)
     return (
         (: Only store TEI if there were no errors. :)
@@ -131,6 +134,7 @@ xquery version "3.1";
   function tap:store-core-file-mods($project-id as xs:string, $doc-id as xs:string, $title as xs:string, 
      $authors as xs:string?, $contributors as xs:string?, $timeline-date as xs:string?) {
     (: TODO. Originally ../legacy/store-mods.xq :)
+    
   };
   
   
@@ -167,21 +171,21 @@ xquery version "3.1";
   (:~
     Build an HTTP response from only a status code.
    :)
-  declare function tap:build-response($status-code as xs:integer) {
+  declare function tap:build-response($status-code as xs:integer) as item()+ {
     tap:build-response($status-code, (), ())
   };
   
   (:~
     Build an HTTP response.
    :)
-  declare function tap:build-response($status-code as xs:integer, $content as item()*) {
+  declare function tap:build-response($status-code as xs:integer, $content as item()*) as item()+ {
     tap:build-response($status-code, $content, ())
   };
   
   (:~
     Build an HTTP response.
    :)
-  declare function tap:build-response($status-code as xs:integer, $content as item()*, $headers as item()*) {
+  declare function tap:build-response($status-code as xs:integer, $content as item()*, $headers as item()*) as item()+ {
     (: If $content appears to be an integer, then this function treats that integer as an error code. :)
     let $noContentProvided := empty($content)
     return (
@@ -198,9 +202,10 @@ xquery version "3.1";
   };
   
   (:~
-    
+    Given a sequence of items, find any <tap:err> problems and compile them into an HTML report. If 
+    there are no errors, this function will return an empty sequence.
    :)
-  declare function tap:compile-errors($sequence as item()*) {
+  declare function tap:compile-errors($sequence as item()*) as element()? {
     let $errors :=
       for $item in $sequence
       return
@@ -275,17 +280,18 @@ xquery version "3.1";
   };
   
   (:~
-    Determine if a well-formed XML document looks like TEI.
+    Determine if a well-formed XML document looks like TEI. If the XML looks fine, the function returns 
+    an empty sequence.
    :)
-  declare function tap:validate-tei-minimally($document as node()) as element(tap:err)? {
+  declare function tap:validate-tei-minimally($document as node()) as element(tap:err)* {
+    (: The minimal Schematron returns plain text, with one line per flagged error. We wrap each one in a 
+      <tap:err> for later compilation. :)
     let $validationErrors := 
       let $report :=
         xslt:transform-text($document, doc('../resources/isTEI.xsl'))
         => tokenize('&#xA;')
       for $msg in $report
-      return
-        <tap:err code="422">{ $msg }</tap:err>
-    return
-      if ( empty($validationErrors) ) then ()
-      else tgen:set-error(422, tap:compile-errors($validationErrors))
+      return tgen:set-error(422, $msg)
+    (: Skip any whitespace-only lines or empty strings leftover from tokenizing the validation report. :)
+    return $validationErrors[normalize-space() ne '']
   };
