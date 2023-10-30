@@ -96,17 +96,12 @@ xquery version "3.1";
       else tap:validate-tei-minimally($fileXML)
     let $filepath := concat($project-id,'/',$doc-id,'/',$doc-id,'.xml')
     let $possiblyErroneous := ( $fileXML, $xmlFileIsTEI )
-    let $errors := tap:compile-errors($possiblyErroneous)
-    let $response :=
-      if ( exists($errors) and exists($possiblyErroneous[@code]) ) then
-        tap:build-response($possiblyErroneous[@code][1]/@code, $errors)
-      else if ( exists($errors) ) then
-        tap:build-response(400, $errors)
-      else tap:build-response($successCode)
+    let $response := tap:plan-response($successCode, $possiblyErroneous)
     return (
         (: Only store TEI if there were no errors. :)
-        if ( exists($errors) ) then ()
-        else db:put($tap:db-name, $fileXML, $filepath)
+        if ( tap:is-expected-response($response, $successCode) ) then  
+          db:put($tap:db-name, $fileXML, $filepath)
+        else ()
         ,
         update:output($response)
       )
@@ -151,17 +146,12 @@ xquery version "3.1";
         xslt:transform($teiDoc, doc("../resources/tapas2mods.xsl"), $xslParams)
     let $filepath := concat($project-id,'/',$doc-id,'/mods.xml')
     let $possiblyErroneous := ( $teiDoc, $mods )
-    let $errors := tap:compile-errors($possiblyErroneous)
-    let $response :=
-      if ( exists($errors) and exists($possiblyErroneous[@code]) ) then
-        tap:build-response($possiblyErroneous[@code][1]/@code, $errors)
-      else if ( exists($errors) ) then
-        tap:build-response(400, $errors)
-      else tap:build-response($successCode)
+    let $response := tap:plan-response($successCode, $possiblyErroneous)
     return (
         (: Only store MODS if there were no errors. :)
-        if ( exists($errors) ) then ()
-        else db:put($tap:db-name, $mods, $filepath)
+        if ( tap:is-expected-response($response, $successCode) ) then
+          db:put($tap:db-name, $mods, $filepath)
+        else ()
         ,
         update:output($response)
       )
@@ -328,6 +318,13 @@ xquery version "3.1";
       if ( not(db:exists($tap:db-name, $filepath)) ) then
         tgen:set-error(400, "Document not found: "||$filepath)
       else db:get($tap:db-name, $filepath)
+  };
+  
+  (:~
+    Determine if a response matches the expected HTTP code.
+   :)
+  declare function tap:is-expected-response($response as item()+, $expected-code as xs:integer) as xs:boolean {
+    $response[1]//http:response/@status/xs:integer(.) eq $expected-code
   };
   
   (:~

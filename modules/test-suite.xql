@@ -217,7 +217,7 @@ xquery version "3.1";
       )
     let $plannedResponse := tap:plan-response(200, $possibleErrors)
     return (
-        unit:assert($plannedResponse[1]//http:response/@status/data(.) eq '401'),
+        unit:assert(tap:is-expected-response($plannedResponse, 401)),
         unit:assert(count($plannedResponse[2]//*:li) eq 2,
           count($plannedResponse[2]//*:li)||" errors reported, expected 2")
       )
@@ -232,7 +232,7 @@ xquery version "3.1";
     (: Test that tap:plan-response#3 returns the expected 200 response, with the provided message. :)
     let $plannedResponse := tap:plan-response(200, $possibleErrors, $responseBody)
     return (
-        unit:assert($plannedResponse[1]//http:response/@status/data(.) eq '200'),
+        unit:assert(tap:is-expected-response($plannedResponse, 200)),
         unit:assert-equals($plannedResponse[2]/normalize-space(), 'Content'),
         (: Also test tap:plan-response#2, which creates the generic "OK" message if no response body is 
           available. :)
