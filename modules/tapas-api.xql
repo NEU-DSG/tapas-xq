@@ -204,7 +204,7 @@ xquery version "3.1";
         <tapas:owners>
           <tapas:project>{ $project-id }</tapas:project>
           <tapas:document>{ $doc-id }</tapas:document>
-          { $collections }
+          { $useCollections }
         </tapas:owners>
         <tapas:access>{ $is-public }</tapas:access>
       </tapas:metadata>
