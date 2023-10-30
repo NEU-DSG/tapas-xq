@@ -15,6 +15,7 @@ xquery version "3.1";
   declare namespace perm="http://basex.org/modules/perm";
   declare namespace request="http://exquery.org/ns/request";
   declare namespace rest="http://exquery.org/ns/restxq";
+  declare namespace tapas="http://www.wheatoncollege.edu/TAPAS/1.0";
   declare namespace tei="http://www.tei-c.org/ns/1.0";
   declare namespace update="http://basex.org/modules/update";
   declare namespace validate="http://basex.org/modules/validate";
@@ -142,8 +143,12 @@ xquery version "3.1";
     let $mods :=
       (: Skip transformation if the TEI file hasn't been stored. :)
       if ( $teiDoc instance of element(tap:err) ) then ()
-      else (: TODO try/catch :)
-        xslt:transform($teiDoc, doc("../resources/tapas2mods.xsl"), $xslParams)
+      else
+        try {
+          xslt:transform($teiDoc, doc("../resources/tapas2mods.xsl"), $xslParams)
+        } catch * {
+          <tap:err code="500">Could not transform {$doc-id} into MODS</tap:err>
+        }
     let $filepath := concat($project-id,'/',$doc-id,'/mods.xml')
     let $possiblyErroneous := ( $teiDoc, $mods )
     let $response := tap:plan-response($successCode, $possiblyErroneous)
@@ -165,6 +170,8 @@ xquery version "3.1";
     given doc-id, the response will have a status code of 500. The TEI file must be stored before any of 
     its derivatives.
     
+    Originally ../legacy/store-tfe.xq .
+    
     @param project-id the unique identifier of the project which owns the work
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
     @param collections comma-separated list of collection identifiers with which the work should be associated
@@ -172,6 +179,7 @@ xquery version "3.1";
     @return XML
    :)
   declare
+    %updating
     %rest:POST
     %rest:path("/tapas-xq/{$project-id}/{$doc-id}/tfe")
     %rest:form-param('collections', '{$collections}')
@@ -180,7 +188,37 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:store-core-file-tfe($project-id as xs:string, $doc-id as xs:string, 
      $collections as xs:string+, $is-public as xs:boolean) {
-    (: TODO. Originally ../legacy/store-tfe.xq :)
+    let $successCode := 201
+    let $useCollections :=
+      let $tokens :=
+        for $str in $collections
+        return tokenize($str, ',')[normalize-space() ne '']
+      return
+        <tapas:collections>{
+          for $token in $tokens
+          return
+            <tapas:collection>{ $token }</tapas:collection>
+        }</tapas:collections>
+    let $tfe :=
+      <tapas:metadata>
+        <tapas:owners>
+          <tapas:project>{ $project-id }</tapas:project>
+          <tapas:document>{ $doc-id }</tapas:document>
+          { $collections }
+        </tapas:owners>
+        <tapas:access>{ $is-public }</tapas:access>
+      </tapas:metadata>
+    let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
+    let $filepath := concat($project-id,'/',$doc-id,'/tfe.xml')
+    let $response := tap:plan-response($successCode, ($teiDoc))
+    return (
+        (: Only store the TFE if there were no errors. :)
+        if ( tap:is-expected-response($response, $successCode) ) then
+          db:put($tap:db-name, $tfe, $filepath)
+        else ()
+        ,
+        update:output($response)
+      )
   };
 
 
