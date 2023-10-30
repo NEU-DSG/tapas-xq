@@ -30,7 +30,7 @@ xquery version "3.1";
  
 (:  VARIABLES  :)
   
-  declare variable $tap:database-name := 'tapas-data';
+  declare variable $tap:db-name := 'tapas-data';
 
 
 (:  RESTXQ ENDPOINTS  :)
@@ -106,7 +106,7 @@ xquery version "3.1";
     return (
         (: Only store TEI if there were no errors. :)
         if ( exists($errors) ) then ()
-        else db:put($tap:database-name, $fileXML, $filepath)
+        else db:put($tap:db-name, $fileXML, $filepath)
         ,
         update:output($response)
       )
@@ -116,6 +116,8 @@ xquery version "3.1";
   (:~
     Derive MODS production file from a TEI document and store it in the database.
     
+    Originally ../legacy/store-mods.xq .
+    
     @param project-id the unique identifier of the project which owns the work
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
     @param collections comma-separated list of collection identifiers with which the work should be associated
@@ -123,6 +125,7 @@ xquery version "3.1";
     @return XML
    :)
   declare
+    %updating
     %rest:POST
     %rest:path("/tapas-xq/{$project-id}/{$doc-id}/mods")
     %rest:form-param('title', '{$title}')
@@ -133,8 +136,35 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:store-core-file-mods($project-id as xs:string, $doc-id as xs:string, $title as xs:string, 
      $authors as xs:string?, $contributors as xs:string?, $timeline-date as xs:string?) {
-    (: TODO. Originally ../legacy/store-mods.xq :)
-    
+    let $successCode := 201
+    let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
+    let $xslParams := map {
+        'displayTitle': $title,
+        'displayAuthors': $authors,
+        'displayContributors': $contributors,
+        'timelineDate': $timeline-date
+      }
+    let $mods :=
+      (: Skip transformation if the TEI file hasn't been stored. :)
+      if ( $teiDoc instance of element(tap:err) ) then ()
+      else (: TODO try/catch :)
+        xslt:transform($teiDoc, doc("../resources/tapas2mods.xsl"), $xslParams)
+    let $filepath := concat($project-id,'/',$doc-id,'/mods.xml')
+    let $possiblyErroneous := ( $teiDoc, $mods )
+    let $errors := tap:compile-errors($possiblyErroneous)
+    let $response :=
+      if ( exists($errors) and exists($possiblyErroneous[@code]) ) then
+        tap:build-response($possiblyErroneous[@code][1]/@code, $errors)
+      else if ( exists($errors) ) then
+        tap:build-response(400, $errors)
+      else tap:build-response($successCode)
+    return (
+        (: Only store MODS if there were no errors. :)
+        if ( exists($errors) ) then ()
+        else db:put($tap:db-name, $mods, $filepath)
+        ,
+        update:output($response)
+      )
   };
   
   
@@ -277,6 +307,56 @@ xquery version "3.1";
           else $decodedFile
       default return 
         tgen:set-error(422, "Provided file must be TEI-encoded XML. Received unknown type")
+  };
+  
+  (:~
+    Try to retrieve a TEI "core file" document stored in the TAPAS database, and return an error if the 
+    document doesn't exist.
+   :)
+  declare function tap:get-stored-xml($project-id as xs:string, $doc-id as xs:string) {
+    tap:get-stored-xml($project-id, $doc-id, concat($doc-id,'.xml'))
+  };
+  
+  (:~
+    Try to retrieve an XML document stored in the TAPAS database, and return an error if the document 
+    doesn't exist.
+   :)
+  declare function tap:get-stored-xml($project-id as xs:string, $doc-id as xs:string, $filename as xs:string) as node()? {
+    let $filepath := concat($project-id,'/',$doc-id,'/',$filename)
+    return
+      (: Set up an error if the document doesn't exist. :)
+      if ( not(db:exists($tap:db-name, $filepath)) ) then
+        tgen:set-error(400, "Document not found: "||$filepath)
+      else db:get($tap:db-name, $filepath)
+  };
+  
+  (:~
+    Test a sequence of items for <tap:err> flags. Returns a response depending on whether the request 
+    can be considered successful or not.
+   :)
+  declare function tap:plan-response($success-code as xs:integer, $possible-errors as item()*) as item()* {
+    tap:plan-response($success-code, $possible-errors, ())
+  };
+  
+  (:~
+    Test a sequence of items for <tap:err> flags. Returns a response depending on whether the request 
+    can be considered successful or not. If $response-body is provided, it is used as the main content 
+    of a successful response.
+   :)
+  declare function tap:plan-response($success-code as xs:integer, $possible-errors as item()*, $response-body as item()?) as item()* {
+    let $errors := tap:compile-errors($possible-errors)
+    return
+      (: Build a response using existing errors and a HTTP status code. :)
+      if ( exists($errors) and exists($possible-errors[@code]) ) then
+        tap:build-response($possible-errors[@code][1]/@code, $errors)
+      (: Use a generic 400 error if no status code was found. :)
+      else if ( exists($errors) ) then
+        tap:build-response(400, $errors)
+      (: If a response body was provided, use that in the success response. :)
+      else if ( exists($response-body) ) then
+        tap:build-response($success-code, $response-body)
+      (: Otherwise, just use the success HTTP code. :)
+      else tap:build-response($success-code)
   };
   
   (:~

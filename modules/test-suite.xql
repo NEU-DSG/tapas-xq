@@ -205,6 +205,40 @@ xquery version "3.1";
       )
   };
   
+  (:~
+    Ensure tap:plan-response() can identify TAPAS errors in a sequence of items, and build a cautionary 
+    HTTP response.
+   :)
+  declare %unit:test function txqt:identify-errors-in-response() {
+    let $possibleErrors := ( 
+        <p>Content</p>,
+        <tap:err>Oops!</tap:err>,
+        <tap:err code="401">There was an error here!</tap:err>
+      )
+    let $plannedResponse := tap:plan-response(200, $possibleErrors)
+    return (
+        unit:assert($plannedResponse[1]//http:response/@status/data(.) eq '401'),
+        unit:assert(count($plannedResponse[2]//*:li) eq 2,
+          count($plannedResponse[2]//*:li)||" errors reported, expected 2")
+      )
+  };
+  
+  (:~
+    Ensure tap:plan-response() can create a successful response when no TAPAS errors are present.
+   :)
+  declare %unit:test function txqt:identify-no-errors-in-response() {
+    let $responseBody := <p>Content</p>
+    let $possibleErrors := ( $responseBody )
+    (: Test that tap:plan-response#3 returns the expected 200 response, with the provided message. :)
+    let $plannedResponse := tap:plan-response(200, $possibleErrors, $responseBody)
+    return (
+        unit:assert($plannedResponse[1]//http:response/@status/data(.) eq '200'),
+        unit:assert-equals($plannedResponse[2]/normalize-space(), 'Content'),
+        (: Also test tap:plan-response#2, which creates the generic "OK" message if no response body is 
+          available. :)
+        unit:assert-equals(tap:plan-response(200, $possibleErrors)[2]/normalize-space(), 'OK')
+      )
+  };
   
 (:
     SUPPORT FUNCTIONS
