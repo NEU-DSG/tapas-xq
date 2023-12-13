@@ -1,7 +1,17 @@
 <commands>
   <!--
       Prepare the TAPAS-xq environment in BaseX.
+      
+      To run this script with CURL, you'll need something like:
+        curl -X GET -u admin "http://localhost:8088/BaseX107/rest?run=tapas-xq/modules/installation.bxs"
+      ...replacing the host URL and the BaseX directory as needed. 
     -->
+  
+  <!-- Set options (https://docs.basex.org/wiki/Options): -->
+  <!-- Create a fulltext index as part of database creation. -->
+  <set option="FTINDEX">true</set>
+  <!-- Limit the fulltext index to specific elements, in any namespace: -->
+  <set option="FTINCLUDE">*:fileDesc,*:keywords,*:titlePage,*:head,*:argument</set>
   
   <!-- Create the TAPAS database, if it doesn't already exist. -->
   <check input="tapas-data"/>
@@ -13,12 +23,14 @@
   <!-- Allow the Rails TAPAS user to write to the TAPAS database. -->
   <grant permission="write" pattern="tapas-data" name="tapas"/>
   
-  <!-- Display information about the new database. -->
+  <!-- Open the new database so we can run commands specific to it. -->
   <open name="tapas-data"/>
+  
+  <!-- If the "tapas-data" database was created before this script executed, the 
+    fulltext index is created now. -->
+  <create-index type="fulltext"/>
+  
+  <!-- Display information about the new database. -->
   <info-db/>
-  
-  <!-- TODO: Add indexes 
-    https://docs.basex.org/wiki/Commands#CREATE_INDEX -->
-  
   
 </commands>
