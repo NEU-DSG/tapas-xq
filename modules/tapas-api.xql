@@ -2,6 +2,7 @@ xquery version "3.1";
 
   module namespace tap="http://tapasproject.org/tapas-xq/api";
 (:  LIBRARIES  :)
+  import module namespace Session="http://basex.org/modules/session";
   import module namespace tgen="http://tapasproject.org/tapas-xq/general"
     at "general-functions.xql";
 (:  NAMESPACES  :)
@@ -18,7 +19,9 @@ xquery version "3.1";
   declare namespace tapas="http://www.wheatoncollege.edu/TAPAS/1.0";
   declare namespace tei="http://www.tei-c.org/ns/1.0";
   declare namespace update="http://basex.org/modules/update";
+  declare namespace user="http://basex.org/modules/user";
   declare namespace validate="http://basex.org/modules/validate";
+  declare namespace web="http://basex.org/modules/web";
   declare namespace xhtml="http://www.w3.org/1999/xhtml";
   declare namespace xslt="http://basex.org/modules/xslt";
 
@@ -29,12 +32,43 @@ xquery version "3.1";
   @since 2023
  :)
  
-(:  VARIABLES  :)
+ 
+(:
+    VARIABLES
+ :)
   
   declare variable $tap:db-name := 'tapas-data';
 
 
-(:  RESTXQ ENDPOINTS  :)
+(:
+    PERMISSIONS
+    https://docs.basex.org/wiki/Permissions
+ :)
+  
+  (:
+    All POST and DELETE traffic is funneled through this function first. The form 
+    parameters "_name" and "_password" are used to authenticate the requester before 
+    any further task is carried out.
+   :)
+  declare 
+    %perm:check('/tapas-xq')
+    %rest:POST
+    %rest:DELETE
+      %rest:form-param('_name', '{$name}', '')
+      %rest:form-param('_password', '{$pass}')
+  function tap:check-user($name as xs:string, $pass as xs:string?) {
+    try {
+      user:check($name, $pass)
+    } catch * {
+      web:error(401, "Please provide valid credentials.")
+    }
+  };
+
+
+(:
+    RESTXQ ENDPOINTS
+ :)
+  
   
   declare
     %rest:GET
@@ -51,6 +85,17 @@ xquery version "3.1";
       </body>
     </html>
   };
+  
+  (: TEMPORARY: used to test that authentication of POST and DELETE requests works.
+  declare
+    %rest:POST
+    %rest:DELETE
+    %rest:path("/tapas-xq")
+    %output:method("xhtml")
+    %output:media-type("text/html")
+  function tap:post-test() {
+    <p>Success!</p>
+  };:)
   
   
   (:~
