@@ -1,4 +1,6 @@
-<project default="xar" name="tapas-xq">
+<project name="tapas-xq"
+         default="xar">
+  
   <xmlproperty file="expath-pkg.xml"/>
   <property name="project.app" value="${package(abbrev)}"/>
   <property name="project.version" value="${package(version)}"/>
@@ -31,4 +33,5 @@
     <replace file="expath-pkg.xml" failonnoreplacements="true" summary="true" 
       token='version="${project.version}"' value='version="${new.version}"'/>
   </target>
+  
 </project>
