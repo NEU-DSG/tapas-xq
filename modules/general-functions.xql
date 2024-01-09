@@ -6,6 +6,8 @@ xquery version "3.0";
   @author Ash Clark
   @version 1.0
   
+  2024-01-09: Modified tgen:get-error() to return a string instead of an element, 
+    and made tgen:set-status-description() return XHTML.
   2023-10-11:  Added tgen:set-status-description(), which will replace 
     tgen:get-error(). Refactored tgen:set-error() to return an XML-formatted error in the TAPAS API 
     namespace. Passing these around will make it easier to check if an error has been returned, and to 
@@ -17,10 +19,13 @@ xquery version "3.0";
   2015-10-05:  Added set-error().
  :)
 
+(:  LIBRARIES  :)
   module namespace tgen="http://tapasproject.org/tapas-xq/general";
-  
+(:  NAMESPACES  :)
+  declare default element namespace "http://www.w3.org/1999/xhtml";
   declare namespace tap="http://tapasproject.org/tapas-xq/api";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
+  declare namespace xhtml="http://www.w3.org/1999/xhtml";
 
 
 (:  VARIABLES  :)

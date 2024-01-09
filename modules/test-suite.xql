@@ -14,6 +14,7 @@ xquery version "3.1";
 (:  NAMESPACES  :)
   declare namespace tei="http://www.tei-c.org/ns/1.0";
   declare namespace mods="http://www.loc.gov/mods/v3";
+  declare namespace xhtml="http://www.w3.org/1999/xhtml";
 
 (:~
   A suite of unit tests for the TAPAS-xq API support functions.
@@ -253,8 +254,8 @@ xquery version "3.1";
     let $plannedResponse := tap:plan-response(200, $possibleErrors)
     return (
         unit:assert(tap:is-expected-response($plannedResponse, 401)),
-        unit:assert(count($plannedResponse[2]//*:li) eq 2,
-          count($plannedResponse[2]//*:li)||" errors reported, expected 2")
+        unit:assert(count($plannedResponse[2]//xhtml:li) eq 2,
+          count($plannedResponse[2]//xhtml:li)||" errors reported, expected 2")
       )
   };
   
