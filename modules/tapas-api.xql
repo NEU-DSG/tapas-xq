@@ -43,25 +43,27 @@ xquery version "3.1";
 (:
     PERMISSIONS
     https://docs.basex.org/wiki/Permissions
+    https://docs.basex.org/wiki/User_Management
  :)
   
   (:
-    All POST and DELETE traffic is funneled through this function first. The form 
-    parameters "_name" and "_password" are used to authenticate the requester before 
-    any further task is carried out.
+    All POST and DELETE traffic is funneled through this function first. The current user must have 
+    either (A) write-level access across BaseX, or (B) write-level access to the "tapas-data" database.
+    If the current user does not have write permissions, the API returns a 401 "Unauthorized" response.
    :)
   declare 
     %perm:check('/tapas-xq')
     %rest:POST
     %rest:DELETE
-      %rest:form-param('_name', '{$name}', '')
-      %rest:form-param('_password', '{$pass}')
-  function tap:check-user($name as xs:string, $pass as xs:string?) {
-    try {
-      user:check($name, $pass)
-    } catch * {
-      web:error(401, "Please provide valid credentials.")
-    }
+  function tap:check-user-write-access() {
+    let $userInfo := user:list-details(user:current())
+    let $userWriteAccess := 
+      $userInfo/@permission/data(.) = ('write', 'create', 'admin')
+    let $dbWriteAccess :=
+      exists($userInfo//Q{}database[@pattern eq $tap:db-name][@permission eq 'write'])
+    where not($userWriteAccess or $dbWriteAccess)
+    return
+      web:error(401, "You must provide valid credentials in order to complete this action.")
   };
 
 
@@ -96,6 +98,43 @@ xquery version "3.1";
   function tap:post-test() {
     <p>Success!</p>
   };:)
+  
+  
+  (:~
+    Completely removes all database records (TEI file, MODS, TFE) associated with the given TEI core 
+    file identifier. Returns a short confirmation that the resources have been deleted. If no TEI 
+    document is associated with the given identifier, the response will have a status code of 500.
+    
+    Originally ../legacy/delete-by-docid.xq .
+    
+    @param project-id the unique identifier of the project which owns the core file
+    @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE)
+    @return XML
+   :)
+  declare
+    %updating
+    %rest:DELETE
+    %rest:path("/tapas-xq/{$project-id}/{$doc-id}")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:delete-core-file($project-id as xs:string, $doc-id as xs:string) {
+    let $successCode := 200
+    let $response := 
+      let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
+      return 
+        tap:plan-response($successCode, ($teiDoc), 
+          <p>Deleted core file {$doc-id} in project {$project-id}.</p>)
+    return (
+        (: Delete the core file only if the response anticipates success. (Note that unlike in eXist, 
+        the deletion must occur at the end of execution. This function can't be *certain* that deletion 
+        will occur, but it can check for odds of success (authenticated user, available documents). :)
+        if ( tap:is-expected-response($response, $successCode) ) then
+          db:delete($tap:db-name, concat($project-id,'/',$doc-id))
+        else ()
+        ,
+        update:output($response)
+      )
+  };
   
   
   (:~
@@ -253,9 +292,10 @@ xquery version "3.1";
         </tapas:owners>
         <tapas:access>{ $is-public }</tapas:access>
       </tapas:metadata>
-    let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
     let $filepath := concat($project-id,'/',$doc-id,'/tfe.xml')
-    let $response := tap:plan-response($successCode, ($teiDoc))
+    let $response := 
+      let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
+      return tap:plan-response($successCode, ($teiDoc))
     return (
         (: Only store the TFE if there were no errors. :)
         if ( tap:is-expected-response($response, $successCode) ) then
