@@ -206,6 +206,41 @@ xquery version "3.1";
   };
   
   (:~
+    Ensure tap:plan-response() can recover from an empty <tap:err> element with an HTTP status code on 
+    it, and build a cautionary HTTP response with a generic message.
+   :)
+  declare %unit:test function txqt:identify-error-from-http-code() {
+    let $possibleErrors := ( 
+        <p>Content</p>,
+        <tap:err code="500"/>
+      )
+    let $plannedResponse := tap:plan-response(200, $possibleErrors)
+    return (
+        unit:assert(tap:is-expected-response($plannedResponse, 500)),
+        unit:assert(contains($plannedResponse[2], "unable to access resource"), 
+          "Expected error message to contain 'unable to access resource', got '"
+          ||normalize-space($plannedResponse[2]||"'"))
+      )
+  };
+  
+  (:~
+    Ensure tap:plan-response() can recover from an empty <tap:err> element, and build a cautionary HTTP 
+    response with a generic message.
+   :)
+  declare %unit:test function txqt:identify-error-though-unknown() {
+    let $possibleErrors := ( 
+        <p>Content</p>,
+        <tap:err/>
+      )
+    let $plannedResponse := tap:plan-response(200, $possibleErrors)
+    return (
+        unit:assert(tap:is-expected-response($plannedResponse, 400)),
+        unit:assert(contains($plannedResponse[2], "Unknown error raised"), 
+          "Expected 'Unknown error raised', got '"||normalize-space($plannedResponse[2]||"'"))
+      )
+  };
+  
+  (:~
     Ensure tap:plan-response() can identify TAPAS errors in a sequence of items, and build a cautionary 
     HTTP response.
    :)

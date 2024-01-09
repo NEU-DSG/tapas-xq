@@ -102,8 +102,8 @@ xquery version "3.1";
   
   (:~
     Completely removes all database records (TEI file, MODS, TFE) associated with the given TEI core 
-    file identifier. Returns a short confirmation that the resources have been deleted. If no TEI 
-    document is associated with the given identifier, the response will have a status code of 500.
+    file identifier. Returns a short confirmation that the resources will be deleted. If no TEI document 
+    is associated with the given identifier, the response will have a status code of 500.
     
     Originally ../legacy/delete-by-docid.xq .
     
@@ -126,13 +126,48 @@ xquery version "3.1";
       let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
       return 
         tap:plan-response($successCode, ($teiDoc), 
-          <p>Deleted core file {$doc-id} in project {$project-id}.</p>)
+          <p>Deleting core file {$doc-id} and associated files in project {$project-id}.</p>)
     return (
         (: Delete the core file only if the response anticipates success. (Note that, unlike in eXist, 
         the deletion must occur at the end of execution. This function can't be *certain* that deletion 
         will occur, but it can check for odds of success (authenticated user, available documents). :)
         if ( tap:is-expected-response($response, $successCode) ) then
           db:delete($tap:db-name, concat($project-id,'/',$doc-id))
+        else ()
+        ,
+        update:output($response)
+      )
+  };
+  
+  
+  (:~
+    Completely removes all database records associated with the given TAPAS project identifier. Returns 
+    a short confirmation that the resources will be deleted. If no XML documents are associated with the 
+    given project ID, the response will have a status code of 500.
+    
+    Originally ../legacy/delete-by-projid.xq .
+    
+    @param project-id the unique identifier of the project to be deleted
+    @return XML
+   :)
+  declare
+    %updating
+    %rest:DELETE
+    %rest:path("/tapas-xq/{$project-id}")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:delete-project-docs($project-id as xs:string) {
+    (: See comments in tap:delete-core-file() above for info on this HTTP status code. :)
+    let $successCode := 202
+    let $response := 
+      let $numDocs := tap:count-project-docs($project-id)
+      return 
+        tap:plan-response($successCode, ($numDocs), 
+          <p>Deleting {$numDocs} resources in project {$project-id}.</p>)
+    return (
+        (: Delete the core file only if the response anticipates success. :)
+        if ( tap:is-expected-response($response, $successCode) ) then
+          db:delete($tap:db-name, $project-id)
         else ()
         ,
         update:output($response)
@@ -355,24 +390,66 @@ xquery version "3.1";
     let $errors :=
       for $item in $sequence
       return
-        if ( normalize-space($item) eq '' ) then ()
-        else
-          typeswitch ($item)
-            case element(tap:err) return $item
-            default return ()
+        typeswitch ($item)
+          case element(tap:err) return $item
+          default return ()
+    (: Define a little function to trim excess whitespace and recover from an empty error message. :)
+    let $useMessage := function ($error as element(tap:err)) as xs:string {
+        let $msg := normalize-space($error)
+        let $code := $error/@code/xs:integer(.)
+        return
+          if ( $msg eq '' and exists($code) ) then
+            tgen:get-error($code)
+          else if ( $msg eq '' ) then
+            "Unknown error raised"
+          else $msg
+      }
     return
       if ( empty($errors) ) then ()
       else if ( count($errors) eq 1 ) then
-        <p>Problem found: { normalize-space($errors) }</p>
+        <p>Problem found: { $useMessage($errors) }</p>
       else
         <div>
           <h1>Problems found!</h1>
           <ul>{
             for $err in $errors
             return
-              <li>{ normalize-space($err) }</li>
+              <li>{ $useMessage($err) }</li>
           }</ul>
         </div>
+  };
+  
+  (:~
+    Determine how many XML documents are available in a given project, and return an error if the 
+    project id does not match any records.
+   :)
+  declare function tap:count-project-docs($project-id as xs:string) {
+    (: Set up an error if the document doesn't exist. :)
+    let $numDocs := count(db:list($tap:db-name, $project-id))
+    return
+      if ( $numDocs gt 0 ) then $numDocs
+      else tgen:set-error(400, "Project not found: "||$project-id)
+  };
+  
+  declare function tap:list-project-core-files($project-id as xs:string) {
+    let $allFiles := db:list($tap:db-name, $project-id)
+    return
+      if ( count($allFiles) eq 0 ) then
+        tgen:set-error(400, "Project not found: "||$project-id)
+      else
+        for $filename in $allFiles
+        let $dirPath := replace($filename, '/[^/]+$', '')
+        group by $dirPath
+        return $dirPath
+  };
+  
+  declare function tap:list-core-file-docs($project-id as xs:string, $doc-id as xs:string) {
+    let $coreFilePath := concat($project-id,'/',$doc-id)
+    return
+      (: Set up an error if the document doesn't exist. :)
+      if ( not(db:exists($tap:db-name, $project-id)) ) then
+        tgen:set-error(400, "Project not found: "||$project-id)
+      else db:list($tap:db-name, $coreFilePath)
   };
   
   (:~
@@ -489,11 +566,9 @@ xquery version "3.1";
   declare function tap:validate-tei-minimally($document as node()) as element(tap:err)* {
     (: The minimal Schematron returns plain text, with one line per flagged error. We wrap each one in a 
       <tap:err> for later compilation. :)
-    let $validationErrors := 
-      let $report :=
-        xslt:transform-text($document, doc('../resources/isTEI.xsl'))
-        => tokenize('&#xA;')
-      for $msg in $report
+    let $validationErrors :=
+      let $report := xslt:transform-text($document, doc('../resources/isTEI.xsl'))
+      for $msg in tokenize($report, '&#xA;')
       return tgen:set-error(422, $msg)
     (: Skip any whitespace-only lines or empty strings leftover from tokenizing the validation report. :)
     return $validationErrors[normalize-space() ne '']

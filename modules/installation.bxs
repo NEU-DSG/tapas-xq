@@ -20,6 +20,11 @@
     The default password is "tapas".. -->
   <create-user name="tapas">tapas</create-user>
   
+  <!-- Give the Rails TAPAS user the "create" permission, which allows them to use 
+    the XSLT functions. -->
+  <grant permission="create" name="tapas"/>
+  <!-- Prevent the Rails TAPAS user from accessing any other databases. -->
+  <grant permission="none" pattern="*" name="tapas"/>
   <!-- Allow the Rails TAPAS user to write to the TAPAS database. -->
   <grant permission="write" pattern="tapas-data" name="tapas"/>
   

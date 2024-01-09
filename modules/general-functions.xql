@@ -49,7 +49,7 @@ xquery version "3.0";
     Given an HTTP status code, return some human-readable text.
    :)
   declare function tgen:get-error($code as xs:integer) {
-    tgen:set-status-description($code)
+    tgen:set-status-description($code) => normalize-space()
   };
   
   (:~
