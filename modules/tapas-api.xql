@@ -118,14 +118,17 @@ xquery version "3.1";
     %output:method("xml")
     %output:media-type("application/xml")
   function tap:delete-core-file($project-id as xs:string, $doc-id as xs:string) {
-    let $successCode := 200
+    (: Originally, this endpoint returned a 200 response, since it could check to make sure that the 
+    file was gone after deletion. The "202 Accepted" response is more appropriate now, since we can only 
+    promise that we *will* delete the item, we can't say that we *have done* it. :)
+    let $successCode := 202
     let $response := 
       let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
       return 
         tap:plan-response($successCode, ($teiDoc), 
           <p>Deleted core file {$doc-id} in project {$project-id}.</p>)
     return (
-        (: Delete the core file only if the response anticipates success. (Note that unlike in eXist, 
+        (: Delete the core file only if the response anticipates success. (Note that, unlike in eXist, 
         the deletion must occur at the end of execution. This function can't be *certain* that deletion 
         will occur, but it can check for odds of success (authenticated user, available documents). :)
         if ( tap:is-expected-response($response, $successCode) ) then
