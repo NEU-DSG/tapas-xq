@@ -238,9 +238,10 @@ xquery version "3.1";
     
     @param project-id the unique identifier of the project which owns the work
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
-    @param collections comma-separated list of collection identifiers with which the work should be associated
-    @param is-public indicates if the XML document should be queryable by the public. (Note that if the document belongs to even one public collection, it should be queryable.)
-    @return XML
+    @param title the work's title as it should appear in TAPAS metadata
+    @param authors a list of authors' names as they should appear in TAPAS metadata, separated by vertical bars
+    @param contributors a list of contributors' names as they should appear in TAPAS metadata, separated by vertical bars
+    @return MODS metadata for the core file
    :)
   declare
     %updating
@@ -249,18 +250,16 @@ xquery version "3.1";
     %rest:form-param('title', '{$title}')
     %rest:form-param('authors', '{$authors}')
     %rest:form-param('contributors', '{$contributors}')
-    %rest:form-param('timeline-date', '{$timeline-date}')
     %output:method("xml")
     %output:media-type("application/xml")
   function tap:store-core-file-mods($project-id as xs:string, $doc-id as xs:string, $title as xs:string, 
-     $authors as xs:string?, $contributors as xs:string?, $timeline-date as xs:string?) {
+     $authors as xs:string?, $contributors as xs:string?) {
     let $successCode := 201
     let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
     let $xslParams := map {
         'displayTitle': $title,
         'displayAuthors': $authors,
-        'displayContributors': $contributors,
-        'timelineDate': $timeline-date
+        'displayContributors': $contributors
       }
     let $mods :=
       (: Skip transformation if the TEI file hasn't been stored. :)
