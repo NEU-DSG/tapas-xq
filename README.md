@@ -48,7 +48,27 @@ To make sure you've installed Saxon HE correctly, navigate to `BASE-URL/dba/quer
 
 #### Require authentication
 
+The TAPAS-xq app requires authentication for a majority of actionable HTTP request methods, including the `DELETE` method.
 
+By default, [BaseX is configured with a default user](https://docs.basex.org/wiki/Web_Application#Authentication) for requests processed through RESTXQ apps. Unfortunately, if this setting is in place, authentication cannot take place through standard protocols. Instead, one must ask for and receive usernames and passwords in plaintext, through query parameters or special-cased request headers. This is not great for security.
+
+To make use of [standard authentication schemes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes), BaseX **must** be configured so that there is no default user for the RESTXQ service. 
+
+To do so, find the `web.xml` file inside the BaseX folder. If you downloaded the ZIP package, the file will be located at `webapps/WEB-INF/web.xml`. 
+
+Inside `web.xml`, find the RESTXQ service entry and either comment out the `<init-param>` that sets the `org.basex.user` property, or delete the setting completely. An example is given below.
+
+```xml
+  <servlet>
+    <servlet-name>RESTXQ</servlet-name>
+    <servlet-class>org.basex.http.restxq.RestXqServlet</servlet-class>
+    <!--<init-param>
+      <param-name>org.basex.user</param-name>
+      <param-value>admin</param-value>
+    </init-param>-->
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+```
 
 
 ### Deploying TAPAS-xq
@@ -60,7 +80,7 @@ Alternatively, you can create a XAR file on your own computer. To do that, clone
 
 #### Installing the XAR file
 
-
+TODO
 
 
 #### Configuring communication with TAPAS Rails
