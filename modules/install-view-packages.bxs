@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<commands>
+  <!--
+      Obtain the TAPAS view packages. Set up the database required to maintain information about them.
+      
+      This command script is intended to run as part of `installation.bxs`. It can also be run 
+      separately, as long as the "tapas" user has been created.
+    -->
+  
+  <!-- Create the TAPAS view packages database, if it doesn't already exist. -->
+  <check input="tapas-view-packages"/>
+  
+  <!-- Allow the Rails TAPAS user to write to the TAPAS database. -->
+  <grant permission="write" pattern="tapas-data" name="tapas"/>
+  
+  <!-- Execute a `git clone` of the "tapas-view-packages" repository, if not already done. -->
+  <xquery>
+    if ( file:exists('tapas-xq/view-packages') ) then
+      'The "view-packages" directory is already present'
+    else (
+      'Cloning "tapas-view-packages" repository into "view-packages" directory',
+      proc:system('git', 
+        ( 'clone', '--recurse-submodules', 
+          'https://github.com/NEU-DSG/tapas-view-packages.git', 'view-packages'
+        ), map { 'dir': 'tapas-xq' })
+    )
+  </xquery>
+  
+  
+  
+</commands>
