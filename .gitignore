@@ -2,7 +2,7 @@
 build/*
 
 # TAPAS view packages
-view-packages/*
+view-packages/
 
 # Also:
 .DS_Store

@@ -7,25 +7,37 @@
       separately, as long as the "tapas" user has been created.
     -->
   
-  <!-- Create the TAPAS view packages database, if it doesn't already exist. -->
-  <check input="tapas-view-packages"/>
-  
   <!-- Allow the Rails TAPAS user to write to the TAPAS database. -->
   <grant permission="write" pattern="tapas-data" name="tapas"/>
   
-  <!-- Execute a `git clone` of the "tapas-view-packages" repository, if not already done. -->
+  <!-- Execute a `git clone` of the "tapas-view-packages" repository, if not already done.
+      Also, initialize and clone the submodules of the repository.
+    -->
   <xquery>
-    if ( file:exists('tapas-xq/view-packages') ) then
-      'The "view-packages" directory is already present'
-    else (
-      'Cloning "tapas-view-packages" repository into "view-packages" directory',
-      proc:system('git', 
-        ( 'clone', '--recurse-submodules', 
-          'https://github.com/NEU-DSG/tapas-view-packages.git', 'view-packages'
-        ), map { 'dir': 'tapas-xq' })
-    )
+    let $tapasXqDir :=
+      if ( file:exists('tapas-xq') ) then 'tapas-xq'
+      else if ( file:exists('webapp/tapas-xq') ) then 'webapp/tapas-xq'
+      else error((), "Could not find the 'tapas-xq' folder!")
+    return
+      if ( file:exists($tapasXqDir||'/view-packages') ) then
+        'The "view-packages" directory is already present'
+      else (
+        'Cloning "tapas-view-packages" repository into "view-packages" directory',
+        proc:system('git', 
+          ( 'clone', 'https://github.com/NEU-DSG/tapas-view-packages.git', 
+            'view-packages' ),
+          map { 'dir': $tapasXqDir }),
+        proc:system('git', ('submodule', 'update', '--init'), map { 'dir': $tapasXqDir||'/view-packages' })
+      )
   </xquery>
   
+  <!-- Create the tapas-view-package database, populating it with resources from the new "view-packages" 
+    directory. If the database already existed, it is overwritten. -->
+  <set option="createfilter">*.xml,*.xsl,*.xslt,*.xproc</set>
+  <set option="skipcorrupt">true</set>
+  <create-db name="tapas-view-packages">webapp/tapas-xq/view-packages</create-db>
   
+  <!-- Open the new database so we can run commands specific to it. -->
+  <open name="tapas-view-packages"/>
   
 </commands>
