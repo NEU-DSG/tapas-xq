@@ -38,4 +38,7 @@
   <!-- Display information about the new database. -->
   <info-db/>
   
+  <!-- Set up the TAPAS view packages. -->
+  <run file="install-view-packages.bxs"/>
+  
 </commands>
