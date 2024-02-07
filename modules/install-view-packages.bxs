@@ -7,9 +7,6 @@
       separately, as long as the "tapas" user has been created.
     -->
   
-  <!-- Allow the Rails TAPAS user to write to the TAPAS database. -->
-  <grant permission="write" pattern="tapas-data" name="tapas"/>
-  
   <!-- Execute a `git clone` of the "tapas-view-packages" repository, if not already done.
       Also, initialize and clone the submodules of the repository.
     -->
@@ -37,7 +34,10 @@
   <set option="skipcorrupt">true</set>
   <create-db name="tapas-view-packages">webapp/tapas-xq/view-packages</create-db>
   
+  <!-- Allow the Rails TAPAS user to create resources in the view packages database. -->
+  <grant permission="create" pattern="tapas-view-packages" name="tapas"/>
+  
   <!-- Open the new database so we can run commands specific to it. -->
-  <open name="tapas-view-packages"/>
+  <!--<open name="tapas-view-packages"/>-->
   
 </commands>

@@ -25,8 +25,8 @@
   <grant permission="create" name="tapas"/>
   <!-- Prevent the Rails TAPAS user from accessing any other databases. -->
   <grant permission="none" pattern="*" name="tapas"/>
-  <!-- Allow the Rails TAPAS user to write to the TAPAS database. -->
-  <grant permission="write" pattern="tapas-data" name="tapas"/>
+  <!-- Allow the Rails TAPAS user to create resources in the TAPAS database. -->
+  <grant permission="create" pattern="tapas-data" name="tapas"/>
   
   <!-- Open the new database so we can run commands specific to it. -->
   <open name="tapas-data"/>
