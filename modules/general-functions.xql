@@ -4,8 +4,10 @@ xquery version "3.0";
   Library for generic XQuery functions.
   
   @author Ash Clark
-  @version 1.0
+  @version 1.1
   
+  2024-02-07: Removed $tgen:dataDir and $tgen:pkgDir in favor of declaring the 
+    database names in $tgen:data-db and $tgen:view-package-db.
   2024-01-09: Modified tgen:get-error() to return a string instead of an element, 
     and made tgen:set-status-description() return XHTML.
   2023-10-11:  Added tgen:set-status-description(), which will replace 
@@ -30,8 +32,8 @@ xquery version "3.0";
 
 (:  VARIABLES  :)
   
-  declare variable $tgen:pkgDir := '/db/tapas-view-pkgs/';
-  declare variable $tgen:dataDir := '/db/tapas-data/';
+  declare variable $tgen:data-db := 'tapas-data';
+  declare variable $tgen:view-package-db := 'tapas-view-pkgs';
 
 
 (:  FUNCTIONS  :)
@@ -40,7 +42,7 @@ xquery version "3.0";
     Get a stored file using its project and document identifiers.
    :)
   declare function tgen:get-document($proj-id as xs:string, $doc-id as xs:string) {
-    let $path := concat($tgen:dataDir, $proj-id, '/', $doc-id)
+    let $path := concat($tgen:data-db, '/', $proj-id, '/', $doc-id)
     return
       if ( doc-available($path) ) then
         doc($path)
