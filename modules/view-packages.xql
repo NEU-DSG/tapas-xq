@@ -8,10 +8,13 @@ xquery version "3.1";
 (:  NAMESPACES  :)
   declare namespace admin="http://basex.org/modules/admin";
   declare namespace array="http://www.w3.org/2005/xpath-functions/array";
+  declare namespace db="http://basex.org/modules/db";
   declare namespace err="http://www.w3.org/2005/xqt-errors";
   declare namespace http="http://expath.org/ns/http-client";
+  declare namespace json="http://basex.org/modules/json";
   declare namespace map="http://www.w3.org/2005/xpath-functions/map";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
+  declare namespace tap="http://tapasproject.org/tapas-xq/api";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
   declare namespace xhtml="http://www.w3.org/1999/xhtml";
 
@@ -221,8 +224,25 @@ xquery version "3.1";
   declare function dpkg:get-rails-api-url() as xs:string {
     if ( doc-available($dpkg:environment-defaults) and 
         doc($dpkg:environment-defaults)//railsBaseURI[normalize-space(text()) ne ''] ) then
-      concat(doc($dpkg:environment-defaults)//railsBaseURI/text(), '/api/view_packages') 
+      concat(doc($dpkg:environment-defaults)//railsBaseURI/text(), '/api/view_packages')
     else $dpkg:default-rails-api
+  };
+  
+  
+  (:~
+    Query the TAPAS Rails API for its stored view packages.
+    
+    @return The view packages known by the Rails instance, or 1+ <tap:err>s
+   :)
+  declare function dpkg:get-rails-packages() as node()* {
+    let $railsAddr := xs:anyURI(dpkg:get-rails-api-url())
+    let $response := dpkg:get-json-objects($railsAddr)
+    return 
+      if ( $response[self::tap:err] ) then (
+          tgen:set-error(500, "Could not connect to Rails."),
+          $response[self::tap:err]
+        )
+      else $response
   };
   
   
@@ -255,6 +275,8 @@ xquery version "3.1";
   
   (:~
     Send out a query, and log any HTTP response that isn't "200 OK".
+    
+    @return A sequence of <fn:map>s
    :)
   declare %private function dpkg:get-json-objects($url as xs:string) as node()* {
     let $address := xs:anyURI($url)
@@ -265,19 +287,48 @@ xquery version "3.1";
         $response
       else
         let $body := dpkg:get-response-body($response)
+        (: By default, BaseX parses JSON into the "direct" XML format. Our goal is 
+          to obtain either a JSON string, or the W3C's XML serialization. :)
         let $jsonStr := 
           if ( $body?('media-type') = ('application/json', 'text/json') ) then
-            $body?('content')
+            let $responseBody := $body?('content')
+            return
+              typeswitch ($responseBody)
+                case xs:string return $responseBody
+                (: Convert the "direct" XML serialization of JSON into a string. :)
+                case document-node(element(json)) return
+                  json:serialize($responseBody/*)
+                (: If the response body is XML and appears to be the W3C's 
+                  serialization, pass it on unchanged. :)
+                case document-node() return
+                  if ( $responseBody/*[self::fn:*] ) then $responseBody/*
+                  else 
+                    (: If the response body is some other kind of XML, we can't know 
+                      how to interpret it. Return an error. :)
+                    tgen:set-error(500, "Could not parse XML serialization as JSON")
+                default return 
+                  tgen:set-error(500, "Could not parse response as JSON")
           else ()
-        return 
-          if ( exists($jsonStr) ) then
-            let $pseudojson := json-to-xml($jsonStr)/*
-            return 
-              typeswitch ($pseudojson)
-                case element(fn:map) return $pseudojson
-                case element(fn:array) return $pseudojson/fn:map
-                default return ()
-          else tgen:set-error(400, "Empty or non-JSON response")
+        (: Now, we have either a JSON string, W3C pseudo-JSON, or an error message. 
+          The goal now is to turn JSON strings into W3C pseudo-JSON. :)
+        let $pseudojson :=
+          if ( exists($jsonStr) and $jsonStr instance of xs:string ) then
+            try {
+              json-to-xml($jsonStr)/*
+            } catch * {
+              tgen:set-error(500, "Could not convert JSON into XML")
+            }
+          else if ( exists($jsonStr) and $jsonStr instance of node() ) then
+            $jsonStr
+          else tgen:set-error(500, "Empty or non-JSON response")
+        (: Return a sequence of <fn:map>s (or errors). :)
+        return
+          if ( exists($pseudojson) and $pseudojson[self::fn:*] ) then
+            typeswitch ($pseudojson)
+              case element(fn:map) return $pseudojson
+              case element(fn:array) return $pseudojson/fn:map
+              default return ()
+          else $pseudojson
   };
   
   
@@ -286,11 +337,12 @@ xquery version "3.1";
     
     @return One map for each response body. Each map contains "media-type" and "content".
    :)
-  declare %private function dpkg:get-response-body($http-response as item()*) as map(xs:string, item())* {
+  declare %private function dpkg:get-response-body($http-response as item()*) as map(xs:string, item()?)* {
     let $mediaTypes := 
-      let $contentType := $http-response[1]//http:header[@name eq 'content-type']/@value
+      let $contentType := 
+        $http-response[1]//http:header[@name eq 'content-type']/@value/data(.)
       return
-        if ( matches($contentType, '^[\w+-]+/[\w+-]+;') ) then
+        if ( matches($contentType, '^[-\w+]+/[-\w+]+;') ) then
           substring-before($contentType, ';')
         else $contentType
     let $bodies := tail($http-response)
@@ -303,7 +355,7 @@ xquery version "3.1";
         if ( contains($mediaType, "application/zip") ) then $body
         else
           typeswitch ($body)
-            case xs:base64Binary return (:util:base64-decode($body):) ()
+            case xs:base64Binary return (:util:base64-decode($body):) $body
             default return $body
       return
         map { 'media-type': $mediaType, 'content': $bodyContent }
