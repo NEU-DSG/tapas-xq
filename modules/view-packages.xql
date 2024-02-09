@@ -10,10 +10,12 @@ xquery version "3.1";
   declare namespace array="http://www.w3.org/2005/xpath-functions/array";
   declare namespace db="http://basex.org/modules/db";
   declare namespace err="http://www.w3.org/2005/xqt-errors";
+  declare namespace file="http://expath.org/ns/file";
   declare namespace http="http://expath.org/ns/http-client";
   declare namespace json="http://basex.org/modules/json";
   declare namespace map="http://www.w3.org/2005/xpath-functions/map";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
+  declare namespace proc="http://basex.org/modules/proc";
   declare namespace tap="http://tapasproject.org/tapas-xq/api";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
   declare namespace xhtml="http://www.w3.org/1999/xhtml";
@@ -23,12 +25,11 @@ xquery version "3.1";
   packages available in eXist.
   
   @author Ash Clark
-  @version 1.5
+  @version 1.6
   
   2024-02-07: Started reconstructing this library for use in BaseX:
       - Replaced $dpkg:home-directory with $dpkg:database.
-      - Folded $dpkg:registry-name and $dpkg:valid-reader-types into $dpkg:registry 
-        and dpkg:is-valid-view-package(), respectively.
+      - Folded $dpkg:valid-reader-types into dpkg:is-valid-view-package().
       - Removed global variables dealing with GitHub:
           - $dpkg:github-api-base
           - $dpkg:github-raw-base
@@ -40,10 +41,15 @@ xquery version "3.1";
           - dpkg:get-file-from-github()
           - dpkg:get-repo-archive()
           - dpkg:get-submodule-identifier()
-          - dpkg:list-changed-files() <!!!
+          - dpkg:list-changed-files()
           - dpkg:get-commit-at() <!!!!
+      - Added functions for working with the `git` filesystem command:
+          - dpkg:get-current-commit-info()
+          - dpkg:get-repository-filesystem-path()
+          - dpkg:get-remote-repository-info()
       - Removed dpkg:is-environment-file-available() as an unnecessary abstraction.
       - Replaced dpkg:get-rails-api-host() with dpkg:set-rails-api-host-header().
+      - Added dpkg:set-registry-entry().
   2023-08-16: Added dpkg:get-response-status(). Rearranged functions into four categories:
       - getting info on the view packages as they stand;
       - getting info on the companion Rails app;
@@ -90,7 +96,8 @@ xquery version "3.1";
   
   declare variable $dpkg:environment-defaults := 'environment.xml';
   
-  declare variable $dpkg:registry := concat($dpkg:database,'/registry.xml');
+  declare variable $dpkg:registry-name := 'registry.xml';
+  declare variable $dpkg:registry := concat($dpkg:database,'/',$dpkg:registry-name);
 
 
 (:
@@ -99,7 +106,7 @@ xquery version "3.1";
       0. General
       1. View packages
       2. Rails
-      3. Updating
+      3. Git
       4. HTTP requests
     
     To get to a group quickly, search for "FUNCTIONS " + the group number you want 
@@ -123,7 +130,7 @@ xquery version "3.1";
 (:
  :  FUNCTIONS 1: View Packages
  :
- :  For obtaining and interpreting view package metadata.
+ :  For obtaining and interpreting information about a named view package.
  :)
   
   (:~
@@ -207,6 +214,47 @@ xquery version "3.1";
       doc($dpkg:registry)/view_registry/package_ref/@name/data(.)
     return $package-id = $registeredPackages
   };
+  
+  (:~
+    Generate a registry entry for the view package matching the given name. The 
+    entry can be used to populate the registry of view packages known by the 
+    TAPAS-xq app.
+    
+    @return An XML element representing the view package, or an empty sequence if 
+      the view package couldn't be found
+   :)
+  declare function dpkg:set-registry-entry($package-id as xs:string) as node()? {
+    let $conf := dpkg:get-configuration($package-id)
+    let $pkgHistory := dpkg:get-current-commit-info($package-id)
+    (: Subdirectories of a git repository share the same last commit, but subMODULES 
+      don't. If the full view package repository's last commit is not the same as 
+      this view package's, we know this view package is a submodule. :)
+    let $isSubmodule := exists($conf) and $pkgHistory instance of map(*)
+      and $pkgHistory?commit ne dpkg:get-current-commit-info()?commit
+    return
+      if ( empty($conf) ) then () else
+        <package_ref name="{$package-id}">{
+            if ( $isSubmodule ) then
+              attribute submodule { true() }
+            else ()
+          }
+          <conf>{ $conf/base-uri() }</conf>
+          <git>{
+            (: We want to capture more information about submodules. :)
+            if ( not($isSubmodule) ) then () else 
+              let $originInfo := dpkg:get-remote-repository-info($package-id)
+              return (
+                attribute repo { $originInfo?repo },
+                attribute branch { $originInfo?branch },
+                attribute commit { $pkgHistory?commit }
+              ),
+            (: Since it's always present, we could put the timestamp attribute right 
+              on <git>. However, I think it reads best after the optional submodule 
+              information. :)
+            attribute timestamp { $pkgHistory?timestamp }
+          }</git>
+        </package_ref>
+  };
 
 
 (:
@@ -263,8 +311,115 @@ xquery version "3.1";
   
   
 (:
- :  FUNCTIONS 3: Updating
+ :  FUNCTIONS 3: Git
+ :
+ :  For updating and maintaining the view packages repository.
  :)
+  
+  
+  (:~
+    Get information on when the TAPAS View Packages repository was last updated.
+    
+    @return A map containing the last commit's hash and ISO 8601 timestamp
+   :)
+  declare %private function dpkg:get-current-commit-info() as map(xs:string, item())? {
+    dpkg:get-current-commit-info('')
+  };
+  
+  
+  (:~
+    Get information on when a view package was last updated.
+    
+    @return A map containing the last commit's hash and ISO 8601 timestamp
+   :)
+  declare %private function dpkg:get-current-commit-info($package-id as xs:string) 
+     as map(xs:string, item())? {
+    (: We can use the `git log -1` filesystem command to get information about the 
+      current commit. To ease programmatic use, we define a custom format for 
+      describing that commit:
+        %H  — commit hash
+        %n  — newline
+        %aI — author date in ISO 8601 format (strict)
+      See https://git-scm.com/docs/git-log#_pretty_formats for more options. :)
+    let $logFormat := 
+      let $picture := '%H%n%aI'
+      return concat('--format=',$picture)
+    (: We'll need BaseX run the `git` command in the right directory. :)
+    let $repoPath := 
+      concat(dpkg:get-repository-filesystem-path(),'/',$package-id)
+    let $commandOpts := map { 'dir': $repoPath }
+    let $errorMsg :=
+      tgen:set-error(500, "Could not retrieve git information for directory "||$repoPath)
+    return
+      (: If the view package doesn't have a directory in the git repository, return 
+        an error. Otherwise, return a map containing the parsed commit and dateTime. :)
+      if ( not(file:exists($repoPath)) ) then $errorMsg else
+        let $gitInfo :=
+          try {
+            proc:system('git', ('log', '-1', $logFormat), $commandOpts)
+          } catch * { $errorMsg }
+        return
+          if ( not($gitInfo instance of xs:string) ) then $gitInfo else
+            let $commandOut := $gitInfo => tokenize('\n')
+            return map {
+                'commit': $commandOut[1],
+                'timestamp': xs:dateTime($commandOut[2])
+              }
+  };
+  
+  
+  (:~
+    Determine where the TAPAS view packages repository lives on the filesystem.
+    
+    @return The path to the "view-packages" directory, relative to the BaseX home 
+      directory
+   :)
+  declare %private function dpkg:get-repository-filesystem-path() as xs:string {
+    let $tapasXqPath :=
+      if ( file:exists('tapas-xq') ) then 'tapas-xq'
+      (: When run from the BaseX ZIP in standalone mode, TAPAS-xq will be stored in the "webapp" directory. :)
+      else if ( file:exists('webapp/tapas-xq') ) then 'webapp/tapas-xq'
+      else ()
+    return
+      if ( empty($tapasXqPath) ) then
+        error(dpkg:error-qname('AppRepoMissing'), "Could not find the 'tapas-xq' folder!")
+      else concat($tapasXqPath,'/view-packages')
+  };
+  
+  
+  (:~
+    Retrieve information about the "origin" repository of a given view package. This 
+    is most useful for submodules.
+    
+    @return A map containing the origin repository's URL and HEAD branch
+   :)
+  declare function dpkg:get-remote-repository-info($package-id as xs:string) {
+    let $repoPath := 
+      concat(dpkg:get-repository-filesystem-path(),'/',$package-id)
+    let $commandOpts := map { 'dir': $repoPath }
+    let $errorMsg :=
+      tgen:set-error(500, "Could not retrieve remote information for submodule "||$repoPath)
+    return
+      if ( not(file:exists($repoPath)) ) then $errorMsg else
+        let $gitOrigin :=
+          try {
+            proc:system('git', ('remote', 'show', 'origin'), $commandOpts)
+          } catch * { $errorMsg }
+        return
+          if ( not($gitOrigin instance of xs:string) ) then $gitOrigin else
+            let $outLines := tokenize($gitOrigin, '\n') ! normalize-space()
+            let $repository :=
+              $outLines[starts-with(., 'Fetch URL:')]
+              => substring-after(': ')
+            let $branch :=
+              $outLines[starts-with(., 'HEAD branch:')]
+              => substring-after(': ')
+            return map {
+                'repo': $repository,
+                'branch': $branch
+              }
+  };
+  
   
   
 (:
