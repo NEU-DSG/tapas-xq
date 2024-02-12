@@ -29,7 +29,8 @@ xquery version "3.1";
   
   2024-02-07: Started reconstructing this library for use in BaseX:
       - Replaced $dpkg:home-directory with $dpkg:database.
-      - Folded $dpkg:valid-reader-types into dpkg:is-valid-view-package().
+      - Renamed dpkg:is-valid-view-package() to dpkg:is-known-view-package().
+      - Folded $dpkg:valid-reader-types into dpkg:is-known-view-package().
       - Removed global variables dealing with GitHub:
           - $dpkg:github-api-base
           - $dpkg:github-raw-base
@@ -134,6 +135,20 @@ xquery version "3.1";
  :)
   
   (:~
+    (Re)generate the registry of view packages known by TAPAS-xq.
+   :)
+  declare (:%updating:) function dpkg:compile-registry() {
+    let $entries :=
+      collection($dpkg:database)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package
+    let $registry :=
+      <view_registry>
+        
+      </view_registry>
+    return $registry
+      (:db:put($dpkg:database, $registry, $dpkg:registry-name):)
+  };
+  
+  (:~
     Get a configuration file for a given view package.
     
     Since the configuration filename can begin with anything as long as it ends in 
@@ -170,7 +185,7 @@ xquery version "3.1";
    :)
   declare function dpkg:get-path-from-package($package-id as xs:string, 
      $relativePath as xs:string) as xs:string {
-    if ( not(dpkg:is-valid-view-package($package-id)) ) then
+    if ( not(dpkg:is-known-view-package($package-id)) ) then
       error(dpkg:error-qname('InvalidViewPkg'), 
         concat("There is no view package named '",$package-id,"'"))
     else
@@ -208,7 +223,7 @@ xquery version "3.1";
     
     @return True if the string provided matches a registered view package.
    :)
-  declare function dpkg:is-valid-view-package($package-id as xs:string) as 
+  declare function dpkg:is-known-view-package($package-id as xs:string) as 
      xs:boolean {
     let $registeredPackages := 
       doc($dpkg:registry)/view_registry/package_ref/@name/data(.)
