@@ -351,36 +351,20 @@ xquery version "3.1";
     @return An empty sequence if the git command succeeded, or an error message
    :)
   declare %private function dpkg:fetch-remote-history() as node()? {
-    dpkg:fetch-remote-history('')
-  };
-  
-  
-  (:~
-    Fetch new commits from a view package's origin remote repository. This is most 
-    useful for view packages which are submodules.
-    
-    @return An empty sequence if the git command succeeded, or an error message
-   :)
-  declare %private function dpkg:fetch-remote-history($package-id as xs:string) as node()? {
-    (: We'll need BaseX run the `git` command in the right directory. :)
-    let $repoPath := 
-      concat(dpkg:get-repository-filesystem-path(),'/',$package-id)
+    let $repoPath := dpkg:get-repository-filesystem-path()
     let $commandOpts := map { 'dir': $repoPath }
     let $errorMsg :=
       tgen:set-error(500, "Could not fetch remote git information for directory "||$repoPath)
+    (: Attempt to run `git fetch`, falling back on $errorMsg. :)
+    let $gitCmdOut :=
+      try {
+        proc:system('git', ('fetch', '--recurse-submodules=yes', '--quiet'), $commandOpts)
+      } catch * { $errorMsg }
     return
-      (: If the view package doesn't have a directory in the git repository, return 
-        an error. Otherwise, return a map containing the parsed commit and dateTime. :)
-      if ( not(file:exists($repoPath)) ) then $errorMsg else
-        let $gitInfo :=
-          try {
-            proc:system('git', ('fetch', '--recurse-submodules=yes', '--quiet'), $commandOpts)
-          } catch * { $errorMsg }
-        return
-          (: If $gitInfo is an empty string, the command succeeded. :)
-          if ( $gitInfo instance of xs:string and $gitInfo eq '' ) then
-            ()
-          else $gitInfo
+      (: If $gitCmdOut is an empty string, the command succeeded. :)
+      if ( $gitCmdOut instance of xs:string and $gitCmdOut eq '' ) then
+        ()
+      else $gitCmdOut
   };
   
   
@@ -510,15 +494,16 @@ xquery version "3.1";
     let $commandOpts := map { 'dir': $repoPath }
     let $errorMsg :=
       tgen:set-error(500, "Could not pull remote git information into directory "||$repoPath)
-    let $gitInfo :=
+    (: Attempt to run the `git pull` command, falling back on $errorMsg. :)
+    let $gitCmdOut :=
       try {
         proc:system('git', ('pull', '--recurse-submodules=yes', '--quiet'), $commandOpts)
       } catch * { $errorMsg }
     return
-      (: If $gitInfo is an empty string, the command succeeded. :)
-      if ( $gitInfo instance of xs:string and $gitInfo eq '' ) then
+      (: If $gitCmdOut is an empty string, the command succeeded. :)
+      if ( $gitCmdOut instance of xs:string and $gitCmdOut eq '' ) then
         dpkg:get-current-commit-info()
-      else $gitInfo
+      else $gitCmdOut
   };
   
   
