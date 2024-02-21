@@ -34,8 +34,15 @@
   <set option="skipcorrupt">true</set>
   <create-db name="tapas-view-packages">webapp/tapas-xq/view-packages</create-db>
   
-  <!-- Allow the Rails TAPAS user to create resources in the view packages database. -->
-  <grant permission="create" pattern="tapas-view-packages" name="tapas"/>
+  <!-- Allow the Rails TAPAS user to write to the view packages database. -->
+  <grant permission="write" pattern="tapas-view-packages" name="tapas"/>
+  
+  <!-- Create a registry of view packages in the database. -->
+  <xquery>
+    import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs"
+      at "view-packages.xql";
+    dpkg:compile-registry()
+  </xquery>
   
   <!-- Open the new database so we can run commands specific to it. -->
   <!--<open name="tapas-view-packages"/>-->
