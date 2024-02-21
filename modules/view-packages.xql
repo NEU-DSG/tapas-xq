@@ -49,6 +49,7 @@ xquery version "3.1";
           - dpkg:get-current-commit-info()
           - dpkg:get-repository-filesystem-path()
           - dpkg:get-remote-repository-info()
+          - dpkg:pull-latest-from-remote-branch()
       - Removed dpkg:is-environment-file-available() as an unnecessary abstraction.
       - Replaced dpkg:get-rails-api-host() with dpkg:set-rails-api-host-header().
       - Added functions to generate the view package registry:
@@ -349,7 +350,7 @@ xquery version "3.1";
     
     @return An empty sequence if the git command succeeded, or an error message
    :)
-  declare function dpkg:fetch-remote-history() as node()? {
+  declare %private function dpkg:fetch-remote-history() as node()? {
     dpkg:fetch-remote-history('')
   };
   
@@ -360,7 +361,7 @@ xquery version "3.1";
     
     @return An empty sequence if the git command succeeded, or an error message
    :)
-  declare function dpkg:fetch-remote-history($package-id as xs:string) as node()? {
+  declare %private function dpkg:fetch-remote-history($package-id as xs:string) as node()? {
     (: We'll need BaseX run the `git` command in the right directory. :)
     let $repoPath := 
       concat(dpkg:get-repository-filesystem-path(),'/',$package-id)
@@ -495,6 +496,29 @@ xquery version "3.1";
                 'repo': $repository,
                 'branch': $branch
               }
+  };
+  
+  
+  (:~
+    Bring the current branch of the local View Package repository up to date with 
+    the remote repository.
+    
+    @return A map describing the latest commit if the git command succeeded, otherwise an error message
+   :)
+  declare %private function dpkg:pull-latest-from-remote-branch() as item()? {
+    let $repoPath := dpkg:get-repository-filesystem-path()
+    let $commandOpts := map { 'dir': $repoPath }
+    let $errorMsg :=
+      tgen:set-error(500, "Could not pull remote git information into directory "||$repoPath)
+    let $gitInfo :=
+      try {
+        proc:system('git', ('pull', '--recurse-submodules=yes', '--quiet'), $commandOpts)
+      } catch * { $errorMsg }
+    return
+      (: If $gitInfo is an empty string, the command succeeded. :)
+      if ( $gitInfo instance of xs:string and $gitInfo eq '' ) then
+        dpkg:get-current-commit-info()
+      else $gitInfo
   };
   
   
