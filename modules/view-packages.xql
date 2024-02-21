@@ -50,7 +50,9 @@ xquery version "3.1";
           - dpkg:get-remote-repository-info()
       - Removed dpkg:is-environment-file-available() as an unnecessary abstraction.
       - Replaced dpkg:get-rails-api-host() with dpkg:set-rails-api-host-header().
-      - Added dpkg:set-registry-entry().
+      - Added functions to generate the view package registry:
+          - dpkg:compile-registry()
+          - dpkg:set-registry-entry()
   2023-08-16: Added dpkg:get-response-status(). Rearranged functions into four categories:
       - getting info on the view packages as they stand;
       - getting info on the companion Rails app;
@@ -137,15 +139,25 @@ xquery version "3.1";
   (:~
     (Re)generate the registry of view packages known by TAPAS-xq.
    :)
-  declare (:%updating:) function dpkg:compile-registry() {
+  declare %updating function dpkg:compile-registry() {
     let $entries :=
-      collection($dpkg:database)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package
+      let $packageIds :=
+        collection($dpkg:database)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package/@xml:id/data(.)
+      for $pkgId in $packageIds
+      return dpkg:set-registry-entry($pkgId)
+    let $gitInfo :=
+      let $remote := dpkg:get-remote-repository-info()
+      let $commit := dpkg:get-current-commit-info()
+      return
+        <git repo="{$remote?repo}" branch="{$remote?branch}"
+             commit="{$commit?commit}" timestamp="{$commit?timestamp}"/>
     let $registry :=
       <view_registry>
-        
+        { $gitInfo }
+        { $entries }
       </view_registry>
-    return $registry
-      (:db:put($dpkg:database, $registry, $dpkg:registry-name):)
+    return
+      db:put($dpkg:database, $registry, $dpkg:registry-name)
   };
   
   (:~
@@ -399,6 +411,17 @@ xquery version "3.1";
       if ( empty($tapasXqPath) ) then
         error(dpkg:error-qname('AppRepoMissing'), "Could not find the 'tapas-xq' folder!")
       else concat($tapasXqPath,'/view-packages')
+  };
+  
+  
+  (:~
+    Retrieve information about the "origin" remote repository associated with the 
+    tapas-view-packages repository on the filesystem.
+    
+    @return A map containing the origin repository's URL and HEAD branch
+   :)
+  declare function dpkg:get-remote-repository-info() {
+    dpkg:get-remote-repository-info('')
   };
   
   
