@@ -45,6 +45,7 @@ xquery version "3.1";
           - dpkg:list-changed-files()
           - dpkg:get-commit-at() <!!!!
       - Added functions for working with the `git` filesystem command:
+          - dpkg:fetch-remote-history()
           - dpkg:get-current-commit-info()
           - dpkg:get-repository-filesystem-path()
           - dpkg:get-remote-repository-info()
@@ -342,6 +343,44 @@ xquery version "3.1";
  :
  :  For updating and maintaining the view packages repository.
  :)
+  
+  (:~
+    Fetch new commits from the origin remote repository.
+    
+    @return An empty sequence if the git command succeeded, or an error message
+   :)
+  declare function dpkg:fetch-remote-history() as node()? {
+    dpkg:fetch-remote-history('')
+  };
+  
+  
+  (:~
+    Fetch new commits from a view package's origin remote repository. This is most 
+    useful for view packages which are submodules.
+    
+    @return An empty sequence if the git command succeeded, or an error message
+   :)
+  declare function dpkg:fetch-remote-history($package-id as xs:string) as node()? {
+    (: We'll need BaseX run the `git` command in the right directory. :)
+    let $repoPath := 
+      concat(dpkg:get-repository-filesystem-path(),'/',$package-id)
+    let $commandOpts := map { 'dir': $repoPath }
+    let $errorMsg :=
+      tgen:set-error(500, "Could not fetch remote git information for directory "||$repoPath)
+    return
+      (: If the view package doesn't have a directory in the git repository, return 
+        an error. Otherwise, return a map containing the parsed commit and dateTime. :)
+      if ( not(file:exists($repoPath)) ) then $errorMsg else
+        let $gitInfo :=
+          try {
+            proc:system('git', ('fetch', '--recurse-submodules=yes', '--quiet'), $commandOpts)
+          } catch * { $errorMsg }
+        return
+          (: If $gitInfo is an empty string, the command succeeded. :)
+          if ( $gitInfo instance of xs:string and $gitInfo eq '' ) then
+            ()
+          else $gitInfo
+  };
   
   
   (:~
