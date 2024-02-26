@@ -256,7 +256,7 @@ xquery version "3.1";
   declare function dpkg:is-known-view-package($package-id as xs:string) as 
      xs:boolean {
     let $registeredPackages := 
-      doc($dpkg:registry)/view_registry/package_ref/@name/data(.)
+      doc($dpkg:registry)//package_ref/@name/data(.)
     return $package-id = $registeredPackages
   };
   

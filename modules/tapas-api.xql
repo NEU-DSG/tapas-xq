@@ -196,6 +196,27 @@ xquery version "3.1";
   };
   
   (:~
+    Retrieve the configuration file for a named view package. Returns status code 200 if the view 
+    package is registered with TAPAS-xq.
+    
+    @param package-id the identifier of the view package
+    @return the XML configuration file of the view package
+   :)
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq/view-packages/{$package-id}")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:get-view-package-configuration($package-id as xs:string) {
+    let $successCode := 200
+    let $configFile :=
+      if ( not(dpkg:is-known-view-package($package-id)) ) then
+        tgen:set-error(500, "A view package named '"||$package-id||"' is not available")
+      else dpkg:get-configuration($package-id)
+    return tap:plan-response($successCode, $configFile, $configFile)
+  };
+  
+  (:~
     Obtain registry of installed view packages. Returns status code 200.
     
     @return the XML registry of view packages
