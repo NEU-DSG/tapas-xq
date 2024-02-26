@@ -44,7 +44,4 @@
     dpkg:compile-registry()
   </xquery>
   
-  <!-- Open the new database so we can run commands specific to it. -->
-  <!--<open name="tapas-view-packages"/>-->
-  
 </commands>

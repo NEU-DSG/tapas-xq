@@ -55,6 +55,7 @@ xquery version "3.1";
       - Added functions to generate the view package registry:
           - dpkg:compile-registry()
           - dpkg:set-registry-entry()
+      - Added dpkg:get-registry()
   2023-08-16: Added dpkg:get-response-status(). Rearranged functions into four categories:
       - getting info on the view packages as they stand;
       - getting info on the companion Rails app;
@@ -213,12 +214,27 @@ xquery version "3.1";
   
   
   (:~
+    Retrieve the XML registry of view packages.
+    
+    @return The XML registry, or an error element if the document is unavailable.
+   :)
+  declare function dpkg:get-registry() as node() {
+    if ( doc-available($dpkg:registry) ) then doc($dpkg:registry)
+    else tgen:set-error(500, "The registry of view packages is not available")
+  };
+  
+  
+  (:~
     Get the registry entry for the view package matching a given identifier.
     
     @return The <package_ref> description of the view package.
    :)
   declare function dpkg:get-registry-entry($package-id as xs:string) as node()? {
-    doc($dpkg:registry)//package_ref[@name eq $package-id]
+    let $registry := dpkg:get-registry()
+    return
+      if ( $registry[self::tap:err] ) then $registry
+      else
+        $registry//package_ref[@name eq $package-id]
   };
   
   

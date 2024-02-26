@@ -2,6 +2,8 @@ xquery version "3.1";
 
   module namespace tap="http://tapasproject.org/tapas-xq/api";
 (:  LIBRARIES  :)
+  import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs"
+    at "view-packages.xql";
   import module namespace Session="http://basex.org/modules/session";
   import module namespace tgen="http://tapasproject.org/tapas-xq/general"
     at "general-functions.xql";
@@ -191,6 +193,22 @@ xquery version "3.1";
     %output:media-type("text/html")
   function tap:derive-reader($type as xs:string, $file as node()) {
     (: TODO. Originally ../legacy/derive-reader.xq :)
+  };
+  
+  (:~
+    Obtain registry of installed view packages. Returns status code 200.
+    
+    @return the XML registry of view packages
+   :)
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq/view-packages")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:list-registered-view-packages() {
+    let $successCode := 200
+    let $registry := dpkg:get-registry()
+    return tap:plan-response($successCode, $registry, $registry)
   };
   
   
