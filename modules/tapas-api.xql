@@ -198,7 +198,7 @@ xquery version "3.1";
     let $isKnownType :=
       if ( not(dpkg:can-read-registry()) ) then
         tgen:set-error(500, "This user does not have read access to the view package database.")
-      else if ( dpkg:is-known-view-package($type) ) then true() 
+      else if ( dpkg:is-known-view-package($type) ) then () 
       else tgen:set-error(400, "There is no view package named '"||$type||"'")
     let $fileXML := tap:get-file-content($file)
     let $xmlFileIsTEI :=
@@ -207,12 +207,29 @@ xquery version "3.1";
     let $possiblyErroneous := ( $isKnownType, $fileXML, $xmlFileIsTEI )
     let $requestedHtml :=
       if ( exists(tap:compile-errors($possiblyErroneous)) ) then () else
-        let $allRequestParams := request:parameter-names()
         let $viewPkgRunStmt := dpkg:get-run-stmt($type)
+        let $runType := $viewPkgRunStmt/@type/data(.)
         return
-          <p>{ string-join($allRequestParams, ', ') }</p>
-    let $response := tap:plan-response($successCode, $possiblyErroneous, $requestedHtml)
-    return $response
+          switch ( $runType )
+            case 'xslt' return
+              let $xslPath := 
+                dpkg:get-path-from-package($type, $viewPkgRunStmt/@pgm/data(.))
+              let $viewPkgParams := dpkg:set-view-package-parameter-values($type)
+              return try {
+                  xslt:transform($fileXML, doc($xslPath), $viewPkgParams)
+                } catch * {
+                  tgen:set-error(500, 'XSLT transformation failed with error "'||$err:description||'" '||$err:value)
+                }
+            (: TODO: XProc :)
+            (: Any other program type is politely declined. :)
+            default return
+              let $error :=
+                if ( empty($runType) ) then
+                  "View package configuration must include a method of transformation"
+                else "Programs of type '"||$runType||"' cannot be run."
+              return tgen:set-error(501, $error)
+    return
+      tap:plan-response($successCode, ($possiblyErroneous, $requestedHtml), $requestedHtml)
   };
   
   (:~

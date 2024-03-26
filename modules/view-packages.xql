@@ -16,6 +16,7 @@ xquery version "3.1";
   declare namespace map="http://www.w3.org/2005/xpath-functions/map";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
   declare namespace proc="http://basex.org/modules/proc";
+  declare namespace request="http://exquery.org/ns/request";
   declare namespace tap="http://tapasproject.org/tapas-xq/api";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
   declare namespace xhtml="http://www.w3.org/1999/xhtml";
@@ -28,7 +29,8 @@ xquery version "3.1";
   @version 1.7
   
   2024-03-26: Added dpkg:can-read-registry() so TAPAS-xq can recover when a user may have lost 
-    read access to the view package database.
+    read access to the view package database. Added dpkg:set-view-package-parameter-values(),
+    which supercedes txq:make-param-map() from tapas-exist.xql.
   2024-02-07: Started reconstructing this library for use in BaseX:
       - Replaced $dpkg:home-directory with $dpkg:database.
       - Renamed dpkg:is-valid-view-package() to dpkg:is-known-view-package().
@@ -313,6 +315,26 @@ xquery version "3.1";
             attribute timestamp { $pkgHistory?timestamp }
           }</git>
         </package_ref>
+  };
+  
+  
+  (:~
+    Create a map of the request parameters specific to the view package's <run> program.
+    
+    @return A map containing all request parameters also listed in the view package configuration, except "file"
+   :)
+  declare function dpkg:set-view-package-parameter-values($package-id as xs:string) {
+    let $configuredParams := 
+      dpkg:get-configuration($package-id)//vpkg:parameters/vpkg:parameter[@name ne 'file']
+    let $requestedParams := request:parameter-names()
+    let $runParameters :=
+      for $configuredParameter in $configuredParams
+      let $name := $configuredParameter/@name/data(.)
+      let $requestedValue := request:parameter($name)
+      return
+        if ( empty($requestedValue) ) then () else
+          map:entry($name, $requestedValue)
+    return map:merge($runParameters)
   };
 
 
