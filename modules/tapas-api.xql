@@ -181,6 +181,8 @@ xquery version "3.1";
     Derive XHTML (reading interface) production files from a TEI document. Returns generated XHTML with 
     status code 200. No files are stored as a result of this request.
     
+    Originally ../legacy/derive-reader.xq .
+    
     @param type a keyword representing the type of view package to generate.
     @param file a TEI-encoded XML document
     @return XHTML
@@ -191,8 +193,26 @@ xquery version "3.1";
     %rest:form-param('file', '{$file}')
     %output:method("xhtml")
     %output:media-type("text/html")
-  function tap:derive-reader($type as xs:string, $file as node()) {
-    (: TODO. Originally ../legacy/derive-reader.xq :)
+  function tap:derive-reader($type as xs:string, $file as item()) {
+    let $successCode := 200
+    let $isKnownType :=
+      if ( not(dpkg:can-read-registry()) ) then
+        tgen:set-error(500, "This user does not have read access to the view package database.")
+      else if ( dpkg:is-known-view-package($type) ) then true() 
+      else tgen:set-error(400, "There is no view package named '"||$type||"'")
+    let $fileXML := tap:get-file-content($file)
+    let $xmlFileIsTEI :=
+      if ( $fileXML instance of element(tap:err) ) then () else
+        tap:validate-tei-minimally($fileXML)
+    let $possiblyErroneous := ( $isKnownType, $fileXML, $xmlFileIsTEI )
+    let $requestedHtml :=
+      if ( exists(tap:compile-errors($possiblyErroneous)) ) then () else
+        let $allRequestParams := request:parameter-names()
+        let $viewPkgRunStmt := dpkg:get-run-stmt($type)
+        return
+          <p>{ string-join($allRequestParams, ', ') }</p>
+    let $response := tap:plan-response($successCode, $possiblyErroneous, $requestedHtml)
+    return $response
   };
   
   (:~
@@ -210,7 +230,9 @@ xquery version "3.1";
   function tap:get-view-package-configuration($package-id as xs:string) {
     let $successCode := 200
     let $configFile :=
-      if ( not(dpkg:is-known-view-package($package-id)) ) then
+      if ( not(dpkg:can-read-registry()) ) then
+        tgen:set-error(500, "This user does not have read access to the view package database.")
+      else if ( not(dpkg:is-known-view-package($package-id)) ) then
         tgen:set-error(500, "A view package named '"||$package-id||"' is not available")
       else dpkg:get-configuration($package-id)
     return tap:plan-response($successCode, $configFile, $configFile)
@@ -228,7 +250,10 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:list-registered-view-packages() {
     let $successCode := 200
-    let $registry := dpkg:get-registry()
+    let $registry := 
+      if ( not(dpkg:can-read-registry()) ) then
+        tgen:set-error(500, "This user does not have read access to the view package database.")
+      else dpkg:get-registry()
     return tap:plan-response($successCode, $registry, $registry)
   };
   

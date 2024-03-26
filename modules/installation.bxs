@@ -23,8 +23,6 @@
   <!-- Give the Rails TAPAS user the "create" permission, which allows them to use 
     the XSLT functions. -->
   <grant permission="create" name="tapas"/>
-  <!-- Prevent the Rails TAPAS user from accessing any other databases. -->
-  <grant permission="none" pattern="*" name="tapas"/>
   <!-- Allow the Rails TAPAS user to write to the TAPAS database. -->
   <grant permission="write" pattern="tapas-data" name="tapas"/>
   
@@ -40,5 +38,9 @@
   
   <!-- Set up the TAPAS view packages. -->
   <run file="install-view-packages.bxs"/>
+  
+  <!-- Prevent the Rails TAPAS user from accessing any other databases. This local 
+    rule must come last, or it will be matched first. -->
+  <grant permission="none" pattern="*" name="tapas"/>
   
 </commands>

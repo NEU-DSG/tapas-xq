@@ -25,8 +25,10 @@ xquery version "3.1";
   packages available in eXist.
   
   @author Ash Clark
-  @version 1.6
+  @version 1.7
   
+  2024-03-26: Added dpkg:can-read-registry() so TAPAS-xq can recover when a user may have lost 
+    read access to the view package database.
   2024-02-07: Started reconstructing this library for use in BaseX:
       - Replaced $dpkg:home-directory with $dpkg:database.
       - Renamed dpkg:is-valid-view-package() to dpkg:is-known-view-package().
@@ -122,6 +124,18 @@ xquery version "3.1";
 (:
  :  FUNCTIONS 0: General
  :)
+  
+  (:~
+    Determine if the current BaseX user can read the view package registry.
+    
+    @return True if this user can access the registry with `doc()`
+   :)
+  declare function dpkg:can-read-registry() {
+    let $registry :=
+      try { doc($dpkg:registry) } 
+      catch * { () }
+    return exists($registry)
+  };
   
   (:~
     Create an error's QName in an app-specific namespace.
