@@ -30,7 +30,7 @@
   
   <!-- Create the tapas-view-package database, populating it with resources from the new "view-packages" 
     directory. If the database already existed, it is overwritten. -->
-  <set option="createfilter">*.xml,*.xsl,*.xslt,*.xproc</set>
+  <set option="createfilter">*.xml</set>
   <set option="skipcorrupt">true</set>
   <create-db name="tapas-view-packages">webapp/tapas-xq/view-packages</create-db>
   
