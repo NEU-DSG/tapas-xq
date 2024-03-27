@@ -30,7 +30,10 @@ xquery version "3.1";
   
   2024-03-26: Added dpkg:can-read-registry() so TAPAS-xq can recover when a user may have lost 
     read access to the view package database. Added dpkg:set-view-package-parameter-values(),
-    which supercedes txq:make-param-map() from tapas-exist.xql.
+    which supercedes txq:make-param-map() from tapas-exist.xql. Added 
+    dpkg:get-package-filesystem-directory() in order to use programs stored in the filesystem 
+    (imports don't work when using files stored in BaseX), and changed 
+    dpkg:get-path-from-package() to use the filesystem path.
   2024-02-07: Started reconstructing this library for use in BaseX:
       - Replaced $dpkg:home-directory with $dpkg:database.
       - Renamed dpkg:is-valid-view-package() to dpkg:is-known-view-package().
@@ -210,6 +213,22 @@ xquery version "3.1";
   
   
   (:~
+    Get the absolute path to the requested view package directory as it exists on 
+    the filesystem. It's easier to import stylesheets from a common filesystem 
+    location than it is to tell Saxon how to find a stored copy within BaseX.
+    
+    @return The filesystem path to a view package directory.
+   :)
+  declare function dpkg:get-package-filesystem-directory($package-id as xs:string) as xs:string {
+    let $databaseSrc := db:info($dpkg:database)//inputpath/string()
+    return
+      concat('file://', $databaseSrc, 
+        if ( ends-with($databaseSrc, '/') ) then () else '/',
+        $package-id)
+  };
+  
+  
+  (:~
     Turn a relative filepath from a view package directory into an absolute filepath.
     
     @return An absolute filepath to a view package collection.
@@ -220,7 +239,7 @@ xquery version "3.1";
       error(dpkg:error-qname('InvalidViewPkg'), 
         concat("There is no view package named '",$package-id,"'"))
     else
-      let $pkgHome := dpkg:get-package-directory($package-id)
+      let $pkgHome := dpkg:get-package-filesystem-directory($package-id)
       let $realRelativePath :=
         if ( starts-with($relativePath,'/') ) then
           $relativePath
