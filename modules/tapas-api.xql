@@ -48,7 +48,7 @@ xquery version "3.1";
     https://docs.basex.org/wiki/User_Management
  :)
   
-  (:
+  (:~
     All POST and DELETE traffic is funneled through this function first. The current user must have 
     either (A) write-level access across BaseX, or (B) write-level access to the "tapas-data" database.
     If the current user does not have write permissions, the API returns a 401 "Unauthorized" response.
@@ -107,12 +107,11 @@ xquery version "3.1";
     file identifier. Returns a short confirmation that the resources will be deleted. If no TEI document 
     is associated with the given identifier, the response will have a status code of 500.
     
-    Originally ../legacy/delete-by-docid.xq .
-    
     @param project-id the unique identifier of the project which owns the core file
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE)
     @return XML
    :)
+  (: Originally ../legacy/delete-by-docid.xq :)
   declare
     %updating
     %rest:DELETE
@@ -147,18 +146,17 @@ xquery version "3.1";
     a short confirmation that the resources will be deleted. If no XML documents are associated with the 
     given project ID, the response will have a status code of 500.
     
-    Originally ../legacy/delete-by-projid.xq .
-    
     @param project-id the unique identifier of the project to be deleted
     @return XML
    :)
+  (: Originally ../legacy/delete-by-projid.xq :)
   declare
     %updating
     %rest:DELETE
     %rest:path("/tapas-xq/{$project-id}")
     %output:method("xml")
     %output:media-type("application/xml")
-  function tap:delete-project-docs($project-id as xs:string) {
+  function tap:delete-project-documents($project-id as xs:string) {
     (: See comments in tap:delete-core-file() above for info on this HTTP status code. :)
     let $successCode := 202
     let $response := 
@@ -181,12 +179,11 @@ xquery version "3.1";
     Derive XHTML (reading interface) production files from a TEI document. Returns generated XHTML with 
     status code 200. No files are stored as a result of this request.
     
-    Originally ../legacy/derive-reader.xq .
-    
     @param type a keyword representing the type of view package to generate.
     @param file a TEI-encoded XML document
     @return XHTML
    :)
+  (: Originally ../legacy/derive-reader.xq :)
   declare
     %rest:POST
     %rest:path("/tapas-xq/derive-reader/{$type}")
@@ -278,13 +275,12 @@ xquery version "3.1";
   (:~
     Store a TEI document. Returns path to the TEI file within the database, with status code 201.
     
-    Originally ../legacy/store-tei.xq .
-    
     @param project-id the unique identifier of the project which owns the work
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
     @param file the TEI-encoded XML document to be stored
     @return XML
    :)
+  (: Originally ../legacy/store-tei.xq :)
   declare
     %updating
     %rest:POST
@@ -315,8 +311,6 @@ xquery version "3.1";
   (:~
     Derive MODS production file from a TEI document and store it in the database.
     
-    Originally ../legacy/store-mods.xq .
-    
     @param project-id the unique identifier of the project which owns the work
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
     @param title the work's title as it should appear in TAPAS metadata
@@ -324,6 +318,7 @@ xquery version "3.1";
     @param contributors a list of contributors' names as they should appear in TAPAS metadata, separated by vertical bars
     @return MODS metadata for the core file
    :)
+  (: Originally ../legacy/store-mods.xq :)
   declare
     %updating
     %rest:POST
@@ -333,8 +328,8 @@ xquery version "3.1";
     %rest:form-param('contributors', '{$contributors}')
     %output:method("xml")
     %output:media-type("application/xml")
-  function tap:store-core-file-mods($project-id as xs:string, $doc-id as xs:string, $title as xs:string, 
-     $authors as xs:string?, $contributors as xs:string?) {
+  function tap:store-core-file-object-description($project-id as xs:string, $doc-id as xs:string, 
+     $title as xs:string, $authors as xs:string?, $contributors as xs:string?) {
     let $successCode := 201
     let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
     let $xslParams := map {
@@ -366,13 +361,14 @@ xquery version "3.1";
   
   
   (:~
-    Store 'TAPAS-friendly-environment' metadata. Triggers the generation of a small XML file containing 
-    useful information about the context of the TEI document, such as its parent project. Returns path 
-    to the TFE file within the database, with status code 201. If no TEI document is associated with the 
-    given doc-id, the response will have a status code of 500. The TEI file must be stored before any of 
-    its derivatives.
+    Store “TAPAS-friendly environment” metadata. Triggers the generation of a small XML file containing 
+    useful information about the context of the TEI document, such as its parent project. 
     
-    Originally ../legacy/store-tfe.xq .
+    The TEI file <em>must</em> be stored before any of its derivatives.
+    
+    Returns the path to the new TFE file within the database, with status code 201. If no TEI document 
+    is associated with the given <code class="param">doc-id</code>, the response will have a status code 
+    of 500.
     
     @param project-id the unique identifier of the project which owns the work
     @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
@@ -380,6 +376,7 @@ xquery version "3.1";
     @param is-public (optional) indicates if the XML document should be queryable by the public. The default is 'false'. (Note that if the document belongs to even one public collection, it should be queryable.)
     @return XML
    :)
+  (: Originally ../legacy/store-tfe.xq :)
   declare
     %updating
     %rest:POST
@@ -388,7 +385,7 @@ xquery version "3.1";
     %rest:form-param('is-public', '{$is-public}', "false")
     %output:method("xml")
     %output:media-type("application/xml")
-  function tap:store-core-file-tfe($project-id as xs:string, $doc-id as xs:string, 
+  function tap:store-core-file-contextual-metadata($project-id as xs:string, $doc-id as xs:string, 
      $collections as xs:string+, $is-public as xs:boolean) {
     let $successCode := 201
     let $useCollections :=
@@ -437,14 +434,14 @@ xquery version "3.1";
   };
   
   (:~
-    Build an HTTP response.
+    Build an HTTP response with some content in the response body.
    :)
   declare function tap:build-response($status-code as xs:integer, $content as item()*) as item()+ {
     tap:build-response($status-code, $content, ())
   };
   
   (:~
-    Build an HTTP response.
+    Build an HTTP response with a response body and response headers.
    :)
   declare function tap:build-response($status-code as xs:integer, $content as item()*, $headers as item()*) as item()+ {
     (: If $content appears to be an integer, then this function treats that integer as an error code. :)
@@ -511,6 +508,9 @@ xquery version "3.1";
       else tgen:set-error(400, "Project not found: "||$project-id)
   };
   
+  (:~
+    Given a project identifier, list all files associated with that project.
+   :)
   declare function tap:list-project-core-files($project-id as xs:string) {
     let $allFiles := db:list($tap:db-name, $project-id)
     return
@@ -523,6 +523,9 @@ xquery version "3.1";
         return $dirPath
   };
   
+  (:~
+    Given a project and a document identifier, list all files associated with that core file.
+   :)
   declare function tap:list-core-file-docs($project-id as xs:string, $doc-id as xs:string) {
     let $coreFilePath := concat($project-id,'/',$doc-id)
     return
