@@ -105,9 +105,9 @@ xquery version "3.1";
   (:~
     Store a TEI document. Returns path to the TEI file within the database, with status code 201.
     
-    @param project-id the unique identifier of the project which owns the work
-    @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
-    @param file the TEI-encoded XML document to be stored
+    @param project-id The unique identifier of the project which owns the work.
+    @param doc-id A unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE).
+    @param file The TEI-encoded XML document to be stored.
     @return XML
    :)
   (: Originally ../legacy/store-tei.xq :)
@@ -126,7 +126,7 @@ xquery version "3.1";
       else tap:validate-tei-minimally($fileXML)
     let $filepath := concat($project-id,'/',$doc-id,'/',$doc-id,'.xml')
     let $possiblyErroneous := ( $fileXML, $xmlFileIsTEI )
-    let $response := tap:plan-response($successCode, $possiblyErroneous)
+    let $response := tap:plan-response($successCode, $possiblyErroneous) (: TODO: shouldn't this include XML output as described in annotation? :)
     return (
         (: Only store TEI if there were no errors. :)
         if ( tap:is-expected-response($response, $successCode) ) then  
@@ -139,13 +139,17 @@ xquery version "3.1";
   
   
   (:~
-    Derive MODS production file from a TEI document and store it in the database.
+    Construct a MODS metadata record using the TEI header and any additional information provided in the 
+    request. Store the MODS in the database alongside its core file TEI.
     
-    @param project-id the unique identifier of the project which owns the work
-    @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
-    @param title the work's title as it should appear in TAPAS metadata
-    @param authors a list of authors' names as they should appear in TAPAS metadata, separated by vertical bars
-    @param contributors a list of contributors' names as they should appear in TAPAS metadata, separated by vertical bars
+    If no TEI document is associated with the given <code class="param">doc-id</code>, the response will 
+    have a status code of 500. The TEI file must be stored <em>before</em> any of its derivatives.
+    
+    @param project-id The unique identifier of the project which owns the work.
+    @param doc-id A unique identifier for the document record attached to the original TEI document and its derivatives. 
+    @param title Optional. The work’s title as it should appear in TAPAS metadata.
+    @param authors Optional. A list of authors’ names as they should appear in TAPAS metadata, separated by vertical bars.
+    @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, separated by vertical bars.
     @return MODS metadata for the core file
    :)
   (: Originally ../legacy/store-mods.xq :)
@@ -194,16 +198,16 @@ xquery version "3.1";
     Store “TAPAS-friendly environment” metadata. Triggers the generation of a small XML file containing 
     useful information about the context of the TEI document, such as its parent project. 
     
-    The TEI file <em>must</em> be stored before any of its derivatives.
+    The TEI file must be stored <em>before</em> any of its derivatives.
     
     Returns the path to the new TFE file within the database, with status code 201. If no TEI document 
     is associated with the given <code class="param">doc-id</code>, the response will have a status code 
     of 500.
     
-    @param project-id the unique identifier of the project which owns the work
-    @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE) 
-    @param collections comma-separated list of collection identifiers with which the work should be associated
-    @param is-public (optional) indicates if the XML document should be queryable by the public. The default is 'false'. (Note that if the document belongs to even one public collection, it should be queryable.)
+    @param project-id The unique identifier of the project which owns the work.
+    @param doc-id A unique identifier for the document record attached to the original TEI document and its derivatives.
+    @param collections Comma-separated list of collection identifiers with which the work should be associated.
+    @param is-public Optional. Indicates if the XML document should be queryable by the public. The default is 'false'. (Note that if the document belongs to even one public collection, it should be queryable.)
     @return XML
    :)
   (: Originally ../legacy/store-tfe.xq :)
