@@ -103,176 +103,6 @@ xquery version "3.1";
   
   
   (:~
-    Completely removes all database records (TEI file, MODS, TFE) associated with the given TEI core 
-    file identifier. Returns a short confirmation that the resources will be deleted. If no TEI document 
-    is associated with the given identifier, the response will have a status code of 500.
-    
-    @param project-id the unique identifier of the project which owns the core file
-    @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE)
-    @return XML
-   :)
-  (: Originally ../legacy/delete-by-docid.xq :)
-  declare
-    %updating
-    %rest:DELETE
-    %rest:path("/tapas-xq/{$project-id}/{$doc-id}")
-    %output:method("xml")
-    %output:media-type("application/xml")
-  function tap:delete-core-file($project-id as xs:string, $doc-id as xs:string) {
-    (: Originally, this endpoint returned a 200 response, since it could check to make sure that the 
-    file was gone after deletion. The "202 Accepted" response is more appropriate now, since we can only 
-    promise that we *will* delete the item, we can't say that we *have done* it. :)
-    let $successCode := 202
-    let $response := 
-      let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
-      return 
-        tap:plan-response($successCode, ($teiDoc), 
-          <p>Deleting core file {$doc-id} and associated files in project {$project-id}.</p>)
-    return (
-        (: Delete the core file only if the response anticipates success. (Note that, unlike in eXist, 
-        the deletion must occur at the end of execution. This function can't be *certain* that deletion 
-        will occur, but it can check for odds of success (authenticated user, available documents). :)
-        if ( tap:is-expected-response($response, $successCode) ) then
-          db:delete($tap:db-name, concat($project-id,'/',$doc-id))
-        else ()
-        ,
-        update:output($response)
-      )
-  };
-  
-  
-  (:~
-    Completely removes all database records associated with the given TAPAS project identifier. Returns 
-    a short confirmation that the resources will be deleted. If no XML documents are associated with the 
-    given project ID, the response will have a status code of 500.
-    
-    @param project-id the unique identifier of the project to be deleted
-    @return XML
-   :)
-  (: Originally ../legacy/delete-by-projid.xq :)
-  declare
-    %updating
-    %rest:DELETE
-    %rest:path("/tapas-xq/{$project-id}")
-    %output:method("xml")
-    %output:media-type("application/xml")
-  function tap:delete-project-documents($project-id as xs:string) {
-    (: See comments in tap:delete-core-file() above for info on this HTTP status code. :)
-    let $successCode := 202
-    let $response := 
-      let $numDocs := tap:count-project-docs($project-id)
-      return 
-        tap:plan-response($successCode, ($numDocs), 
-          <p>Deleting {$numDocs} resources in project {$project-id}.</p>)
-    return (
-        (: Delete the core file only if the response anticipates success. :)
-        if ( tap:is-expected-response($response, $successCode) ) then
-          db:delete($tap:db-name, $project-id)
-        else ()
-        ,
-        update:output($response)
-      )
-  };
-  
-  
-  (:~
-    Derive XHTML (reading interface) production files from a TEI document. Returns generated XHTML with 
-    status code 200. No files are stored as a result of this request.
-    
-    @param type a keyword representing the type of view package to generate.
-    @param file a TEI-encoded XML document
-    @return XHTML
-   :)
-  (: Originally ../legacy/derive-reader.xq :)
-  declare
-    %rest:POST
-    %rest:path("/tapas-xq/derive-reader/{$type}")
-    %rest:form-param('file', '{$file}')
-    %output:method("xhtml")
-    %output:media-type("text/html")
-  function tap:derive-reader($type as xs:string, $file as item()) {
-    let $successCode := 200
-    let $isKnownType :=
-      if ( not(dpkg:can-read-registry()) ) then
-        tgen:set-error(500, "This user does not have read access to the view package database.")
-      else if ( dpkg:is-known-view-package($type) ) then () 
-      else tgen:set-error(400, "There is no view package named '"||$type||"'")
-    let $fileXML := tap:get-file-content($file)
-    let $xmlFileIsTEI :=
-      if ( $fileXML instance of element(tap:err) ) then () else
-        tap:validate-tei-minimally($fileXML)
-    let $possiblyErroneous := ( $isKnownType, $fileXML, $xmlFileIsTEI )
-    let $requestedHtml :=
-      if ( exists(tap:compile-errors($possiblyErroneous)) ) then () else
-        let $viewPkgRunStmt := dpkg:get-run-stmt($type)
-        let $runType := $viewPkgRunStmt/@type/data(.)
-        return
-          switch ( $runType )
-            case 'xslt' return
-              let $xslPath := 
-                dpkg:get-path-from-package($type, $viewPkgRunStmt/@pgm/data(.))
-              let $viewPkgParams := dpkg:set-view-package-parameter-values($type)
-              return try {
-                  xslt:transform($fileXML, doc($xslPath), $viewPkgParams)
-                } catch * {
-                  tgen:set-error(500, 'XSLT transformation failed with error "'||$err:description||'" '||$err:value)
-                }
-            (: TODO: XProc :)
-            (: Any other program type is politely declined. :)
-            default return
-              let $error :=
-                if ( empty($runType) ) then
-                  "View package configuration must include a method of transformation"
-                else "Programs of type '"||$runType||"' cannot be run."
-              return tgen:set-error(501, $error)
-    return
-      tap:plan-response($successCode, ($possiblyErroneous, $requestedHtml), $requestedHtml)
-  };
-  
-  (:~
-    Retrieve the configuration file for a named view package. Returns status code 200 if the view 
-    package is registered with TAPAS-xq.
-    
-    @param package-id the identifier of the view package
-    @return the XML configuration file of the view package
-   :)
-  declare
-    %rest:GET
-    %rest:path("/tapas-xq/view-packages/{$package-id}")
-    %output:method("xml")
-    %output:media-type("application/xml")
-  function tap:get-view-package-configuration($package-id as xs:string) {
-    let $successCode := 200
-    let $configFile :=
-      if ( not(dpkg:can-read-registry()) ) then
-        tgen:set-error(500, "This user does not have read access to the view package database.")
-      else if ( not(dpkg:is-known-view-package($package-id)) ) then
-        tgen:set-error(500, "A view package named '"||$package-id||"' is not available")
-      else dpkg:get-configuration($package-id)
-    return tap:plan-response($successCode, $configFile, $configFile)
-  };
-  
-  (:~
-    Obtain registry of installed view packages. Returns status code 200.
-    
-    @return the XML registry of view packages
-   :)
-  declare
-    %rest:GET
-    %rest:path("/tapas-xq/view-packages")
-    %output:method("xml")
-    %output:media-type("application/xml")
-  function tap:list-registered-view-packages() {
-    let $successCode := 200
-    let $registry := 
-      if ( not(dpkg:can-read-registry()) ) then
-        tgen:set-error(500, "This user does not have read access to the view package database.")
-      else dpkg:get-registry()
-    return tap:plan-response($successCode, $registry, $registry)
-  };
-  
-  
-  (:~
     Store a TEI document. Returns path to the TEI file within the database, with status code 201.
     
     @param project-id the unique identifier of the project which owns the work
@@ -420,6 +250,179 @@ xquery version "3.1";
         update:output($response)
       )
   };
+  
+  
+  (:~
+    Derive XHTML (reading interface) production files from a TEI document. Returns generated XHTML with 
+    status code 200. No files are stored as a result of this request.
+    
+    @param type a keyword representing the type of view package to generate.
+    @param file a TEI-encoded XML document
+    @return XHTML
+   :)
+  (: Originally ../legacy/derive-reader.xq :)
+  declare
+    %rest:POST
+    %rest:path("/tapas-xq/derive-reader/{$type}")
+    %rest:form-param('file', '{$file}')
+    %output:method("xhtml")
+    %output:media-type("text/html")
+  function tap:derive-reader($type as xs:string, $file as item()) {
+    let $successCode := 200
+    let $isKnownType :=
+      if ( not(dpkg:can-read-registry()) ) then
+        tgen:set-error(500, "This user does not have read access to the view package database.")
+      else if ( dpkg:is-known-view-package($type) ) then () 
+      else tgen:set-error(400, "There is no view package named '"||$type||"'")
+    let $fileXML := tap:get-file-content($file)
+    let $xmlFileIsTEI :=
+      if ( $fileXML instance of element(tap:err) ) then () else
+        tap:validate-tei-minimally($fileXML)
+    let $possiblyErroneous := ( $isKnownType, $fileXML, $xmlFileIsTEI )
+    let $requestedHtml :=
+      if ( exists(tap:compile-errors($possiblyErroneous)) ) then () else
+        let $viewPkgRunStmt := dpkg:get-run-stmt($type)
+        let $runType := $viewPkgRunStmt/@type/data(.)
+        return
+          switch ( $runType )
+            case 'xslt' return
+              let $xslPath := 
+                dpkg:get-path-from-package($type, $viewPkgRunStmt/@pgm/data(.))
+              let $viewPkgParams := dpkg:set-view-package-parameter-values($type)
+              return try {
+                  xslt:transform($fileXML, doc($xslPath), $viewPkgParams)
+                } catch * {
+                  tgen:set-error(500, 'XSLT transformation failed with error "'||$err:description||'" '||$err:value)
+                }
+            (: TODO: XProc :)
+            (: Any other program type is politely declined. :)
+            default return
+              let $error :=
+                if ( empty($runType) ) then
+                  "View package configuration must include a method of transformation"
+                else "Programs of type '"||$runType||"' cannot be run."
+              return tgen:set-error(501, $error)
+    return
+      tap:plan-response($successCode, ($possiblyErroneous, $requestedHtml), $requestedHtml)
+  };
+  
+  
+  (:~
+    Completely removes all database records (TEI file, MODS, TFE) associated with the given TEI core 
+    file identifier. Returns a short confirmation that the resources will be deleted. If no TEI document 
+    is associated with the given identifier, the response will have a status code of 500.
+    
+    @param project-id the unique identifier of the project which owns the core file
+    @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE)
+    @return XML
+   :)
+  (: Originally ../legacy/delete-by-docid.xq :)
+  declare
+    %updating
+    %rest:DELETE
+    %rest:path("/tapas-xq/{$project-id}/{$doc-id}")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:delete-core-file($project-id as xs:string, $doc-id as xs:string) {
+    (: Originally, this endpoint returned a 200 response, since it could check to make sure that the 
+    file was gone after deletion. The "202 Accepted" response is more appropriate now, since we can only 
+    promise that we *will* delete the item, we can't say that we *have done* it. :)
+    let $successCode := 202
+    let $response := 
+      let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
+      return 
+        tap:plan-response($successCode, ($teiDoc), 
+          <p>Deleting core file {$doc-id} and associated files in project {$project-id}.</p>)
+    return (
+        (: Delete the core file only if the response anticipates success. (Note that, unlike in eXist, 
+        the deletion must occur at the end of execution. This function can't be *certain* that deletion 
+        will occur, but it can check for odds of success (authenticated user, available documents). :)
+        if ( tap:is-expected-response($response, $successCode) ) then
+          db:delete($tap:db-name, concat($project-id,'/',$doc-id))
+        else ()
+        ,
+        update:output($response)
+      )
+  };
+  
+  
+  (:~
+    Completely removes all database records associated with the given TAPAS project identifier. Returns 
+    a short confirmation that the resources will be deleted. If no XML documents are associated with the 
+    given project ID, the response will have a status code of 500.
+    
+    @param project-id the unique identifier of the project to be deleted
+    @return XML
+   :)
+  (: Originally ../legacy/delete-by-projid.xq :)
+  declare
+    %updating
+    %rest:DELETE
+    %rest:path("/tapas-xq/{$project-id}")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:delete-project-documents($project-id as xs:string) {
+    (: See comments in tap:delete-core-file() above for info on this HTTP status code. :)
+    let $successCode := 202
+    let $response := 
+      let $numDocs := tap:count-project-docs($project-id)
+      return 
+        tap:plan-response($successCode, ($numDocs), 
+          <p>Deleting {$numDocs} resources in project {$project-id}.</p>)
+    return (
+        (: Delete the core file only if the response anticipates success. :)
+        if ( tap:is-expected-response($response, $successCode) ) then
+          db:delete($tap:db-name, $project-id)
+        else ()
+        ,
+        update:output($response)
+      )
+  };
+  
+  
+  (:~
+    Obtain registry of installed view packages. Returns status code 200.
+    
+    @return the XML registry of view packages
+   :)
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq/view-packages")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:list-registered-view-packages() {
+    let $successCode := 200
+    let $registry := 
+      if ( not(dpkg:can-read-registry()) ) then
+        tgen:set-error(500, "This user does not have read access to the view package database.")
+      else dpkg:get-registry()
+    return tap:plan-response($successCode, $registry, $registry)
+  };
+  
+  
+  (:~
+    Retrieve the configuration file for a named view package. Returns status code 200 if the view 
+    package is registered with TAPAS-xq.
+    
+    @param package-id the identifier of the view package
+    @return the XML configuration file of the view package
+   :)
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq/view-packages/{$package-id}")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:get-view-package-configuration($package-id as xs:string) {
+    let $successCode := 200
+    let $configFile :=
+      if ( not(dpkg:can-read-registry()) ) then
+        tgen:set-error(500, "This user does not have read access to the view package database.")
+      else if ( not(dpkg:is-known-view-package($package-id)) ) then
+        tgen:set-error(500, "A view package named '"||$package-id||"' is not available")
+      else dpkg:get-configuration($package-id)
+    return tap:plan-response($successCode, $configFile, $configFile)
+  };
+
 
 
 (:
