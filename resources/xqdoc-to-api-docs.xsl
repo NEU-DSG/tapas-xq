@@ -27,7 +27,7 @@
   
  <!--  GLOBAL VARIABLES  -->
   
-  <xsl:variable name="date-updated" select="//control/date/xs:dateTime(.)" as="xs:dateTime?"/>
+  <xsl:variable name="date-generated" select="//control/date/xs:dateTime(.)" as="xs:dateTime?"/>
   
   
   
@@ -49,23 +49,21 @@
         <title>
           <xsl:value-of select="$html-title"/>
         </title>
-        <style><![CDATA[
-          section { margin: 1.5rem 0 2rem; }
-          .endpoint { font-size: 1.125em; }
-          .endpoint .param { color: #cb0000; }
-          dt.param {
-            font-family: monospace;
-            font-size: 1.1em;
-          }
-          dd + dt.param { margin-top: 0.35em; }
-        ]]></style>
+        <xsl:call-template name="set-styling"/>
       </head>
       <body>
         <h1>API documentation</h1>
-        <div>
-          <h2>Request endpoints</h2>
+        <aside>
+          <p>
+            <xsl:text>Generated </xsl:text>
+            <xsl:value-of select="$date-generated"/>
+            <xsl:text>.</xsl:text>
+          </p>
+        </aside>
+        <main>
+          <h2 id="all-endpoints">Request endpoints</h2>
           <xsl:apply-templates select="//functions"/>
-        </div>
+        </main>
       </body>
     </html>
   </xsl:template>
@@ -77,33 +75,52 @@
     <xsl:variable name="headingId" select="'section_'||$localName"/>
     <xsl:variable name="humanName" as="xs:string">
       <xsl:variable name="nameWithSpaces" select="replace($localName, '[_-]', ' ')"/>
-      <xsl:value-of 
-        select="upper-case(substring($nameWithSpaces,1,1))||substring($nameWithSpaces,2)"/>
+      <xsl:value-of select="upper-case(substring($nameWithSpaces,1,1))
+                            || substring($nameWithSpaces,2)"/>
+    </xsl:variable>
+    <xsl:variable name="endpointPath" as="node()*">
+      <xsl:variable name="regexp" select="'\{\$([\w_-]+)\}'"/>
+      <xsl:analyze-string select=".//annotation[@name eq 'rest:path']/*/string(.)" 
+         regex="{$regexp}">
+        <xsl:matching-substring>
+          <strong class="param"><xsl:value-of select="regex-group(1)"/></strong>
+        </xsl:matching-substring>
+        <xsl:non-matching-substring>
+          <xsl:value-of select="."/>
+        </xsl:non-matching-substring>
+      </xsl:analyze-string>
     </xsl:variable>
     <section aria-labelledby="{$headingId}">
       <h3 id="{$headingId}">
         <xsl:value-of select="$humanName"/>
       </h3>
+      <!-- The API endpoint is the HTTP method and URL to which a response is mapped, for example:
+          GET /tapas-xq
+        -->
       <p><code class="endpoint">
         <xsl:call-template name="get-http-method"/>
         <xsl:text> </xsl:text>
-        <xsl:variable name="regexp" select="'\{\$([\w_-]+)\}'"/>
-        <xsl:analyze-string select=".//annotation[@name eq 'rest:path']/*/string(.)" 
-           regex="{$regexp}">
-          <xsl:matching-substring>
-            <strong class="param"><xsl:value-of select="regex-group(1)"/></strong>
-          </xsl:matching-substring>
-          <xsl:non-matching-substring>
-            <xsl:value-of select="."/>
-          </xsl:non-matching-substring>
-        </xsl:analyze-string>
+        <xsl:copy-of select="$endpointPath"/>
       </code></p>
-      
       <xsl:apply-templates select="comment/description"/>
       <xsl:if test="exists(comment/param)">
-        <dl>
-          <xsl:apply-templates select="comment/param"/>
-        </dl>
+        <table class="function-params">
+          <caption>Request settings</caption>
+          <thead>
+            <tr>
+              <th style="min-width:10%;">Name</th>
+              <th>Description</th>
+              <th>Where to set value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <xsl:apply-templates select="comment/param">
+              <xsl:with-param name="api-mapping" as="map(*)?">
+                <xsl:call-template name="set-parameters-mapping"/>
+              </xsl:with-param>
+            </xsl:apply-templates>
+          </tbody>
+        </table>
       </xsl:if>
     </section>
   </xsl:template>
@@ -121,12 +138,37 @@
   </xsl:template>
   
   <xsl:template match="comment/param">
-    <dt class="param">
-      <xsl:value-of select="substring-before(., ' ')"/>
-    </dt>
-    <dd>
-      <xsl:value-of select="substring-after(., ' ')"/>
-    </dd>
+    <xsl:param name="api-mapping" as="map(*)?"/>
+    <xsl:variable name="paramName" select="substring-before(., ' ')"/>
+    <xsl:variable name="paramMap" select="$api-mapping?($paramName)"/>
+    <xsl:variable name="isRepresentedInApi" select="exists($paramMap?api-setting-type)"/>
+    <tr>
+      <!-- The HTTP parameter name, if applicable. Otherwise, use the function's parameter name. (In 
+        general, the HTTP parameter name should exactly match the function's parameter. However, it may 
+        be useful to have a public-facing, broadly-interpretable version of the name, as well as an 
+        internal flavor of the name for use within the XQuery module. 
+        -->
+      <th class="param">
+        <xsl:choose>
+          <xsl:when test="$isRepresentedInApi and exists($paramMap?api-setting-key)">
+            <xsl:value-of select="$paramMap?api-setting-key"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$paramName"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </th>
+      <!-- The xqDoc description of that parameter -->
+      <td>
+        <xsl:value-of select="substring-after(., ' ')"/>
+      </td>
+      <!-- Where the parameter value should be set in the API request. -->
+      <td>
+        <xsl:if test="$isRepresentedInApi">
+          <xsl:value-of select="$paramMap?api-setting-type"/>
+        </xsl:if>
+      </td>
+    </tr>
   </xsl:template>
   
   
@@ -171,7 +213,8 @@
   </xsl:template>
   
   <!-- Remove any paragraph boundaries inserted from "mark-paragraph-boundaries" mode. -->
-  <xsl:template match="Q{}br[@class eq 'paragraph-boundary']" priority="2" mode="remove-paragraph-boundaries"/>
+  <xsl:template match="Q{}br[@class eq 'paragraph-boundary']" priority="2" 
+     mode="remove-paragraph-boundaries"/>
   
   
   
@@ -182,6 +225,74 @@
       select=".//annotation[@name = ('rest:GET', 'rest:PUT', 'rest:POST', 'rest:DELETE', 'rest:HEAD')]" as="node()*"/>
     <xsl:value-of select="$methodAnnotation/@name/substring-after(., 'rest:')"/>
   </xsl:template>
+  
+  
+  <!-- Generate a map of the current function's parameters along with their RESTXQ parameter 
+    equivalents. -->
+  <xsl:template name="set-parameters-mapping">
+    <xsl:variable name="annotations" select=".//annotation"/>
+    <xsl:map>
+      <xsl:for-each select="parameters/parameter">
+        <xsl:variable name="paramNameRegexp" select="'\{\$'||name||'\}'"/>
+        <xsl:variable name="annotationMatch" 
+          select="$annotations[literal[matches(., $paramNameRegexp)]]"/>
+        <xsl:variable name="annotationType" 
+          select="if ( empty($annotationMatch) ) then ()
+                  else if ( $annotationMatch/@name eq 'rest:path' ) then
+                    'URL'
+                  else if ( $annotationMatch/@name eq 'rest:form-param' ) then
+                    'form parameter'
+                  else if ( $annotationMatch/@name eq 'rest:query-param' ) then
+                    'query parameter'
+                  else ()"/>
+        <xsl:variable name="annotationKey" 
+           select="if ( $annotationType = ('form parameter', 'query parameter') ) then 
+                     literal[1]/string()
+                   else ()"/>
+        <xsl:map-entry key="name/string()"
+           select="map {
+                      'api-setting-key': $annotationKey,
+                      'api-setting-type': $annotationType,
+                      'datatype': type/string()
+                    }"/>
+      </xsl:for-each>
+    </xsl:map>
+  </xsl:template>
+  
+  
+  <!-- Define CSS for the HTML documentation. -->
+  <xsl:template name="set-styling">
+    <style><![CDATA[
+          body {
+            font-family: Verdana, Helvetica, Arial, sans-serif;
+            margin: 0 0 1rem;
+            padding: 0 2rem;
+          }
+          section { margin: 1.5rem 0 2rem; }
+          .endpoint { font-size: 1.125em; }
+          .endpoint .param { color: #cb0000; }
+          .param {
+            font-family: monospace;
+            font-size: 1.1em;
+          }
+          table.function-params { 
+            border: thin solid #333;
+            border-collapse: collapse;
+            margin: 0 1rem;
+            width: 100%;
+          }
+          caption {
+            font-size: 1.1em;
+            padding: 0.25em 0 0.5em;
+          }
+          th, td { padding: 0.35rem; }
+          thead th { border-bottom: thin solid gray; }
+          th.param { text-align: right; }
+          td { padding-left: 0.5rem; }
+          dd + dt.param { margin-top: 0.35rem; }
+        ]]></style>
+  </xsl:template>
+
   
   
  <!--  FUNCTIONS  -->
