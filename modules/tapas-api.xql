@@ -28,7 +28,17 @@ xquery version "3.1";
   declare namespace xslt="http://basex.org/modules/xslt";
 
 (:~
-  An API for the XML database component of TAPAS.
+  This is the API for TAPAS-xq, the XML database component of TAPAS. TAPAS-xq stores TEI documents, 
+  indexes them, and generates derivatives such as MODS metadata and reading interface XHTML.
+  
+  TAPAS-xq also maintains a registry of “<a href="https://github.com/NEU-DSG/tapas-view-packages">view 
+  packages</a>”. Each view package includes: a program for generating a “view” (a web page); web assets 
+  for displaying that page; and a configuration file describing these contents. TAPAS-xq is mostly 
+  concerned with the program component, and the configuration file which defines how to execute that 
+  program.
+  
+  All POST and DELETE requests <strong>must</strong> include an Authentication header containing the 
+  credentials for a BaseX user with write access to the TAPAS databases.
   
   @author Ash Clark
   @since 2023
@@ -106,7 +116,8 @@ xquery version "3.1";
     Store a TEI document. Returns path to the TEI file within the database, with status code 201.
     
     @param project-id The unique identifier of the project which owns the work.
-    @param doc-id A unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE).
+    @param doc-id A unique identifier for the document record attached to the original TEI document and 
+      its derivatives (MODS, TFE).
     @param file The TEI-encoded XML document to be stored.
     @return XML
    :)
@@ -142,14 +153,19 @@ xquery version "3.1";
     Construct a MODS metadata record using the TEI header and any additional information provided in the 
     request. Store the MODS in the database alongside its core file TEI.
     
+    The TEI core file must be stored <em>before</em> any of its derivatives.
+    
     If no TEI document is associated with the given <code class="param">doc-id</code>, the response will 
-    have a status code of 500. The TEI file must be stored <em>before</em> any of its derivatives.
+    have a status code of 500.
     
     @param project-id The unique identifier of the project which owns the work.
-    @param doc-id A unique identifier for the document record attached to the original TEI document and its derivatives. 
+    @param doc-id A unique identifier for the document record attached to the original TEI document and 
+      its derivatives. 
     @param title Optional. The work’s title as it should appear in TAPAS metadata.
-    @param authors Optional. A list of authors’ names as they should appear in TAPAS metadata, separated by vertical bars.
-    @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, separated by vertical bars.
+    @param authors Optional. A list of authors’ names as they should appear in TAPAS metadata, separated 
+      by vertical bars.
+    @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
+      separated by vertical bars.
     @return MODS metadata for the core file
    :)
   (: Originally ../legacy/store-mods.xq :)
@@ -198,16 +214,20 @@ xquery version "3.1";
     Store “TAPAS-friendly environment” metadata. Triggers the generation of a small XML file containing 
     useful information about the context of the TEI document, such as its parent project. 
     
-    The TEI file must be stored <em>before</em> any of its derivatives.
+    The TEI core file must be stored <em>before</em> any of its derivatives.
     
     Returns the path to the new TFE file within the database, with status code 201. If no TEI document 
     is associated with the given <code class="param">doc-id</code>, the response will have a status code 
     of 500.
     
     @param project-id The unique identifier of the project which owns the work.
-    @param doc-id A unique identifier for the document record attached to the original TEI document and its derivatives.
-    @param collections Comma-separated list of collection identifiers with which the work should be associated.
-    @param is-public Optional. Indicates if the XML document should be queryable by the public. The default is 'false'. (Note that if the document belongs to even one public collection, it should be queryable.)
+    @param doc-id A unique identifier for the document record attached to the original TEI document and 
+      its derivatives.
+    @param collections Comma-separated list of collection identifiers with which the work should be 
+      associated.
+    @param is-public Optional. Value of “true” or “false”. Indicates if the XML document should be 
+      queryable by the public. By default, the document is considered private. (Note that if the 
+      document belongs to even one public collection, it should be queryable.)
     @return XML
    :)
   (: Originally ../legacy/store-tfe.xq :)
@@ -257,11 +277,21 @@ xquery version "3.1";
   
   
   (:~
-    Derive XHTML (reading interface) production files from a TEI document. Returns generated XHTML with 
-    status code 200. No files are stored as a result of this request.
+    Given the name of a TAPAS view package, generate an XHTML file from the provided TEI document. The 
+    generated XHTML is not a full webpage but a <code>&lt;div&gt;</code> snippet, suitable for inclusion 
+    in the TAPAS reading interface. 
     
-    @param type a keyword representing the type of view package to generate.
-    @param file a TEI-encoded XML document
+    The XML database does not store any files as a result of this request.
+    
+    Note that additional form parameters may be available, depending on the view package selected. Check 
+    the view package’s configuration file for additional parameters.
+    
+    Returns generated XHTML with status code 200.
+    
+    @param type A keyword representing the type of reader view to generate. Valid keywords can be found 
+      by making a request to  the “List registered view packages” endpoint.
+    @param file A TEI-encoded XML document. If, in the future, a view package makes use of a different 
+      input source (such as a TAPAS collection or a project), the file parameter may become optional.
     @return XHTML
    :)
   (: Originally ../legacy/derive-reader.xq :)
@@ -312,12 +342,14 @@ xquery version "3.1";
   
   
   (:~
-    Completely removes all database records (TEI file, MODS, TFE) associated with the given TEI core 
-    file identifier. Returns a short confirmation that the resources will be deleted. If no TEI document 
-    is associated with the given identifier, the response will have a status code of 500.
+    Completely remove all database records associated with a given TEI core file identifier: TEI file, 
+    MODS metadata, and TAPAS-friendly environment record. 
     
-    @param project-id the unique identifier of the project which owns the core file
-    @param doc-id a unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE)
+    Returns a short confirmation that the resources will be deleted. If no TEI document is associated 
+    with the given identifier, the response will have a status code of 500.
+    
+    @param project-id The identifier of the project which owns the core file.
+    @param doc-id The identifier of the TEI core file.
     @return XML
    :)
   (: Originally ../legacy/delete-by-docid.xq :)
@@ -339,8 +371,9 @@ xquery version "3.1";
           <p>Deleting core file {$doc-id} and associated files in project {$project-id}.</p>)
     return (
         (: Delete the core file only if the response anticipates success. (Note that, unlike in eXist, 
-        the deletion must occur at the end of execution. This function can't be *certain* that deletion 
-        will occur, but it can check for odds of success (authenticated user, available documents). :)
+          the deletion must occur at the end of execution. This function can't be *certain* that 
+          deletion will occur, but it can check for odds of success (authenticated user, available 
+          documents). :)
         if ( tap:is-expected-response($response, $successCode) ) then
           db:delete($tap:db-name, concat($project-id,'/',$doc-id))
         else ()
@@ -351,11 +384,12 @@ xquery version "3.1";
   
   
   (:~
-    Completely removes all database records associated with the given TAPAS project identifier. Returns 
-    a short confirmation that the resources will be deleted. If no XML documents are associated with the 
-    given project ID, the response will have a status code of 500.
+    Completely remove all database records associated with the given TAPAS project. 
     
-    @param project-id the unique identifier of the project to be deleted
+    Returns a short confirmation that the resources will be deleted. If no XML documents are associated 
+    with the given project ID, the response will have a status code of 500.
+    
+    @param project-id The unique identifier of the project to be deleted.
     @return XML
    :)
   (: Originally ../legacy/delete-by-projid.xq :)
@@ -385,7 +419,9 @@ xquery version "3.1";
   
   
   (:~
-    Obtain registry of installed view packages. Returns status code 200.
+    Retrieve the XML registry of all view packages currently available in TAPAS-xq.
+    
+    Returns status code 200.
     
     @return the XML registry of view packages
    :)
@@ -405,10 +441,11 @@ xquery version "3.1";
   
   
   (:~
-    Retrieve the configuration file for a named view package. Returns status code 200 if the view 
-    package is registered with TAPAS-xq.
+    Retrieve the configuration file for a given view package.
     
-    @param package-id the identifier of the view package
+    Returns status code 200 if the view package is registered with TAPAS-xq.
+    
+    @param package-id The identifier of the view package.
     @return the XML configuration file of the view package
    :)
   declare
