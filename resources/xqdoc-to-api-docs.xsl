@@ -52,7 +52,6 @@
         <xsl:call-template name="set-styling"/>
       </head>
       <body>
-        <h1>API documentation</h1>
         <aside>
           <p>
             <xsl:text>Generated </xsl:text>
@@ -61,11 +60,17 @@
           </p>
         </aside>
         <main>
+          <h1>API documentation</h1>
+          <xsl:apply-templates select="//module/comment"/>
           <h2 id="all-endpoints">Request endpoints</h2>
           <xsl:apply-templates select="//functions"/>
         </main>
       </body>
     </html>
+  </xsl:template>
+  
+  <xsl:template match="module/comment">
+    <xsl:apply-templates/>
   </xsl:template>
   
   <!-- For API documentation, we're only interested in functions with RESTXQ annotations. -->
@@ -102,27 +107,34 @@
         <xsl:text> </xsl:text>
         <xsl:copy-of select="$endpointPath"/>
       </code></p>
-      <xsl:apply-templates select="comment/description"/>
-      <xsl:if test="exists(comment/param)">
-        <table class="function-params">
-          <caption>Request settings</caption>
-          <thead>
-            <tr>
-              <th style="min-width:10%;">Name</th>
-              <th>Description</th>
-              <th>Where to set value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <xsl:apply-templates select="comment/param">
-              <xsl:with-param name="api-mapping" as="map(*)?">
-                <xsl:call-template name="set-parameters-mapping"/>
-              </xsl:with-param>
-            </xsl:apply-templates>
-          </tbody>
-        </table>
-      </xsl:if>
+      <xsl:apply-templates select="comment">
+        <!-- We generate the mapping of function to API parameters here and tunnel it to the templates 
+          that will later need it. -->
+        <xsl:with-param name="api-mapping" as="map(*)?" tunnel="yes">
+          <xsl:call-template name="set-parameters-mapping"/>
+        </xsl:with-param>
+      </xsl:apply-templates>
     </section>
+  </xsl:template>
+  
+  <xsl:template match="function/comment">
+    <xsl:apply-templates select="description"/>
+    <xsl:apply-templates select="return"/>
+    <xsl:if test="exists(param)">
+      <table class="function-params">
+        <caption>Request settings</caption>
+        <thead>
+          <tr>
+            <th style="min-width:10%;">Name</th>
+            <th>Description</th>
+            <th>Where to set value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <xsl:apply-templates select="param"/>
+        </tbody>
+      </table>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template match="comment/description">
@@ -137,8 +149,15 @@
     </xsl:for-each-group>
   </xsl:template>
   
+  <xsl:template match="comment/return">
+    <p>
+      <xsl:text>Returns </xsl:text>
+      <xsl:apply-templates mode="mark-paragraph-boundaries"/>
+    </p>
+  </xsl:template>
+  
   <xsl:template match="comment/param">
-    <xsl:param name="api-mapping" as="map(*)?"/>
+    <xsl:param name="api-mapping" as="map(*)?" tunnel="yes"/>
     <xsl:variable name="paramName" select="substring-before(., ' ')"/>
     <xsl:variable name="paramMap" select="$api-mapping?($paramName)"/>
     <xsl:variable name="isRepresentedInApi" select="exists($paramMap?api-setting-type)"/>
@@ -146,7 +165,7 @@
       <!-- The HTTP parameter name, if applicable. Otherwise, use the function's parameter name. (In 
         general, the HTTP parameter name should exactly match the function's parameter. However, it may 
         be useful to have a public-facing, broadly-interpretable version of the name, as well as an 
-        internal flavor of the name for use within the XQuery module. 
+        internal flavor of the name for use within the XQuery module.)
         -->
       <th class="param">
         <xsl:choose>
@@ -158,7 +177,7 @@
           </xsl:otherwise>
         </xsl:choose>
       </th>
-      <!-- The xqDoc description of that parameter -->
+      <!-- The xqDoc description of that parameter. -->
       <td>
         <xsl:value-of select="substring-after(., ' ')"/>
       </td>
@@ -285,7 +304,10 @@
             font-size: 1.1em;
             padding: 0.25em 0 0.5em;
           }
-          th, td { padding: 0.35rem; }
+          th, td {
+            padding: 0.35rem;
+            vertical-align: baseline;
+          }
           thead th { border-bottom: thin solid gray; }
           th.param { text-align: right; }
           td { padding-left: 0.5rem; }

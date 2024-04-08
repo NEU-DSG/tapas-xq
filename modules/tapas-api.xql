@@ -38,7 +38,8 @@ xquery version "3.1";
   program.
   
   All POST and DELETE requests <strong>must</strong> include an Authentication header containing the 
-  credentials for a BaseX user with write access to the TAPAS databases.
+  credentials for a BaseX user with write access to the TAPAS databases. If a request doesn’t meet this
+  criteria, a response with an HTTP status code 401 will be returned.
   
   @author Ash Clark
   @since 2023
@@ -113,13 +114,13 @@ xquery version "3.1";
   
   
   (:~
-    Store a TEI document. Returns path to the TEI file within the database, with status code 201.
+    Store a TEI document.
     
     @param project-id The unique identifier of the project which owns the work.
     @param doc-id A unique identifier for the document record attached to the original TEI document and 
       its derivatives (MODS, TFE).
     @param file The TEI-encoded XML document to be stored.
-    @return XML
+    @return XML containing the path to the TEI file within the database, with status code 201.
    :)
   (: Originally ../legacy/store-tei.xq :)
   declare
@@ -155,9 +156,6 @@ xquery version "3.1";
     
     The TEI core file must be stored <em>before</em> any of its derivatives.
     
-    If no TEI document is associated with the given <code class="param">doc-id</code>, the response will 
-    have a status code of 500.
-    
     @param project-id The unique identifier of the project which owns the work.
     @param doc-id A unique identifier for the document record attached to the original TEI document and 
       its derivatives. 
@@ -166,7 +164,9 @@ xquery version "3.1";
       by vertical bars.
     @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
       separated by vertical bars.
-    @return MODS metadata for the core file
+    @return the MODS record derived from the TEI file, with status code 201. If no TEI document is 
+      associated with the given <code class="param">doc-id</code>, the response will have a status code 
+      of 500.
    :)
   (: Originally ../legacy/store-mods.xq :)
   declare
@@ -211,14 +211,10 @@ xquery version "3.1";
   
   
   (:~
-    Store “TAPAS-friendly environment” metadata. Triggers the generation of a small XML file containing 
-    useful information about the context of the TEI document, such as its parent project. 
+    Store “TAPAS-friendly environment” (TFE) metadata. Triggers the generation of a small XML file 
+    containing useful information about the context of the TEI document, such as its parent project.
     
     The TEI core file must be stored <em>before</em> any of its derivatives.
-    
-    Returns the path to the new TFE file within the database, with status code 201. If no TEI document 
-    is associated with the given <code class="param">doc-id</code>, the response will have a status code 
-    of 500.
     
     @param project-id The unique identifier of the project which owns the work.
     @param doc-id A unique identifier for the document record attached to the original TEI document and 
@@ -228,7 +224,9 @@ xquery version "3.1";
     @param is-public Optional. Value of “true” or “false”. Indicates if the XML document should be 
       queryable by the public. By default, the document is considered private. (Note that if the 
       document belongs to even one public collection, it should be queryable.)
-    @return XML
+    @return the path to the new TFE file within the database, with status code 201. If no TEI document 
+      is associated with the given <code class="param">doc-id</code>, the response will have a status 
+      code of 500.
    :)
   (: Originally ../legacy/store-tfe.xq :)
   declare
