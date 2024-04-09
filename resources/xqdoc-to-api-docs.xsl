@@ -3,21 +3,22 @@
   xmlns:array="http://www.w3.org/2005/xpath-functions/array"
   xmlns:map="http://www.w3.org/2005/xpath-functions/map"
   xmlns:tap="http://tapasproject.org/tapas-xq/api"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:xqdoc="http://www.xqdoc.org/1.0"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns=""
+  xmlns="http://www.w3.org/1999/xhtml"
   xpath-default-namespace="http://www.xqdoc.org/1.0"
   exclude-result-prefixes="#all"
   version="3.0">
   
 <!--
-    Display HTML documentation, using an XQDoc XML representation of a RESTXQ module.
+    Generate HTML documentation for a REST-ful API, using xqDoc's XML representation of a RESTXQ module.
     
     Ash Clark
     2024
   -->
   
-  <xsl:output encoding="UTF-8" indent="yes" method="html" omit-xml-declaration="no"/>
+  <xsl:output encoding="UTF-8" indent="yes" method="xhtml" omit-xml-declaration="no"/>
   
  <!--
       PARAMETERS
@@ -244,7 +245,7 @@
   </xsl:template>
   
   <!-- Remove any paragraph boundaries inserted from "mark-paragraph-boundaries" mode. -->
-  <xsl:template match="Q{}br[@class eq 'paragraph-boundary']" priority="2" 
+  <xsl:template match="xhtml:br[@class eq 'paragraph-boundary']" priority="2" 
      mode="remove-paragraph-boundaries"/>
   
   
