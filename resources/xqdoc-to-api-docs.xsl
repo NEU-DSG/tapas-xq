@@ -24,7 +24,12 @@
       PARAMETERS
    -->
   
+  <!-- The title of the output webpage. -->
   <xsl:param name="html-title" select="'TAPAS-xq API'" as="xs:string?"/>
+  
+  <!-- A URL to the XQuery which is considered the source of the xqDoc XML. If a URL is provided, a link 
+    to the XQuery is included along with the generation statement. -->
+  <xsl:param name="source-code-url" as="xs:string?"/>
   
   
   
@@ -32,6 +37,10 @@
       GLOBAL VARIABLES
    -->
   
+  <!-- When the xqDoc XML was generated. We could also use current-dateTime() to be more precise about 
+    when this XSLT is run. However, if the xqDoc XML was generated some time before transformation, it 
+    is more useful to know how up-to-date the xqDoc is to its source XQuery. It's not as useful to know 
+    when this XSLT produced XHTML. -->
   <xsl:variable name="date-generated" select="//control/date/xs:dateTime(.)" as="xs:dateTime?"/>
   
   
@@ -52,7 +61,7 @@
       TEMPLATES, #default mode
    -->
   
-  <xsl:template match="/">
+  <xsl:template match="/*">
     <html lang="en">
       <head>
         <title>
@@ -63,8 +72,18 @@
       <body>
         <aside>
           <p>
-            <xsl:text>Generated </xsl:text>
-            <xsl:value-of select="$date-generated"/>
+            <xsl:text>This documentation was generated from its </xsl:text>
+            <xsl:choose>
+              <xsl:when test="exists($source-code-url)">
+                <a href="{$source-code-url}">source code</a>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>source code</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text> on </xsl:text>
+            <xsl:value-of 
+              select="format-dateTime($date-generated, '[MNn] [D1o], [Y], [h]:[m] [P] [z]')"/>
             <xsl:text>.</xsl:text>
           </p>
         </aside>
@@ -170,7 +189,7 @@
         general, the HTTP parameter name should exactly match the function's parameter. However, it may 
         be useful to have a public-facing, broadly-interpretable version of the name, as well as an 
         internal flavor of the name for use within the XQuery module.) -->
-      <th class="param">
+      <th scope="row" class="param">
         <xsl:choose>
           <xsl:when test="$isRepresentedInApi and exists($paramMap?api-setting-key)">
             <xsl:value-of select="$paramMap?api-setting-key"/>
@@ -220,9 +239,9 @@
     </xsl:element>
   </xsl:template>
   
-  <!-- Add "Returns " to the beginning of the `@return` value. -->
+  <!-- Add a short introduction to the beginning of the `@return` value. -->
   <xsl:template match="return/node()[1]" mode="mark-paragraph-boundaries" priority="3">
-    <xsl:text>Returns </xsl:text>
+    <xsl:text>This endpoint returns </xsl:text>
     <xsl:next-match/>
   </xsl:template>
   
