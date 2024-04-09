@@ -84,21 +84,43 @@ xquery version "3.1";
     RESTXQ ENDPOINTS
  :)
   
-  
+  (:~
+    Generate documentation for the TAPAS-xq API, in XHTML or Markdown.
+    
+    @param format The formatting method to use when producing documentation. Valid options are 
+      "markdown" or "html".
+    @return a representation of the API documentation, with status code 200.
+   :)
+  (: NOTE: Because we're producing two wildly different formats of documentation at the same endpoint, 
+    this function is set up as generically as possible, with the plaintext output method. To ensure that 
+    the HTML version is rendered correctly, we use `serialize()` before returning the response with the 
+    right "Content-Type" header. :)
   declare
     %rest:GET
-    %rest:path("/tapas-xq")
-    %output:method("xhtml")
-    %output:media-type("text/html")
-  function tap:home() {
-    <html lang="en">
-      <head>
-        <title>TAPAS-xq</title>
-      </head>
-      <body>
-        <p>Hello world!</p>
-      </body>
-    </html>
+    %rest:path("/tapas-xq/api")
+    %rest:query-param('format', '{$format}', 'html')
+    %output:method('text')
+  function tap:get-documentation($format as xs:string?) {
+    let $successCode := 200
+    let $formatAsMarkdown := lower-case($format) eq 'markdown'
+    let $xqDocXML := inspect:xqdoc('tapas-api.xql')
+    let $outputDocs := 
+      let $params := map {
+          'html-title': "TAPAS-xq API",
+          'source-code-url':
+            "https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql"
+        }(: TODO: update link! :)
+      return
+        if ( $formatAsMarkdown ) then
+          xslt:transform-text($xqDocXML, doc('../resources/xqdoc-to-markdown.xsl'), $params)
+        else
+          xslt:transform($xqDocXML, doc('../resources/xqdoc-to-api-docs.xsl'), $params)
+          => serialize()
+    let $mediaTypeHeader :=
+      let $contentType := if ( $formatAsMarkdown ) then 'markdown' else 'html'
+      return
+        <http:header name="Content-Type" value="text/{$contentType}; charset=utf-8"/>
+    return tap:build-response($successCode, $outputDocs, $mediaTypeHeader)
   };
   
   (: TEMPORARY: used to test that authentication of POST and DELETE requests works.
