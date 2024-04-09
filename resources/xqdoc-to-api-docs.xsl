@@ -19,19 +19,25 @@
   
   <xsl:output encoding="UTF-8" indent="yes" method="html" omit-xml-declaration="no"/>
   
- <!--  PARAMETERS  -->
+ <!--
+      PARAMETERS
+   -->
   
   <xsl:param name="html-title" select="'TAPAS-xq API'" as="xs:string?"/>
   
   
   
- <!--  GLOBAL VARIABLES  -->
+ <!--
+      GLOBAL VARIABLES
+   -->
   
   <xsl:variable name="date-generated" select="//control/date/xs:dateTime(.)" as="xs:dateTime?"/>
   
   
   
- <!--  FALLBACK TEMPLATES  -->
+ <!--
+      FALLBACK TEMPLATES
+   -->
   
   <xsl:template match="*" mode="#default">
     <xsl:apply-templates mode="#current"/>
@@ -41,7 +47,9 @@
   
   
   
- <!--  TEMPLATES, #default mode  -->
+ <!--
+      TEMPLATES, #default mode
+   -->
   
   <xsl:template match="/">
     <html lang="en">
@@ -186,7 +194,9 @@
   
   
   
- <!--  TEMPLATES, "mark-paragraph-boundaries" mode  -->
+ <!--
+      TEMPLATES, "mark-paragraph-boundaries" mode
+   -->
   
   <!-- Two or more newlines in a text node are changed into <br/>s with a special class. These can be 
     used to group text content into <p>s. -->
@@ -217,7 +227,9 @@
   
   
   
- <!--  TEMPLATES, "remove-paragraph-boundaries" mode  -->
+ <!--
+      TEMPLATES, "remove-paragraph-boundaries" mode
+   -->
   
   
   <xsl:template match="*" mode="remove-paragraph-boundaries">
@@ -237,7 +249,9 @@
   
   
   
- <!--  NAMED TEMPLATES  -->
+ <!--
+      NAMED TEMPLATES
+   -->
   
   <xsl:template name="get-http-method">
     <xsl:variable name="methodAnnotation" 
@@ -314,10 +328,6 @@
           dd + dt.param { margin-top: 0.35rem; }
         ]]></style>
   </xsl:template>
-
-  
-  
- <!--  FUNCTIONS  -->
   
   
 </xsl:stylesheet>
