@@ -284,13 +284,11 @@ xquery version "3.1";
     Note that additional form parameters may be available, depending on the view package selected. Check 
     the view package’s configuration file for additional parameters.
     
-    Returns generated XHTML with status code 200.
-    
     @param type A keyword representing the type of reader view to generate. Valid keywords can be found 
       by making a request to  the “List registered view packages” endpoint.
     @param file A TEI-encoded XML document. If, in the future, a view package makes use of a different 
       input source (such as a TAPAS collection or a project), the file parameter may become optional.
-    @return XHTML
+    @return generated XHTML with status code 200.
    :)
   (: Originally ../legacy/derive-reader.xq :)
   declare
@@ -341,14 +339,12 @@ xquery version "3.1";
   
   (:~
     Completely remove all database records associated with a given TEI core file identifier: TEI file, 
-    MODS metadata, and TAPAS-friendly environment record. 
-    
-    Returns a short confirmation that the resources will be deleted. If no TEI document is associated 
-    with the given identifier, the response will have a status code of 500.
+    MODS metadata, and TAPAS-friendly environment record.
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return XML
+    @return a short confirmation in XML that the resources will be deleted, with status code 202. If no 
+      TEI document is associated with the given identifier, the response will have a status code of 500.
    :)
   (: Originally ../legacy/delete-by-docid.xq :)
   declare
@@ -382,13 +378,11 @@ xquery version "3.1";
   
   
   (:~
-    Completely remove all database records associated with the given TAPAS project. 
-    
-    Returns a short confirmation that the resources will be deleted. If no XML documents are associated 
-    with the given project ID, the response will have a status code of 500.
+    Completely remove all database records associated with the given TAPAS project.
     
     @param project-id The unique identifier of the project to be deleted.
-    @return XML
+    @return a short confirmation in XML that the resources will be deleted, with status code 202. If no 
+      TEI document is associated with the given identifier, the response will have a status code of 500.
    :)
   (: Originally ../legacy/delete-by-projid.xq :)
   declare
@@ -419,9 +413,7 @@ xquery version "3.1";
   (:~
     Retrieve the XML registry of all view packages currently available in TAPAS-xq.
     
-    Returns status code 200.
-    
-    @return the XML registry of view packages
+    @return the XML registry of view packages, with status code 200.
    :)
   declare
     %rest:GET
@@ -432,7 +424,7 @@ xquery version "3.1";
     let $successCode := 200
     let $registry := 
       if ( not(dpkg:can-read-registry()) ) then
-        tgen:set-error(500, "This user does not have read access to the view package database.")
+        tgen:set-error(401, "This user does not have read access to the view package database.")
       else dpkg:get-registry()
     return tap:plan-response($successCode, $registry, $registry)
   };
@@ -441,10 +433,10 @@ xquery version "3.1";
   (:~
     Retrieve the configuration file for a given view package.
     
-    Returns status code 200 if the view package is registered with TAPAS-xq.
-    
     @param package-id The identifier of the view package.
-    @return the XML configuration file of the view package
+    @return the XML configuration file of the view package with status code 200. If the requested 
+      identifier does not match a view package registered with TAPAS-xq, the response will have a status 
+      code of 400.
    :)
   declare
     %rest:GET
@@ -455,9 +447,9 @@ xquery version "3.1";
     let $successCode := 200
     let $configFile :=
       if ( not(dpkg:can-read-registry()) ) then
-        tgen:set-error(500, "This user does not have read access to the view package database.")
+        tgen:set-error(401, "This user does not have read access to the view package database.")
       else if ( not(dpkg:is-known-view-package($package-id)) ) then
-        tgen:set-error(500, "A view package named '"||$package-id||"' is not available")
+        tgen:set-error(400, "A view package named '"||$package-id||"' is not available")
       else dpkg:get-configuration($package-id)
     return tap:plan-response($successCode, $configFile, $configFile)
   };

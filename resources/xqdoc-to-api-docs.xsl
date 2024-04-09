@@ -137,7 +137,9 @@
     </xsl:if>
   </xsl:template>
   
-  <xsl:template match="comment/description">
+  <!-- The xqDoc description and `@return` tag may contain paragraphs, marked by 2 or more newlines. We 
+    process these text nodes so they can be marked with <p>. -->
+  <xsl:template match="comment/description | comment/return">
     <xsl:variable name="paragraphsMarked" as="node()*">
       <xsl:apply-templates mode="mark-paragraph-boundaries"/>
     </xsl:variable>
@@ -149,13 +151,6 @@
     </xsl:for-each-group>
   </xsl:template>
   
-  <xsl:template match="comment/return">
-    <p>
-      <xsl:text>Returns </xsl:text>
-      <xsl:apply-templates mode="mark-paragraph-boundaries"/>
-    </p>
-  </xsl:template>
-  
   <xsl:template match="comment/param">
     <xsl:param name="api-mapping" as="map(*)?" tunnel="yes"/>
     <xsl:variable name="paramName" select="substring-before(., ' ')"/>
@@ -165,8 +160,7 @@
       <!-- The HTTP parameter name, if applicable. Otherwise, use the function's parameter name. (In 
         general, the HTTP parameter name should exactly match the function's parameter. However, it may 
         be useful to have a public-facing, broadly-interpretable version of the name, as well as an 
-        internal flavor of the name for use within the XQuery module.)
-        -->
+        internal flavor of the name for use within the XQuery module.) -->
       <th class="param">
         <xsl:choose>
           <xsl:when test="$isRepresentedInApi and exists($paramMap?api-setting-key)">
@@ -213,6 +207,12 @@
       <xsl:copy-of select="@*"/>
       <xsl:apply-templates mode="#current"/>
     </xsl:element>
+  </xsl:template>
+  
+  <!-- Add "Returns " to the beginning of the `@return` value. -->
+  <xsl:template match="return/node()[1]" mode="mark-paragraph-boundaries" priority="3">
+    <xsl:text>Returns </xsl:text>
+    <xsl:next-match/>
   </xsl:template>
   
   
