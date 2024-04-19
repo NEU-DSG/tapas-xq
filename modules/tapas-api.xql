@@ -53,6 +53,7 @@ xquery version "3.1";
   declare variable $tap:db-name := 'tapas-data';
 
 
+
 (:
     PERMISSIONS
     https://docs.basex.org/wiki/Permissions
@@ -123,16 +124,75 @@ xquery version "3.1";
     return tap:build-response($successCode, $outputDocs, $mediaTypeHeader)
   };
   
-  (: TEMPORARY: used to test that authentication of POST and DELETE requests works.
+  
+  (:~
+    Store a TEI record into the XML database, as well as MODS metadata and “TAPAS-friendly environment” 
+    (TFE) metadata. The generated MODS metadata record is also returned in the HTTP response.
+    
+    This endpoint is a convenient wrapper for the “Store core file”, “Store core file object 
+    description”, and “Store core file contextual metadata” endpoints. When a core file is initially 
+    created, this endpoint alone will suffice to generate everything needed by TAPAS-xq and Rails.
+    
+    @param project-id The unique identifier of the project which owns the work.
+    @param doc-id A unique identifier for the document record attached to the original TEI document and 
+      its derivatives.
+    @param file The TEI-encoded XML document to be stored.
+    @param title The work’s title as it should appear in TAPAS metadata.
+    @param collections Comma-separated list of collection identifiers with which the work should be 
+      associated.
+    @param is-public Optional. Value of “true” or “false”. Indicates if the XML document should be 
+      queryable by the public. By default, the document is considered private. (Note that if the 
+      document belongs to even one public collection, it should be queryable.)
+    @param authors Optional. A list of authors’ names as they should appear in TAPAS metadata, separated 
+      by vertical bars.
+    @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
+      separated by vertical bars.
+    @return the MODS record derived from the TEI file, with HTTP status code 201. Any problems with the 
+      TEI file will result in a response code of 500. If the MODS file could not be generated due to 
+      transformation issues, the TEI and TFE files will still be stored despite the response error code.
+   :)
   declare
+    %updating
     %rest:POST
-    %rest:DELETE
-    %rest:path("/tapas-xq")
-    %output:method("xhtml")
-    %output:media-type("text/html")
-  function tap:post-test() {
-    <p>Success!</p>
-  };:)
+    %rest:path("/tapas-xq/{$project-id}/{$doc-id}")
+    %rest:form-param('file', '{$file}')
+    %rest:form-param('collections', '{$collections}')
+    %rest:form-param('is-public', '{$is-public}', "false")
+    %rest:form-param('title', '{$title}')
+    %rest:form-param('authors', '{$authors}')
+    %rest:form-param('contributors', '{$contributors}')
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:store-core-file-and-supplementals($project-id as xs:string, $doc-id as xs:string, 
+     $file as item(), $collections as xs:string+, $is-public as xs:boolean,
+     $title as xs:string, $authors as xs:string?, $contributors as xs:string?) {
+    let $successCode := 201
+    let $fileXML := tap:get-file-content($file)
+    let $xmlFileIsTEI :=
+      if ( $fileXML instance of element(tap:err) ) then ()
+      else tap:validate-tei-minimally($fileXML)
+    let $teiErrors := tgen:find-errors(( $fileXML, $xmlFileIsTEI ))
+    return
+      (: If there are problems with the TEI, nothing should be done. Report the errors. :)
+      if ( exists($teiErrors) ) then
+        update:output(tap:plan-response($successCode, $teiErrors))
+      else
+        let $docBasePath := concat($project-id,'/',$doc-id,'/')
+        (: Use the TEI header and user-provided fields to generate MODS. :)
+        let $mods := tap:generate-mods($fileXML, $title, $authors, $contributors)
+        (: Generate a TFE file to provide context for the TEI's searchability in TAPAS. :)
+        let $tfe := tap:generate-tfe($project-id, $doc-id, $collections, $is-public)
+        let $response := tap:plan-response($successCode, $mods, $mods)
+        return (
+            db:put($tap:db-name, $fileXML, concat($docBasePath,$doc-id,'.xml')),
+            db:put($tap:db-name, $tfe, concat($docBasePath,'/tfe.xml')),
+            (: Only store the MODS if the transformation had no issues. :)
+            if ( tap:is-expected-response($response, $successCode) ) then
+              db:put($tap:db-name, $mods, concat($docBasePath,'/mods.xml'))
+            else (),
+            update:output($response)
+          )
+  };
   
   
   (:~
@@ -181,7 +241,7 @@ xquery version "3.1";
     @param project-id The unique identifier of the project which owns the work.
     @param doc-id A unique identifier for the document record attached to the original TEI document and 
       its derivatives. 
-    @param title Optional. The work’s title as it should appear in TAPAS metadata.
+    @param title The work’s title as it should appear in TAPAS metadata.
     @param authors Optional. A list of authors’ names as they should appear in TAPAS metadata, separated 
       by vertical bars.
     @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
@@ -204,20 +264,7 @@ xquery version "3.1";
      $title as xs:string, $authors as xs:string?, $contributors as xs:string?) {
     let $successCode := 201
     let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
-    let $xslParams := map {
-        'displayTitle': $title,
-        'displayAuthors': $authors,
-        'displayContributors': $contributors
-      }
-    let $mods :=
-      (: Skip transformation if the TEI file hasn't been stored. :)
-      if ( $teiDoc instance of element(tap:err) ) then ()
-      else
-        try {
-          xslt:transform($teiDoc, doc("../resources/tapas2mods.xsl"), $xslParams)
-        } catch * {
-          <tap:err code="500">Could not transform {$doc-id} into MODS</tap:err>
-        }
+    let $mods := tap:generate-mods($teiDoc, $title, $authors, $contributors)
     let $filepath := concat($project-id,'/',$doc-id,'/mods.xml')
     let $possiblyErroneous := ( $teiDoc, $mods )
     let $response := tap:plan-response($successCode, $possiblyErroneous)
@@ -262,25 +309,7 @@ xquery version "3.1";
   function tap:store-core-file-contextual-metadata($project-id as xs:string, $doc-id as xs:string, 
      $collections as xs:string+, $is-public as xs:boolean) {
     let $successCode := 201
-    let $useCollections :=
-      let $tokens :=
-        for $str in $collections
-        return tokenize($str, ',')[normalize-space() ne '']
-      return
-        <tapas:collections>{
-          for $token in $tokens
-          return
-            <tapas:collection>{ $token }</tapas:collection>
-        }</tapas:collections>
-    let $tfe :=
-      <tapas:metadata>
-        <tapas:owners>
-          <tapas:project>{ $project-id }</tapas:project>
-          <tapas:document>{ $doc-id }</tapas:document>
-          { $useCollections }
-        </tapas:owners>
-        <tapas:access>{ $is-public }</tapas:access>
-      </tapas:metadata>
+    let $tfe := tap:generate-tfe($project-id, $doc-id, $collections, $is-public)
     let $filepath := concat($project-id,'/',$doc-id,'/tfe.xml')
     let $response := 
       let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
@@ -520,12 +549,7 @@ xquery version "3.1";
     there are no errors, this function will return an empty sequence.
    :)
   declare function tap:compile-errors($sequence as item()*) as element()? {
-    let $errors :=
-      for $item in $sequence
-      return
-        typeswitch ($item)
-          case element(tap:err) return $item
-          default return ()
+    let $errors := tgen:find-errors($sequence)
     (: Define a little function to trim excess whitespace and recover from an empty error message. :)
     let $useMessage := function ($error as element(tap:err)) as xs:string {
         let $msg := normalize-space($error)
@@ -562,6 +586,52 @@ xquery version "3.1";
     return
       if ( $numDocs gt 0 ) then $numDocs
       else tgen:set-error(400, "Project not found: "||$project-id)
+  };
+  
+  (:~
+    Generate a MODS metadata record from a TEI file and some user-provided fields.
+   :)
+  declare %private function tap:generate-mods($tei as node(), $title as xs:string, $authors as xs:string?, $contributors as xs:string?) {
+    let $xslParams := map {
+        'displayTitle': $title,
+        'displayAuthors': $authors,
+        'displayContributors': $contributors
+      }
+    return
+      (: Skip transformation if something's wrong with the TEI file, or if it isn't available. :)
+      if ( $tei instance of element(tap:err) ) then ()
+      else
+        try {
+          xslt:transform($tei, doc("../resources/tapas2mods.xsl"), $xslParams)
+        } catch * {
+          <tap:err code="500">Could not transform TEI file into MODS</tap:err>
+        }
+  };
+  
+  (:~
+    Generate a “TAPAS-friendly environment” (TFE) metadata file.
+   :)
+  declare %private function tap:generate-tfe($project-id as xs:string, $doc-id as xs:string, 
+     $collections as xs:string+, $is-public as xs:boolean) {
+    let $useCollections :=
+      let $tokens :=
+        for $str in $collections
+        return tokenize($str, ',')[normalize-space() ne '']
+      return
+        <tapas:collections>{
+          for $token in $tokens
+          return
+            <tapas:collection>{ $token }</tapas:collection>
+        }</tapas:collections>
+    return
+      <tapas:metadata>
+        <tapas:owners>
+          <tapas:project>{ $project-id }</tapas:project>
+          <tapas:document>{ $doc-id }</tapas:document>
+          { $useCollections }
+        </tapas:owners>
+        <tapas:access>{ $is-public }</tapas:access>
+      </tapas:metadata>
   };
   
   (:~

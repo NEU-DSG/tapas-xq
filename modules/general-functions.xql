@@ -4,8 +4,9 @@ xquery version "3.0";
   Library for generic XQuery functions.
   
   @author Ash Clark
-  @version 1.1
+  @version 1.2
   
+  2024-04-19: Added tgen:find-errors().
   2024-02-07: Removed $tgen:dataDir and $tgen:pkgDir in favor of declaring the 
     database names in $tgen:data-db and $tgen:view-package-db.
   2024-01-09: Modified tgen:get-error() to return a string instead of an element, 
@@ -38,6 +39,17 @@ xquery version "3.0";
 
 (:  FUNCTIONS  :)
 
+  (:~
+    Given a sequence of items, return only the <tap:err>s (which indicate errors).
+   :)
+  declare function tgen:find-errors($sequence as item()*) {
+    for $item in $sequence
+    return
+      typeswitch ($item)
+        case element(tap:err) return $item
+        default return ()
+  };
+  
   (:~
     Get a stored file using its project and document identifiers.
    :)
