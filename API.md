@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql">source code</a> on April 9th, 2024, 12:54 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql">source code</a> on April 19th, 2024, 4:19 p.m. GMT-04:00.
 
 # API documentation
 
@@ -27,7 +27,30 @@ Generate documentation for the TAPAS-xq API, in XHTML or Markdown.
 This endpoint returns a representation of the API documentation, with status code 200.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">format</th><td>The formatting method to use when producing documentation. Valid options are 
-"markdown" or "html".</td><td>query parameter</td></tr></tbody></table>
+"markdown" or "html". The default is to return XHTML.</td><td>query parameter</td></tr></tbody></table>
+
+### Store core file and supplementals
+
+<code>POST /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong></code>
+
+Store a TEI record into the XML database, as well as MODS metadata and “TAPAS-friendly environment” 
+(TFE) metadata. The generated MODS metadata record is also returned in the HTTP response.
+
+This endpoint is a convenient wrapper for the “Store core file”, “Store core file object 
+description”, and “Store core file contextual metadata” endpoints. When a core file is initially 
+created, this endpoint alone will suffice to generate everything needed by TAPAS-xq and Rails.
+
+This endpoint returns the MODS record derived from the TEI file, with HTTP status code 201. Any problems with the 
+TEI file will result in a response code of 500. If the MODS file could not be generated due to 
+transformation issues, the TEI and TFE files will still be stored despite the response error code.
+
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
+its derivatives.</td><td>URL</td></tr><tr><th scope="row">file</th><td>The TEI-encoded XML document to be stored.</td><td>form parameter</td></tr><tr><th scope="row">collections</th><td>Comma-separated list of collection identifiers with which the work should be 
+associated.</td><td>form parameter</td></tr><tr><th scope="row">is-public</th><td>Optional. Value of “true” or “false”. Indicates if the XML document should be 
+queryable by the public. By default, the document is considered private. (Note that if the 
+document belongs to even one public collection, it should be queryable.)</td><td>form parameter</td></tr><tr><th scope="row">title</th><td>Optional. The work’s title as it should appear in TAPAS metadata.</td><td>form parameter</td></tr><tr><th scope="row">authors</th><td>Optional. A list of authors’ names as they should appear in TAPAS metadata, separated 
+by vertical bars.</td><td>form parameter</td></tr><tr><th scope="row">contributors</th><td>Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
+separated by vertical bars.</td><td>form parameter</td></tr></tbody></table>
 
 ### Store core file
 
