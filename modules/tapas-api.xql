@@ -383,7 +383,8 @@ xquery version "3.1";
               return try {
                   xslt:transform($fileXML, doc($xslPath), $viewPkgParams)
                 } catch * {
-                  tgen:set-error(500, 'XSLT transformation failed with error "'||$err:description||'" '||$err:value)
+                  tgen:set-error(500, 'XSLT transformation failed with error "'||$err:description||'" '
+                    ||$err:value)
                 }
             (: TODO: XProc :)
             (: Any other program type is politely declined. :)
@@ -395,6 +396,66 @@ xquery version "3.1";
               return tgen:set-error(501, $error)
     return
       tap:plan-response($successCode, ($possiblyErroneous, $requestedHtml), $requestedHtml)
+  };
+  
+  
+  (:~
+    Retrieve a TEI file stored in the XML database.
+    
+    @param project-id The identifier of the project which owns the core file.
+    @param doc-id The identifier of the TEI core file.
+    @return a copy of the TEI file, with status code 200.
+   :)
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq/{$project-id}/{$doc-id}/tei")
+    %output:indent("no")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:read-core-file($project-id as xs:string, $doc-id as xs:string) {
+    let $successCode := 200
+    let $file := tap:get-stored-xml($project-id, $doc-id) (: TODO: only show to unauthenticated users if public-facing in TFE :)
+    return tap:plan-response($successCode, $file, $file)
+  };
+  
+  
+  (:~
+    Retrieve a MODS file associated with a given core file identifier.
+    
+    @param project-id The identifier of the project which owns the core file.
+    @param doc-id The identifier of the TEI core file.
+    @return a copy of the MODS metadata, with status code 200.
+   :)
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq/{$project-id}/{$doc-id}/mods")
+    %output:indent("yes")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:read-core-file-object-description($project-id as xs:string, $doc-id as xs:string) {
+    let $successCode := 200
+    let $file := tap:get-stored-xml($project-id, $doc-id, 'mods.xml')
+    return tap:plan-response($successCode, $file, $file)
+  };
+  
+  
+  (:~
+    Retrieve a TAPAS-friendly environment (TFE) file associated with a given core file identifier.
+    
+    @param project-id The identifier of the project which owns the core file.
+    @param doc-id The identifier of the TEI core file.
+    @return a copy of the TFE metadata, with status code 200.
+   :)
+  declare
+    %rest:GET
+    %rest:path("/tapas-xq/{$project-id}/{$doc-id}/tfe")
+    %output:indent("yes")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:read-core-file-contextual-metadata($project-id as xs:string, $doc-id as xs:string) {
+    let $successCode := 200
+    let $file := tap:get-stored-xml($project-id, $doc-id, 'tfe.xml')
+    return tap:plan-response($successCode, $file, $file)
   };
   
   
@@ -743,7 +804,8 @@ xquery version "3.1";
     Try to retrieve an XML document stored in the TAPAS database, and return an error if the document 
     doesn't exist.
    :)
-  declare function tap:get-stored-xml($project-id as xs:string, $doc-id as xs:string, $filename as xs:string) as node()? {
+  declare function tap:get-stored-xml($project-id as xs:string, $doc-id as xs:string, $filename as 
+     xs:string) as node()? {
     let $filepath := concat($project-id,'/',$doc-id,'/',$filename)
     return
       (: Set up an error if the document doesn't exist. :)
