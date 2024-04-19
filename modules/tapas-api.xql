@@ -414,7 +414,7 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:read-core-file($project-id as xs:string, $doc-id as xs:string) {
     let $successCode := 200
-    let $file := tap:get-stored-xml($project-id, $doc-id) (: TODO: only show to unauthenticated users if public-facing in TFE :)
+    let $file := tap:get-stored-xml($project-id, $doc-id)
     return tap:plan-response($successCode, $file, $file)
   };
   
@@ -802,15 +802,22 @@ xquery version "3.1";
   
   (:~
     Try to retrieve an XML document stored in the TAPAS database, and return an error if the document 
-    doesn't exist.
+    doesn't exist or should not be read by the current user.
    :)
   declare function tap:get-stored-xml($project-id as xs:string, $doc-id as xs:string, $filename as 
      xs:string) as node()? {
     let $filepath := concat($project-id,'/',$doc-id,'/',$filename)
+    let $isPublic := 
+      db:get($tap:db-name, concat($project-id,'/',$doc-id,'/tfe.xml'))
+        //tapas:access/xs:boolean(.)
     return
       (: Set up an error if the document doesn't exist. :)
       if ( not(db:exists($tap:db-name, $filepath)) ) then
-        tgen:set-error(400, "Document not found: "||$filepath)
+        tgen:set-error(404, "Document not found: "||$filepath)
+      (: TODO: This is an overly-simplistic test — any account with write access to the DB should also 
+        be able to read the doc. :)
+      else if ( user:current() ne 'tapas' and not($isPublic) ) then
+        tgen:set-error(403, "Access forbidden. Requested document is not publicly available.")
       else db:get($tap:db-name, $filepath)
   };
   
