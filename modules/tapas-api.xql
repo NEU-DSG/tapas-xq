@@ -70,15 +70,12 @@ xquery version "3.1";
     %rest:POST
     %rest:DELETE
   function tap:check-user-write-access() {
-    let $userInfo := user:list-details(user:current())
-    let $userWriteAccess := 
-      $userInfo/@permission/data(.) = ('write', 'create', 'admin')
-    let $dbWriteAccess :=
-      exists($userInfo//Q{}database[@pattern eq $tap:db-name][@permission eq 'write'])
-    where not($userWriteAccess or $dbWriteAccess)
+    let $hasWriteAccess := tap:has-write-access()
+    where not($hasWriteAccess)
     return
       web:error(401, "You must provide valid credentials in order to complete this action.")
   };
+
 
 
 (:
@@ -599,7 +596,8 @@ xquery version "3.1";
   (:~
     Build an HTTP response with a response body and response headers.
    :)
-  declare function tap:build-response($status-code as xs:integer, $content as item()*, $headers as item()*) as item()+ {
+  declare function tap:build-response($status-code as xs:integer, $content as item()*, $headers as 
+     item()*) as item()+ {
     (: If $content appears to be an integer, then this function treats that integer as an error code. :)
     let $noContentProvided := empty($content)
     return (
@@ -716,6 +714,19 @@ xquery version "3.1";
   };
   
   (:~
+    Determine if the current user has either (A) write-level access across BaseX, or (B) write-level 
+    access to the "tapas-data" database.
+   :)
+  declare %private function tap:has-write-access() {
+    let $userInfo := user:list-details(user:current())
+    let $userWriteAccess := 
+      $userInfo/@permission/data(.) = ('write', 'create', 'admin')
+    let $dbWriteAccess :=
+      exists($userInfo//Q{}database[@pattern eq $tap:db-name][@permission eq 'write'])
+    return $userWriteAccess or $dbWriteAccess
+  };
+  
+  (:~
     Given a project identifier, list all files associated with that project.
    :)
   declare function tap:list-project-core-files($project-id as xs:string) {
@@ -814,11 +825,12 @@ xquery version "3.1";
       (: Set up an error if the document doesn't exist. :)
       if ( not(db:exists($tap:db-name, $filepath)) ) then
         tgen:set-error(404, "Document not found: "||$filepath)
-      (: TODO: This is an overly-simplistic test — any account with write access to the DB should also 
-        be able to read the doc. :)
-      else if ( user:current() ne 'tapas' and not($isPublic) ) then
+      (: Any BaseX user account with write access to the DB should also be able to read the doc. :)
+      else if ( tap:has-write-access() ) then
+        db:get($tap:db-name, $filepath)
+      (: Return an error for unauthorized access. :)
+      else
         tgen:set-error(403, "Access forbidden. Requested document is not publicly available.")
-      else db:get($tap:db-name, $filepath)
   };
   
   (:~
@@ -841,7 +853,8 @@ xquery version "3.1";
     can be considered successful or not. If $response-body is provided, it is used as the main content 
     of a successful response.
    :)
-  declare function tap:plan-response($success-code as xs:integer, $possible-errors as item()*, $response-body as item()?) as item()* {
+  declare function tap:plan-response($success-code as xs:integer, $possible-errors as item()*, 
+     $response-body as item()?) as item()* {
     let $errors := tap:compile-errors($possible-errors)
     return
       (: Build a response using existing errors and a HTTP status code. :)
