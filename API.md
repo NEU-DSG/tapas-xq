@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql">source code</a> on April 19th, 2024, 4:19 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql">source code</a> on April 24th, 2024, 11:38 a.m. GMT-04:00.
 
 # API documentation
 
@@ -58,7 +58,7 @@ separated by vertical bars.</td><td>form parameter</td></tr></tbody></table>
 
 Store a TEI document.
 
-This endpoint returns XML containing the path to the TEI file within the database, with status code 201.
+This endpoint returns a URL path for accessing the stored TEI file through the TAPAS-xq API, with status code 201.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
 its derivatives (MODS, TFE).</td><td>URL</td></tr><tr><th scope="row">file</th><td>The TEI-encoded XML document to be stored.</td><td>form parameter</td></tr></tbody></table>
@@ -90,9 +90,9 @@ containing useful information about the context of the TEI document, such as its
 
 The TEI core file must be stored <em>before</em> any of its derivatives.
 
-This endpoint returns the path to the new TFE file within the database, with status code 201. If no TEI document 
-is associated with the given <code>doc-id</code>, the response will have a status 
-code of 500.
+This endpoint returns a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201. If 
+no TEI document is associated with the given <code>doc-id</code>, the response will 
+have a status code of 500.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
 its derivatives.</td><td>URL</td></tr><tr><th scope="row">collections</th><td>Comma-separated list of collection identifiers with which the work should be 
@@ -118,6 +118,51 @@ This endpoint returns generated XHTML with status code 200.
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">type</th><td>A keyword representing the type of reader view to generate. Valid keywords can be found 
 by making a request to  the “List registered view packages” endpoint.</td><td>URL</td></tr><tr><th scope="row">file</th><td>A TEI-encoded XML document. If, in the future, a view package makes use of a different 
 input source (such as a TAPAS collection or a project), the file parameter may become optional.</td><td>form parameter</td></tr></tbody></table>
+
+### Read core file
+
+<code>GET /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/tei</code>
+
+Retrieve a TEI file stored in the XML database.
+
+This endpoint returns a copy of the TEI file, with status code 200. If the file does not exist, the response will 
+have a status code of 404.
+
+If the file is marked as private in the contextual metadata (TFE file), only users with write 
+access to the database will be able to access the file. An attempt at unauthorized access will 
+yield a 403 status code and error.
+
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
+
+### Read core file object description
+
+<code>GET /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/mods</code>
+
+Retrieve a MODS file associated with a given core file identifier.
+
+This endpoint returns a copy of the MODS metadata, with status code 200. If the file does not exist, the response 
+will have a status code of 404.
+
+If the file is marked as private in the contextual metadata (TFE file), only users with write 
+access to the database will be able to access the file. An attempt at unauthorized access will 
+yield a 403 status code and error.
+
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
+
+### Read core file contextual metadata
+
+<code>GET /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/tfe</code>
+
+Retrieve a TAPAS-friendly environment (TFE) file associated with a given core file identifier.
+
+This endpoint returns a copy of the TFE metadata, with status code 200. If the file does not exist, the response 
+will have a status code of 404.
+
+If the file is marked as private in the contextual metadata (TFE file), only users with write 
+access to the database will be able to access the file. An attempt at unauthorized access will 
+yield a 403 status code and error.
+
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
 
 ### Delete core file
 
