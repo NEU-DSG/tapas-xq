@@ -208,7 +208,7 @@ xquery version "3.1";
     @param doc-id A unique identifier for the document record attached to the original TEI document and 
       its derivatives (MODS, TFE).
     @param file The TEI-encoded XML document to be stored.
-    @return XML containing the path to the TEI file within the database, with status code 201.
+    @return a URL path for accessing the stored TEI file through the TAPAS-xq API, with status code 201.
    :)
   (: Originally ../legacy/store-tei.xq :)
   declare
@@ -224,9 +224,11 @@ xquery version "3.1";
     let $xmlFileIsTEI :=
       if ( $fileXML instance of element(tap:err) ) then ()
       else tap:validate-tei-minimally($fileXML)
-    let $filepath := concat($project-id,'/',$doc-id,'/',$doc-id,'.xml')
+    let $filedir := concat($project-id,'/',$doc-id)
+    let $filepath := concat($filedir,'/',$doc-id,'.xml')
     let $possiblyErroneous := ( $fileXML, $xmlFileIsTEI )
-    let $response := tap:plan-response($successCode, $possiblyErroneous, <p>{ $filepath }</p>)
+    let $response := 
+      tap:plan-response($successCode, $possiblyErroneous, <p>/tapas-xq/{$filedir}/tei</p>)
     return (
         (: Only store TEI if there were no errors. :)
         if ( tap:is-expected-response($response, $successCode) ) then  
@@ -299,9 +301,9 @@ xquery version "3.1";
     @param is-public Optional. Value of “true” or “false”. Indicates if the XML document should be 
       queryable by the public. By default, the document is considered private. (Note that if the 
       document belongs to even one public collection, it should be queryable.)
-    @return the path to the new TFE file within the database, with status code 201. If no TEI document 
-      is associated with the given <code class="param">doc-id</code>, the response will have a status 
-      code of 500.
+    @return a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201. If 
+      no TEI document is associated with the given <code class="param">doc-id</code>, the response will 
+      have a status code of 500.
    :)
   (: Originally ../legacy/store-tfe.xq :)
   declare
@@ -316,11 +318,12 @@ xquery version "3.1";
      $collections as xs:string+, $is-public as xs:boolean) {
     let $successCode := 201
     let $tfe := tap:generate-tfe($project-id, $doc-id, $collections, $is-public)
-    let $filepath := concat($project-id,'/',$doc-id,'/tfe.xml')
+    let $filedir := concat($project-id,'/',$doc-id)
+    let $filepath := concat($filedir,'/tfe.xml')
     let $response := 
       let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
       return 
-        tap:plan-response($successCode, ($teiDoc), <p>{ $filepath }</p>)
+        tap:plan-response($successCode, ($teiDoc), <p>/tapas-xq/{$filedir}/tfe</p>)
     return (
         (: Only store the TFE if there were no errors. :)
         if ( tap:is-expected-response($response, $successCode) ) then
@@ -401,7 +404,12 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the TEI file, with status code 200.
+    @return a copy of the TEI file, with status code 200. If the file does not exist, the response will 
+      have a status code of 404.
+      
+      If the file is marked as private in the contextual metadata (TFE file), only users with write 
+      access to the database will be able to access the file. An attempt at unauthorized access will 
+      yield a 403 status code and error.
    :)
   declare
     %rest:GET
@@ -421,7 +429,12 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the MODS metadata, with status code 200.
+    @return a copy of the MODS metadata, with status code 200. If the file does not exist, the response 
+      will have a status code of 404.
+      
+      If the file is marked as private in the contextual metadata (TFE file), only users with write 
+      access to the database will be able to access the file. An attempt at unauthorized access will 
+      yield a 403 status code and error.
    :)
   declare
     %rest:GET
@@ -441,7 +454,12 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the TFE metadata, with status code 200.
+    @return a copy of the TFE metadata, with status code 200. If the file does not exist, the response 
+      will have a status code of 404.
+      
+      If the file is marked as private in the contextual metadata (TFE file), only users with write 
+      access to the database will be able to access the file. An attempt at unauthorized access will 
+      yield a 403 status code and error.
    :)
   declare
     %rest:GET
