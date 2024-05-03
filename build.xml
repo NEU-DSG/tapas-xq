@@ -8,11 +8,10 @@
   <property name="legacy.dir" value="legacy"/>
   
   <target name="xar"
-          description="Build an EXPath package">
+          description="Build the XAR file for installing the EXPath package">
     <mkdir dir="${build.dir}"/>
-    <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar">
-      <fileset dir="." 
-        excludes="README.md build.xml ${build.dir}/** ${legacy.dir}/** view-packages/**"/>
+    <zip destfile="${build.dir}/${project.app}-${project.version}.xar">
+      <fileset dir="." excludes="build.xml ${build.dir}/** ${legacy.dir}/** view-packages/**"/>
     </zip>
   </target>
   
