@@ -568,6 +568,28 @@ xquery version "3.1";
   
   
   (:~
+    Update the view packages database using the latest commits from the GitHub repository. Then, update 
+    the view package registry.
+    
+    @return a short confirmation in XML that the view package repository and database has been updated,
+      with status code 201. The view package registry will be re-generated after 500 milliseconds.
+   :)
+  declare
+    %updating
+    %rest:POST
+    %rest:path("/tapas-xq/view-packages")
+    %output:method("xml")
+    %output:media-type("application/xml")
+  function tap:update-registered-view-packages() {
+    let $successCode := 201
+    return (
+        dpkg:update-database-to-latest(),
+        update:output(tap:plan-response(201, ()))
+      )
+  };
+  
+  
+  (:~
     Retrieve the configuration file for a given view package.
     
     @param package-id The identifier of the view package.

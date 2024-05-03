@@ -12,12 +12,14 @@ xquery version "3.1";
   declare namespace err="http://www.w3.org/2005/xqt-errors";
   declare namespace file="http://expath.org/ns/file";
   declare namespace http="http://expath.org/ns/http-client";
+  declare namespace job="http://basex.org/modules/job";
   declare namespace json="http://basex.org/modules/json";
   declare namespace map="http://www.w3.org/2005/xpath-functions/map";
   declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
   declare namespace proc="http://basex.org/modules/proc";
   declare namespace request="http://exquery.org/ns/request";
   declare namespace tap="http://tapasproject.org/tapas-xq/api";
+  declare namespace update="http://basex.org/modules/update";
   declare namespace vpkg="http://www.wheatoncollege.edu/TAPAS/1.0";
   declare namespace xhtml="http://www.w3.org/1999/xhtml";
 
@@ -26,8 +28,11 @@ xquery version "3.1";
   packages available in eXist.
   
   @author Ash Clark
-  @version 1.7
+  @version 1.8
   
+  2024-05-02: Added dpkg:list-known-view-packages(), dpkg:update-database-from-filesystem(), and 
+    dpkg:update-database-to-latest(). Added a timestamp to the root element of the view package 
+    registry, indicating when it was last updated.
   2024-03-26: Added dpkg:can-read-registry() so TAPAS-xq can recover when a user may have lost 
     read access to the view package database. Added dpkg:set-view-package-parameter-values(),
     which supercedes txq:make-param-map() from tapas-exist.xql. Added 
@@ -150,6 +155,57 @@ xquery version "3.1";
   declare %private function dpkg:error-qname($name as xs:string) as xs:QName {
     QName("http://tapasproject.org/tapas-xq/view-pkgs/err", $name)
   };
+  
+  (:~
+    Replace configuration files in the database with fresh copies from the filesystem. If any 
+    configuration files are no longer present on the file system, they are removed from the database.
+   :)
+  declare %updating function dpkg:update-database-from-filesystem() {
+    let $filesysPath := dpkg:get-repository-filesystem-path()
+    let $updateConfigs := file:descendants($filesysPath)[matches(., 'CONFIG\.xml$')]
+    (: Figure out if any view packages have been removed. :)
+    let $deleteConfigs :=
+      let $newerViewPkgs :=
+        for $configFile in $updateConfigs
+        return doc($configFile)/vpkg:view_package/@xml:id/data(.)
+      return dpkg:list-known-view-packages()[not(. = $newerViewPkgs)]
+    (: NOTE: It would be a lot easier to re-create the view package database from the filesystem with 
+      db:create(). Unfortunately, that method would remove local write permissions from individual 
+      users (requiring us to recreate those permissions or programmatically re-apply them every time). 
+      Instead, we leave the database in place but carefully modify the files inside it. :)
+    return (
+        (: Replace old configs with new ones. :)
+        for $configFile in $updateConfigs
+        return
+          db:put($dpkg:database, $configFile, substring-after($configFile, $filesysPath))
+        ,
+        (: Delete any configurations that were previously removed. :)
+        for $removedViewPkg in $deleteConfigs
+        let $dbPath := 
+          dpkg:get-registry-entry($removedViewPkg)/conf/text() 
+            => substring-after($dpkg:database||'/')
+        return db:delete($dpkg:database, $dbPath)
+      )
+  };
+  
+  (:~
+    Pull in the latest changes from the GitHub repository, then update the database to include the 
+    latest configuration files. A job is also scheduled to update the view package registry.
+   :)
+  declare %updating function dpkg:update-database-to-latest() {
+    let $gitRepoUpdate := dpkg:pull-latest-from-remote-branch()
+    let $scheduleJob := 
+      let $makeRegistry :=
+        'import module namespace dpkg="http://tapasproject.org/tapas-xq/view-pkgs"
+            at "' || static-base-uri() || '";
+         dpkg:compile-registry()'
+      (: Start the compilation process in 500 ms. Cache the result temporarily, which will make it 
+        easier to debug any errors. :)
+      let $jobOptions := map { 'start': 'PT0.5S', 'cache': true() }
+      return job:eval($makeRegistry, (), $jobOptions)
+    return dpkg:update-database-from-filesystem()
+  };
+
 
 
 (:
@@ -164,7 +220,8 @@ xquery version "3.1";
   declare %updating function dpkg:compile-registry() {
     let $entries :=
       let $packageIds :=
-        collection($dpkg:database)[matches(base-uri(), 'CONFIG\.xml$')]/vpkg:view_package/@xml:id/data(.)
+        collection($dpkg:database)[matches(base-uri(), 'CONFIG\.xml$')]
+          /vpkg:view_package/@xml:id/data(.)
       for $pkgId in $packageIds
       return dpkg:set-registry-entry($pkgId)
     let $gitInfo :=
@@ -174,7 +231,7 @@ xquery version "3.1";
         <git repo="{$remote?repo}" branch="{$remote?branch}"
              commit="{$commit?commit}" timestamp="{$commit?timestamp}"/>
     let $registry :=
-      <view_registry>
+      <view_registry updated="{current-dateTime()}">
         { $gitInfo }
         { $entries }
       </view_registry>
@@ -290,9 +347,16 @@ xquery version "3.1";
    :)
   declare function dpkg:is-known-view-package($package-id as xs:string) as 
      xs:boolean {
-    let $registeredPackages := 
-      doc($dpkg:registry)//package_ref/@name/data(.)
-    return $package-id = $registeredPackages
+    $package-id = dpkg:list-known-view-packages()
+  };
+  
+  (:~
+    Get the names of all view packages in the TAPAS-xq registry.
+    
+    @return A sequence of strings.
+   :)
+  declare %private function dpkg:list-known-view-packages() as xs:string* {
+    doc($dpkg:registry)//package_ref/@name/xs:string(.)
   };
   
   (:~
@@ -497,15 +561,21 @@ xquery version "3.1";
       directory
    :)
   declare %private function dpkg:get-repository-filesystem-path() as xs:string {
-    let $tapasXqPath :=
-      if ( file:exists('tapas-xq') ) then 'tapas-xq'
-      (: When run from the BaseX ZIP in standalone mode, TAPAS-xq will be stored in the "webapp" directory. :)
-      else if ( file:exists('webapp/tapas-xq') ) then 'webapp/tapas-xq'
-      else ()
+    let $dbInputPath := 
+      try { db:property($dpkg:database, 'inputpath') } catch * { () }
     return
-      if ( empty($tapasXqPath) ) then
-        error(dpkg:error-qname('AppRepoMissing'), "Could not find the 'tapas-xq' folder!")
-      else concat($tapasXqPath,'/view-packages')
+      (: If the "INPUTPATH" property wasn't set on database creation, we'll have to try to find it. :)
+      if ( exists($dbInputPath) ) then $dbInputPath else
+        let $tapasXqPath :=
+          if ( file:exists('tapas-xq') ) then 'tapas-xq'
+          (: When run from the BaseX ZIP in standalone mode, TAPAS-xq will be stored in the "webapp" 
+            directory. :)
+          else if ( file:exists('webapp/tapas-xq') ) then 'webapp/tapas-xq'
+          else ()
+        return
+          if ( empty($tapasXqPath) ) then
+            error(dpkg:error-qname('AppRepoMissing'), "Could not find the 'tapas-xq' folder!")
+          else concat($tapasXqPath,'/view-packages')
   };
   
   
