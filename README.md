@@ -27,7 +27,7 @@ TAPAS-xq also provides scripts for maintaining and updating the TAPAS view packa
 
 ### Setting up BaseX
 
-TAPAS-xq is designed to run in [BaseX](https://basex.org/), an open source XML database engine. [Download either the ZIP or WAR package](https://basex.org/download/) of BaseX, at version 10 or higher.
+TAPAS-xq is designed to run in [BaseX](https://basex.org/), an open source XML database engine. [Download either the ZIP or WAR package](https://basex.org/download/) of BaseX at major semantic version 10.
 
 If using the BaseX ZIP, unpack the archive and place the directory wherever you'd like.
 
