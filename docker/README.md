@@ -56,6 +56,8 @@ HTTP STOP Server was started (port: 8081).
 
 The DBA interface gives you access to the BaseX logs, and information on the databases and users that BaseX knows about. You'll see two databases, `tapas-data` and `tapas-view-packages`, which were set up as part of the TAPAS-xq installation script. Besides the "admin" user, the installation script has also added a "tapas" user (pw: "tapas"), which can run XSLTs and write to both TAPAS databases.
 
+The TAPAS-xq API is available at <http://localhost:8080/tapas-xq>. It's a good idea to start by accessing the [API documentation](http://localhost:8080/tapas-xq/api) before preparing to test any requests with `curl` or some other tool. While it's possible to make requests with either the BaseX "admin" or "tapas" user credentials, I recommend using the "admin" account to monitor the database in the browser, and using the "tapas" account to simulate requests from the [TAPAS Rails](https://github.com/NEU-DSG/tapas_rails) service.
+
 To stop the Docker container, hit the <kbd>Control</kbd> and <kbd>c</kbd> keys while inside the Terminal window where the Docker container is running.
 
 To restart the "basex-tapas" Docker container, you can run this command:
@@ -81,17 +83,17 @@ To read or edit files inside the Docker container, use the [Docker Desktop Files
 
 ## Updating the Docker image
 
-Once you’ve made changes to the R Shiny code, catalog file, or models, you’ll need to rebuild the "wvi" Docker image so that your changes are reflected. As before, navigate to the `word-vector-interface` folder and run this command:
+Once you’ve made changes to the R Shiny code, catalog file, or models, you’ll need to rebuild the "tapas-xq" Docker image so that your changes are reflected. As before, navigate to the `tapas-xq` folder on your filesystem, and run this command:
 
 ```shell
-docker build --file docker/Dockerfile --tag wvi .
+docker build --file docker/Dockerfile --tag tapas-xq .
 ```
 
 To run the Shiny app Docker container, you’ll first have to delete the old one, then tell Docker to start up a new container with the same name:
 
 ```shell
-docker rm shiny-app
-docker run -p 3838:3838 --name=shiny-app wvi
+docker rm basex-tapas
+docker run -p 8080:8080 --name=basex-tapas tapas-xq
 ```
 
 
