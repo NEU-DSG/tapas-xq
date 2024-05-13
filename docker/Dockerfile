@@ -3,7 +3,8 @@ FROM adoptopenjdk/openjdk16:jre
 
 # Install additional dependencies with the Ubuntu package manager
 RUN --mount=type=cache,target=/var/cache/apt \
-    apt-get update && apt-get install -y wget unzip git curl
+    apt-get update && \
+    apt-get install -y wget unzip git curl
 
 # Create a folder for BaseX
 #RUN mkdir /opt/basex
@@ -47,6 +48,8 @@ RUN java -jar /opt/basex/lib/custom/saxon-he-12.4.jar \
       -o:web.xml
 
 # Run the TAPAS-xq installation script
+WORKDIR /opt/basex
+RUN bin/basex webapp/tapas-xq/modules/installation.bxs
 
-# Run BaseX
+# When the Docker container starts up, run BaseX
 CMD /opt/basex/bin/basexhttp
