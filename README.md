@@ -25,6 +25,9 @@ TAPAS-xq also provides scripts for maintaining and updating the TAPAS view packa
 
 ## Setup and installation
 
+For local development work, you may wish to use the [Docker instructions](docker/README.md). The Docker environment handles all the configuration below for you, letting you skip right to actually using the TAPAS-xq API through BaseX.
+
+
 ### Setting up BaseX
 
 TAPAS-xq is designed to run in [BaseX](https://basex.org/), an open source XML database engine. [Download either the ZIP or WAR package](https://basex.org/download/) of BaseX at major semantic version 10.
@@ -35,16 +38,45 @@ If using the BaseX WAR, place the web archive in the `webapps` directory of [Apa
 
 To make full use of TAPAS-xq, you will need to configure BaseX further:
 
+- Set up credentials for the BaseX "admin" account
 - Enable XSLT 3.0 transformation
 - Require authentication through BaseX
+
+#### Set up credentials for the BaseX "admin" account
+
+BaseX no longer sets the password for the "admin" user by default.
+
+Luckily for users of the BaseX ZIP package, setting the password is easy. From the BaseX directory, run `bin/basexhttp -c PASSWORD` to be prompted for a new password. After setting the password, the BaseX server will start up. Shut it down again by pressing the <kbd>Control</kbd> and <kbd>c</kbd> keys.
+
+It's a little harder to set the admin password for the BaseX WAR installation. Here are the steps (with gratitude for [Thanthla's answer on StackOverflow](https://stackoverflow.com/a/76061691)):
+
+1. Make sure there's a folder called "data" in the BaseX directory. If the folder doesn't exist, create it.
+2. Create a new file, `data/users.xml`, containing the XML below. This will set the "admin" password to "admin".
+```xml
+<users>
+  <user name="admin" permission="admin">
+    <password algorithm="digest">
+      <hash>304bdfb0383c16f070a897fc1eb25cb4</hash>
+    </password>
+    <password algorithm="salted-sha256">
+      <salt>57488523240000</salt>
+      <hash>53cc1d7542a03f6e0e11d087f0f82544fa73da95b8f753fe4be68fead71166f3</hash>
+    </password>
+  </user>
+</users>
+```
+3. Restart Tomcat.
+4. You'll be able to reset the admin password in BaseX's Database Administration app.
+
 
 #### Enable XSLT 3.0
 
 BaseX will allow XSL 3.0 transformations if it finds a [Saxon processor](https://www.saxonica.com) on the classpath.
 
-To set this up, [download the latest Saxon HE package](https://www.saxonica.com/download/java.xml) and unpack it. Place the extracted directory into `BASEX/lib/custom` (ZIP installation) or `BASEX/lib` (WAR installation). You'll need to restart BaseX so that it registers the library.
+To set this up, [download the latest Saxon HE package](https://github.com/Saxonica/Saxon-HE/releases) and unpack it. Place the extracted directory into `BASEX/lib/custom` (ZIP installation) or `BASEX/lib` (WAR installation). You'll need to restart BaseX so that it registers the library.
 
 To make sure you've installed Saxon HE correctly, navigate to `BASE-URL/dba/queries` in your browser, and run `xslt:processor()`. You should see the result "Saxon HE", not "Java".
+
 
 #### Require authentication
 
@@ -70,30 +102,58 @@ Inside `web.xml`, find the RESTXQ service entry and either comment out the `<ini
   </servlet>
 ```
 
+While not strictly necessary, it is also helpful to set some additional [configuration options](https://docs.basex.org/wiki/Options):
+
+```xml
+  <!-- By default, index attributes that look like IDs or keys. -->
+  <context-param>
+    <param-name>org.basex.attrinclude</param-name>
+    <param-value>*:id,ID,key</param-value>
+  </context-param>
+  <!-- By default, index diacritics. -->
+  <context-param>
+    <param-name>org.basex.diacritics</param-name>
+    <param-value>true</param-value>
+  </context-param>
+  <!-- By default, serialized documents aren't indented. -->
+  <context-param>
+    <param-name>org.basex.serializer</param-name>
+    <param-value>indent=no</param-value>
+  </context-param>
+  <!-- By default, BaseX will skip over files that it can't parse, rather than 
+    returning an error. -->
+  <context-param>
+    <param-name>org.basex.skipcorrupt</param-name>
+    <param-value>true</param-value>
+  </context-param>
+```
+
+Settings (such as the ones above) can be placed directly beneath the `<description>` tag in `web.xml`.
+
 
 ### Deploying TAPAS-xq
 
-First, you'll need a copy of the TAPAS-xq XAR file. The [latest stable TAPAS-xq package](https://github.com/NEU-DSG/tapas-xq/releases/latest) can be found in the GitHub repository. 
-
-Alternatively, you can create a XAR file on your own computer. To do that, clone this repository and run the Ant build file to generate the XAR file. (See the [XAR generation section](#generating-a-xar-package) below for instructions.)
-
-
-#### Installing the XAR file
-
-TODO
-
-
-#### Configuring communication with TAPAS Rails
-
-TAPAS-xq uses `tapas_rails`'s View Packages API to decide which view packages should be installed from GitHub. You may need to change "environment.xml" to match the URL for Rails. <!--When you install TAPAS-xq for the first time, it will place a copy of the configuration file in the "/db" collection.-->
-
-Currently, the default setting for the Rails URL is:
-
-```xml
-<railsBaseURI>http://127.0.0.1:3000</railsBaseURI>
+TAPAS-xq can be installed by navigating into the BaseX `webapp` directory and cloning the repository from GitHub:
+```shell
+git clone https://github.com/NEU-DSG/tapas-xq.git
 ```
 
-This should work if you have TAPAS Rails running on your own computer.
+Then, you'll need to run the installation script. If you used the ZIP method of installing BaseX, you can run the script with this command:
+```shell
+bin/basex webapp/tapas-xq/modules/installation.bxs
+```
+
+If you used the Tomcat WAR method of installing BaseX, you'll need to use `curl` to prompt BaseX to run the script, e.g.
+```shell
+curl -X GET -u admin "http://localhost:8088/BaseX107/rest?run=tapas-xq/modules/installation.bxs"
+```
+
+The [TAPAS-xq installation script](modules/installation.bxs) sets up the `tapas-data` and `tapas-view-packages` databases for you. It also sets up the "tapas" user (whose default password is "tapas"). The "tapas" user is the primary user of the TAPAS-xq; it is the account through which the TAPAS Rails service interacts with the TAPAS-xq databases.
+
+**Note:** Earlier versions of TAPAS-xq were installed by generating an EXPath application "XAR file". This method is no longer useful for installation, since BaseX doesn't register RESTXQ endpoints when XQuery modules are installed from XARs.
+
+
+<!-- Left off here! -->
 
 
 ### Updating view packages
