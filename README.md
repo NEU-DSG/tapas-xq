@@ -10,17 +10,51 @@ TAPAS-xq is an EXPath application to manage [TEI](https://tei-c.org/)-encoded re
 
 TAPAS-xq also provides scripts for maintaining and updating the TAPAS view packages with the help of the GitHub and TAPAS Rails APIs.
 
+
 ## Table of Contents
 
+- [Context for the TAPAS ecosystem](#context-for-the-tapas-ecosystem)
+  - [View packages](#view-packages)
+- [Using TAPAS-xq](#using-tapas-xq)
+- Maintaining TAPAS-xq
 - [Setup and installation](#setup-and-installation)
   - [Setting up BaseX](#setting-up-basex)
   - [Deploying TAPAS-xq](#deploying-tapas-xq)
-    - [Installing the XAR file](#installing-the-xar-file)
-    - [Configuring communication with TAPAS Rails](#configuring-communication-with-tapas-rails)
-  - [Updating view packages](#updating-view-packages)
-- [Contributing](#making-changes-to-tapas-xq)
-  - [Generating a XAR package](#generating-a-xar-package)
 - [Hungry for more TAPAS?](#hungry-for-more-tapas)
+
+
+## Context for the TAPAS ecosystem
+
+TAPAS-xq manages the XML database component of the [TAPAS website](https://tapasproject.org/). TAPAS-xq stores and indexes the TEI files provided by Rails. We have plans to eventually implement XML-aware search using this database, but at the moment, TAPAS-xq is mainly used to transform users' TEI into MODS metadata records, and into HTML for display in the TAPAS reading interface.
+
+In order to respond to the needs of the Rails application, TAPAS-xq has an [API](API.md) and a single user, "tapas". In order to store documents and request transformations, the Rails app sends HTTP requests to the TAPAS-xq endpoints, along with credentials for the "tapas" user.
+
+
+### View packages
+
+A "[view package](https://github.com/NEU-DSG/tapas-view-packages)" is a collection of code used to generate a publication from TEI data. A TAPAS view package contains:
+
+- a program to turn TEI into some other format (usually HTML);
+- any CSS, Javascript, or images needed to correctly display the publication; and
+- one configuration file, defining how to run the transformation and how to display its output.
+
+The view package system was created so that TAPAS's Rails and BaseX components could each maintain a registry of the "views" available in TAPAS. This would make it easier to add new view packages, delete old ones, or simply make updates to existing packages. Because each component must maintain its own copy of the view packages, their registries must include information about the version of the packages. We use the git commit hash and timestamp for this purpose.
+
+When installed, TAPAS-xq clones its own local copy of the [`tapas-view-packages` repository](https://github.com/NEU-DSG/tapas-view-packages) into its main directory. TAPAS-xq has API endpoints for [viewing the view package registry](API.md#list-registered-view-packages), and for updating its repository using the latest commits from GitHub.
+
+
+## Using TAPAS-xq
+
+To interact with TAPAS-xq, you must make [RESTful HTTP requests](https://restfulapi.net/) through the API. For testing purposes, you may need to use the `curl` command line tool to make requests.
+
+**Note:** Any request for storage or deletion *must* include valid credentials for a BaseX user with "write" permissions for the TAPAS databases. TAPAS-xq sets up the "tapas" user for that purpose.
+
+For more specific information on the API endpoints, please refer to the [API documentation on GitHub](API.md), or make a request to the `/tapas-xq/api` endpoint.
+
+
+## Maintaining TAPAS-xq
+
+
 
 
 ## Setup and installation
@@ -41,6 +75,7 @@ To make full use of TAPAS-xq, you will need to configure BaseX further:
 - Set up credentials for the BaseX "admin" account
 - Enable XSLT 3.0 transformation
 - Require authentication through BaseX
+
 
 #### Set up credentials for the BaseX "admin" account
 
@@ -150,37 +185,7 @@ curl -X GET -u admin "http://localhost:8088/BaseX107/rest?run=tapas-xq/modules/i
 
 The [TAPAS-xq installation script](modules/installation.bxs) sets up the `tapas-data` and `tapas-view-packages` databases for you. It also sets up the "tapas" user (whose default password is "tapas"). The "tapas" user is the primary user of the TAPAS-xq; it is the account through which the TAPAS Rails service interacts with the TAPAS-xq databases.
 
-**Note:** Earlier versions of TAPAS-xq were installed by generating an EXPath application "XAR file". This method is no longer useful for installation, since BaseX doesn't register RESTXQ endpoints when XQuery modules are installed from XARs.
-
-
-<!-- Left off here! -->
-
-
-### Updating view packages
-
-With Rails communication set and Rails running, you can tell TAPAS-xq to download the [view packages](https://github.com/NEU-DSG/tapas-view-packages) from GitHub by making a request to TAPAS-xq as either the admin or tapas user. For example: 
-
-```shell
-curl -u tapas http://localhost:8080/tapas-xq/modules/update-view-packages.xq
-```
-
-
-## Making changes to TAPAS-xq
-
-<!-- ... -->
-
-### Generating a XAR package
-
-Run [Apache Ant](https://ant.apache.org/manual/running.html) from within your local repo. By default, Ant will build a zipped archive from files within the repository, and store the new package in the (git-ignored) `build` directory.
-
-In the terminal:
-
-```shell
-cd tapas-xq
-ant
-```
-
-You can also see the current semantic version of TAPAS-xq with the command `ant version`.
+**Note:** Earlier versions of TAPAS-xq were installed by generating an EXPath application "XAR file". This method is no longer useful for installation, since BaseX doesn't register API endpoints when XQuery modules are installed from XARs.
 
 
 ***
