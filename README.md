@@ -16,7 +16,7 @@ TAPAS-xq also provides scripts for maintaining and updating the TAPAS view packa
 - [Context for the TAPAS ecosystem](#context-for-the-tapas-ecosystem)
   - [View packages](#view-packages)
 - [Using TAPAS-xq](#using-tapas-xq)
-- Maintaining TAPAS-xq
+- [The code of TAPAS-xq](#the-code-of-tapas-xq)
 - [Setup and installation](#setup-and-installation)
   - [Setting up BaseX](#setting-up-basex)
   - [Deploying TAPAS-xq](#deploying-tapas-xq)
@@ -52,9 +52,22 @@ To interact with TAPAS-xq, you must make [RESTful HTTP requests](https://restful
 For more specific information on the API endpoints, please refer to the [API documentation on GitHub](API.md), or make a request to the `/tapas-xq/api` endpoint.
 
 
-## Maintaining TAPAS-xq
+## The code of TAPAS-xq
 
+TAPAS-xq is comprised of several XQuery modules, or libraries. These can be found in the ["modules" folder](./modules/).
 
+The primary files are these:
+
+- **[`tapas-api.xql`](modules/tapas-api.xql)**, which defines the API endpoints using [RESTXQ](https://docs.basex.org/wiki/RESTXQ);
+- **[`general-functions.xql`](modules/general-functions.xql)**, which houses general functions used in other modules; and
+- **[`view-packages.xql`](modules/view-packages.xql)**, which houses functions for getting, using, and interpreting the view package system.
+
+The ["resources" folder](./resources/) contains other useful files, such as
+
+- TEI documents for use in testing TAPAS-xq;
+- a Schematron file to determine if a file should be considered TEI by TAPAS-xq;
+- XSLT for generating the API documentation from the [xqDoc comments](http://xqdoc.org/xqdoc_comments_doc.html) in `tapas-api.xql`; and
+- XSLT for turning TEI into MODS metadata.
 
 
 ## Setup and installation
