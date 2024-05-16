@@ -83,13 +83,13 @@ To read or edit files inside the Docker container, use the [Docker Desktop Files
 
 ## Updating the Docker image
 
-Once you’ve made changes to the R Shiny code, catalog file, or models, you’ll need to rebuild the "tapas-xq" Docker image so that your changes are reflected. As before, navigate to the `tapas-xq` folder on your filesystem, and run this command:
+Once you’ve made changes to the TAPAS-xq code base, you’ll need to rebuild the "tapas-xq" Docker image so that your changes are reflected. As before, navigate to the `tapas-xq` folder on your filesystem, and run this command:
 
 ```shell
 docker build --file docker/Dockerfile --tag tapas-xq .
 ```
 
-To run the Shiny app Docker container, you’ll first have to delete the old one, then tell Docker to start up a new container with the same name:
+To run the Docker container, you’ll first have to delete the old one, then tell Docker to start up a new container with the same name:
 
 ```shell
 docker rm basex-tapas

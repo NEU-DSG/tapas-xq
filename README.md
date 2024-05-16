@@ -51,6 +51,22 @@ To interact with TAPAS-xq, you must make [RESTful HTTP requests](https://restful
 
 For more specific information on the API endpoints, please refer to the [API documentation on GitHub](API.md), or make a request to the `/tapas-xq/api` endpoint.
 
+For example, say you wanted to test uploading a TEI file to the database. The API documentation lists an endpoint to ["Store core file and supplementals"](API.md#store-core-file-and-supplementals). You could compile the required information and send a `curl` request that looks like this:
+
+```shell
+curl -F file=@resources/testdocs/sampleTEI.xml \
+     -F collections=coll01,coll02 \
+     -F is-public=true \
+     -F title="Sample TEI File" \
+     -F contributors="Ash Clark" \
+     -u tapas -v \
+  http://localhost:8080/tapas-xq/proj01/testdoc
+```
+
+The command above sends the sample TEI file and associated metadata to a local instance of TAPAS-xq.
+
+When it receives the above request, TAPAS-xq stores the TEI file in the `tapas-data` database as `/tapas-data/project01/testdoc/testdoc.xml`. TAPAS-xq also creates a small file, the "TFE", which contains information about where "testdoc" is placed in the "proj01" project (the collections "coll01" and "coll02"), and who has access to it (everyone; the file is public). TAPAS-xq will also create a MODS metadata record, save it into the database, and respond to the user request with a copy of the MODS file.
+
 
 ## The code of TAPAS-xq
 
