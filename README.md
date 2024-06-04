@@ -60,12 +60,14 @@ curl -F file=@resources/testdocs/sampleTEI.xml \
      -F title="Sample TEI File" \
      -F contributors="Ash Clark" \
      -u tapas -v \
-  http://localhost:8080/tapas-xq/proj01/testdoc
+  http://localhost:8080/tapas-xq/project01/testdoc
 ```
 
 The command above sends the sample TEI file and associated metadata to a local instance of TAPAS-xq.
 
-When it receives the above request, TAPAS-xq stores the TEI file in the `tapas-data` database as `/tapas-data/project01/testdoc/testdoc.xml`. TAPAS-xq also creates a small file, the "TFE", which contains information about where "testdoc" is placed in the "proj01" project (the collections "coll01" and "coll02"), and who has access to it (everyone; the file is public). TAPAS-xq will also create a MODS metadata record, save it into the database, and respond to the user request with a copy of the MODS file.
+When it receives the above request, TAPAS-xq stores the TEI file in the `tapas-data` database as `/tapas-data/project01/testdoc/testdoc.xml`. TAPAS-xq also creates a small file, the "TFE", which contains information about where "testdoc" is placed in the "project01" project (the collections "coll01" and "coll02"), and who has access to it (everyone; the file is public). TAPAS-xq will also create a MODS metadata record, save it into the database, and respond to the user request with a copy of the MODS file.
+
+Note that the original filename is not preserved; the document ID "testdoc" becomes the name of the TEI file as TAPAS-xq knows it.
 
 
 ## The code of TAPAS-xq
