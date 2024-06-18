@@ -1,199 +1,218 @@
-# TAPAS-xq API
 
-_Last updated 2020-01-17._ For details, see the changelog below.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql">source code</a> on May 3rd, 2024, 3:54 p.m. GMT-04:00.
 
-## For all requests
+# API documentation
 
-### Authentication
+This is the API for TAPAS-xq, the XML database component of TAPAS. TAPAS-xq stores TEI documents, 
+indexes them, and generates derivatives such as MODS metadata and reading interface XHTML.
 
-Each request must contain _either_
+TAPAS-xq also maintains a registry of “<a href="https://github.com/NEU-DSG/tapas-view-packages">view 
+packages</a>”. Each view package includes: a program for generating a “view” (a web page); web assets 
+for displaying that page; and a configuration file describing these contents. TAPAS-xq is mostly 
+concerned with the program component, and the configuration file which defines how to execute that 
+program.
 
-* an eXist-db user name and password with the permissions to execute XQueries and modify the 'tapas-data' collection, _or_
-* an Authentication header with a user token implying the above.
+All POST and DELETE requests <strong>must</strong> include an Authentication header containing the 
+credentials for a BaseX user with write access to the TAPAS databases. If a request doesn’t meet this
+criteria, a response with an HTTP status code 401 will be returned.
 
-### Status codes
+## Request endpoints
 
-* Success (derivation, deletion): 200
-* Success (storage): 201
-* Log-in failed/insufficient permissions for executing request: 401
-* Unsupported HTTP method: 405
-* Unable to access some resource: 500
+### Get documentation
 
+<code>GET /tapas-xq/api</code>
 
-## Resource requests
+Generate documentation for the TAPAS-xq API, in XHTML or Markdown.
 
-### Derive MODS production file from a TEI document
+This endpoint returns a representation of the API documentation, with status code 200.
 
-`POST exist/apps/tapas-xq/derive-mods`
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">format</th><td>The formatting method to use when producing documentation. Valid options are 
+"markdown" or "html". The default is to return XHTML.</td><td>query parameter</td></tr></tbody></table>
 
-Content-type: multipart/form-data
+### Store core file and supplementals
 
-Parameters:
+<code>POST /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong></code>
 
-| Name | Description |
-| ------ | ------- |
-| file | The TEI-encoded XML document to be transformed. |
+Store a TEI record into the XML database, as well as MODS metadata and “TAPAS-friendly environment” 
+(TFE) metadata. The generated MODS metadata record is also returned in the HTTP response.
 
-Optional parameters:
+This endpoint is a convenient wrapper for the “Store core file”, “Store core file object 
+description”, and “Store core file contextual metadata” endpoints. When a core file is initially 
+created, this endpoint alone will suffice to generate everything needed by TAPAS-xq and Rails.
 
-| Name | Description |
-| ------ | ------- |
-| title | The work's title as it should appear in TAPAS metadata. |
-| authors | A list of authors' names as they should appear in TAPAS metadata, separated by vertical bars. |
-| contributors | A list of contributors' names as they should appear in TAPAS metadata, separated by vertical bars. |
-| timeline-date | The date associated with this item in the TAPAS Timeline feature. |
+This endpoint returns the MODS record derived from the TEI file, with HTTP status code 201. Any problems with the 
+TEI file will result in a response code of 500. If the MODS file could not be generated due to 
+transformation issues, the TEI and TFE files will still be stored despite the response error code.
 
-Returns an XML-encoded file of the MODS record with status code 200. eXist does not store any files as a result of this request.
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
+its derivatives.</td><td>URL</td></tr><tr><th scope="row">file</th><td>The TEI-encoded XML document to be stored.</td><td>form parameter</td></tr><tr><th scope="row">collections</th><td>Comma-separated list of collection identifiers with which the work should be 
+associated.</td><td>form parameter</td></tr><tr><th scope="row">is-public</th><td>Optional. Value of “true” or “false”. Indicates if the XML document should be 
+queryable by the public. By default, the document is considered private. (Note that if the 
+document belongs to even one public collection, it should be queryable.)</td><td>form parameter</td></tr><tr><th scope="row">title</th><td>Optional. The work’s title as it should appear in TAPAS metadata.</td><td>form parameter</td></tr><tr><th scope="row">authors</th><td>Optional. A list of authors’ names as they should appear in TAPAS metadata, separated 
+by vertical bars.</td><td>form parameter</td></tr><tr><th scope="row">contributors</th><td>Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
+separated by vertical bars.</td><td>form parameter</td></tr></tbody></table>
 
-### Derive XHTML (reading interface) production files from a TEI document
+### Store core file
 
-`POST exist/apps/tapas-xq/derive-reader/:type`
+<code>POST /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/tei</code>
 
-Content-type: multipart/form-data
+Store a TEI document.
 
-__`:type`__: A keyword representing the type of reader view to generate. Visit the View Package Registry endpoint for the reader types that the application can generate.
+This endpoint returns a URL path for accessing the stored TEI file through the TAPAS-xq API, with status code 201.
 
-Parameters:
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
+its derivatives (MODS, TFE).</td><td>URL</td></tr><tr><th scope="row">file</th><td>The TEI-encoded XML document to be stored.</td><td>form parameter</td></tr></tbody></table>
 
-| Name | Description |
-| ------ | ------- |
-| file | An XML-encoded TEI document. |
+### Store core file object description
 
-Use [the view package configuration file](#obtain-the-configuration-file-of-an-installed-view-package) to determine what additional parameters are required for the requested type of reader.
+<code>POST /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/mods</code>
 
-If, in the future, a [view package](https://github.com/NEU-DSG/tapas-view-packages) makes use of a different input source (such as a TAPAS collection or a project), the file parameter may be removed from this endpoint's requirements.
+Construct a MODS metadata record using the TEI header and any additional information provided in the 
+request. Store the MODS in the database alongside its core file TEI.
 
-Returns XHTML generated from the TEI document with status code 200. eXist does not store any files as a result of this request.
+The TEI core file must be stored <em>before</em> any of its derivatives.
 
+This endpoint returns the MODS record derived from the TEI file, with status code 201. If no TEI document is 
+associated with the given <code>doc-id</code>, the response will have a status code 
+of 500.
 
-## Storage requests
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
+its derivatives.</td><td>URL</td></tr><tr><th scope="row">title</th><td>Optional. The work’s title as it should appear in TAPAS metadata.</td><td>form parameter</td></tr><tr><th scope="row">authors</th><td>Optional. A list of authors’ names as they should appear in TAPAS metadata, separated 
+by vertical bars.</td><td>form parameter</td></tr><tr><th scope="row">contributors</th><td>Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
+separated by vertical bars.</td><td>form parameter</td></tr></tbody></table>
 
-In the storage request API endpoints:
+### Store core file contextual metadata
 
-__`:proj-id`__: The identifier of the project which owns the item.
+<code>POST /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/tfe</code>
 
-__`:doc-id`__: A unique identifier for the document record attached to the original TEI document and its derivatives (MODS, TFE). Currently maps to the Drupal identifier ('did').
+Store “TAPAS-friendly environment” (TFE) metadata. Triggers the generation of a small XML file 
+containing useful information about the context of the TEI document, such as its parent project.
 
-### Store TEI in eXist
+The TEI core file must be stored <em>before</em> any of its derivatives.
 
-`POST exist/apps/tapas-xq/:proj-id/:doc-id/tei`
+This endpoint returns a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201. If 
+no TEI document is associated with the given <code>doc-id</code>, the response will 
+have a status code of 500.
 
-Content-type: multipart/form-data
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
+its derivatives.</td><td>URL</td></tr><tr><th scope="row">collections</th><td>Comma-separated list of collection identifiers with which the work should be 
+associated.</td><td>form parameter</td></tr><tr><th scope="row">is-public</th><td>Optional. Value of “true” or “false”. Indicates if the XML document should be 
+queryable by the public. By default, the document is considered private. (Note that if the 
+document belongs to even one public collection, it should be queryable.)</td><td>form parameter</td></tr></tbody></table>
 
-Parameters:
+### Derive reader
 
-| Name | Description |
-| ------ | ------- |
-| file | An XML-encoded TEI document. |
+<code>POST /tapas-xq/derive-reader/<strong>type</strong></code>
 
-### Store MODS metadata in eXist (and return the new XML file)
+Given the name of a TAPAS view package, generate an XHTML file from the provided TEI document. The 
+generated XHTML is not a full webpage but a <code>&lt;div&gt;</code> snippet, suitable for inclusion 
+in the TAPAS reading interface. 
 
-`POST exist/apps/tapas-xq/:proj-id/:doc-id/mods`
+The XML database does not store any files as a result of this request.
 
-Content-type: multipart/form-data
+Note that additional form parameters may be available, depending on the view package selected. Check 
+the view package’s configuration file for additional parameters.
 
-Optional parameters:
+This endpoint returns generated XHTML with status code 200.
 
-| Name | Description |
-| ------ | ------- |
-| title | The work's title as it should appear in TAPAS metadata. |
-| authors | A list of authors' names as they should appear in TAPAS metadata, separated by vertical bars. |
-| contributors | A list of contributors' names as they should appear in TAPAS metadata, separated by vertical bars. |
-| timeline-date | The date associated with this item in the TAPAS Timeline feature. |
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">type</th><td>A keyword representing the type of reader view to generate. Valid keywords can be found 
+by making a request to  the “List registered view packages” endpoint.</td><td>URL</td></tr><tr><th scope="row">file</th><td>A TEI-encoded XML document. If, in the future, a view package makes use of a different 
+input source (such as a TAPAS collection or a project), the file parameter may become optional.</td><td>form parameter</td></tr></tbody></table>
 
-If no TEI document is associated with the given doc-id, the response will have a status code of 500. The TEI file must be stored _before_ any of its derivatives.
+### Read core file
 
-### Store TFE metadata in eXist
+<code>GET /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/tei</code>
 
-`POST exist/apps/tapas-xq/:proj-id/:doc-id/tfe`
+Retrieve a TEI file stored in the XML database.
 
-Content-type: multipart/form-data
+This endpoint returns a copy of the TEI file, with status code 200. If the file does not exist, the response will 
+have a status code of 404.
 
-Parameters:
+If the file is marked as private in the contextual metadata (TFE file), only users with write 
+access to the database will be able to access the file. An attempt at unauthorized access will 
+yield a 403 status code and error.
 
-| Name | Description |
-| ------ | ------- |
-| collections | Comma-separated list of collection identifiers with which the work should be associated. |
-| is-public | Value of "true" or "false". Indicates if the XML document should be queryable by the public. Default value is false. (Note that if the document belongs to even one public collection, it should be queryable.) |
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
 
-If no TEI document is associated with the given doc-id, the response will have a status code of 500. The TEI file must be stored _before_ any of its derivatives.
+### Read core file object description
 
-### Delete project and its resources
+<code>GET /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/mods</code>
 
-`DELETE exist/apps/tapas-xq/:proj-id`
+Retrieve a MODS file associated with a given core file identifier.
 
-If no project collection is associated with the given doc-id, the response will have a status code of 500.
+This endpoint returns a copy of the MODS metadata, with status code 200. If the file does not exist, the response 
+will have a status code of 404.
 
-### Delete document and derivatives
+If the file is marked as private in the contextual metadata (TFE file), only users with write 
+access to the database will be able to access the file. An attempt at unauthorized access will 
+yield a 403 status code and error.
 
-`DELETE exist/apps/tapas-xq/:proj-id/:doc-id`
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
 
-If no TEI document is associated with the given doc-id, the response will have a status code of 500.
+### Read core file contextual metadata
 
+<code>GET /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong>/tfe</code>
 
-## Informational requests
+Retrieve a TAPAS-friendly environment (TFE) file associated with a given core file identifier.
 
-### Get API documentation
+This endpoint returns a copy of the TFE metadata, with status code 200. If the file does not exist, the response 
+will have a status code of 404.
 
-`GET exist/apps/tapas-xq/api`
+If the file is marked as private in the contextual metadata (TFE file), only users with write 
+access to the database will be able to access the file. An attempt at unauthorized access will 
+yield a 403 status code and error.
 
-Returns HTML containing this API documentation.
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
 
-### Obtain registry of installed view packages
+### Delete core file
 
-`GET exist/apps/tapas-xq/view-packages`
+<code>DELETE /tapas-xq/<strong>project-id</strong>/<strong>doc-id</strong></code>
 
-Returns an XML registry of all the view packages which are currently installed in TAPAS-xq.
+Completely remove all database records associated with a given TEI core file identifier: TEI file, 
+MODS metadata, and TAPAS-friendly environment record.
 
-### Obtain the configuration file of an installed view package
+This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202. If no 
+TEI document is associated with the given identifier, the response will have a status code of 500.
 
-`GET exist/apps/tapas-xq/view-packages/:type`
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
 
-__`:type`__: A keyword representing the view package name.
+### Delete project documents
 
-Returns the XML configuration file for a currently-installed view package.
+<code>DELETE /tapas-xq/<strong>project-id</strong></code>
 
+Completely remove all database records associated with the given TAPAS project.
 
-## Maintenance requests
+This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202. If no 
+TEI document is associated with the given identifier, the response will have a status code of 500.
 
-### Update view packages from GitHub repository
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project to be deleted.</td><td>URL</td></tr></tbody></table>
 
-`POST exist/apps/tapas-xq/view-packages/update`
+### List registered view packages
 
-### Trigger file reindexing (manually)
+<code>GET /tapas-xq/view-packages</code>
 
-`POST exist/apps/tapas-xq/reindex`
+Retrieve the XML registry of all view packages currently available in TAPAS-xq.
 
-### Run XQSuite unit tests
+This endpoint returns the XML registry of view packages, with status code 200.
 
-`GET exist/apps/tapas-xq/tests`
+### Update registered view packages
 
-Because it requires user administration powers, this endpoint can only be run by database administrators.
+<code>POST /tapas-xq/view-packages</code>
 
-Due to bugs in authentication when multiple scripts or libraries are involved, this endpoint will return an error in eXist v2.2. In eXist v3.6.1, most tests will fail. However, this is a limitation on the Test Suite, not the rest of this API. The tests will work if executed manually with `curl`.
+Update the view packages database using the latest commits from the GitHub repository. Then, update 
+the view package registry.
 
+This endpoint returns a short confirmation in XML that the view package repository and database has been updated,
+with status code 201. The view package registry will be re-generated after 500 milliseconds.
 
-## Changelog
+### Get view package configuration
 
-### 2020-02-10
+<code>GET /tapas-xq/view-packages/<strong>package-id</strong></code>
 
-* In the Derive Reader endpoint, acknowledged that individual view packages may require additional parameters.
-* Expanded section on unit tests.
+Retrieve the configuration file for a given view package.
 
-### 2020-01-17
+This endpoint returns the XML configuration file of the view package with status code 200. If the requested 
+identifier does not match a view package registered with TAPAS-xq, the response will have a status 
+code of 400.
 
-* Added API endpoints for running unit tests and for updating view packages.
-* Removed 'transforms' parameter from the TFE Storage endpoint.
-
-### 2017-12-07
-
-* Added API endpoint for returning this document as HTML.
-* Added endpoints for accessing the view package registry and the configuration files for individual view packages.
-* Removed 'assets-base' parameter for the Derive Reader endpoint, since the list of required parameters will now be generated dynamically depending on the view package.
-* Changed the base URL to 'exist/apps/tapas-xq' from 'exist/db/apps/tapas-xq', which was incorrect.
-* Created this changelog.
-
-### 2015-10-05
-
-* Added 'file' parameter to Store TEI endpoint due to a problem reading the request body.
-* Added error handling to all endpoints.
+<table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">package-id</th><td>The identifier of the view package.</td><td>URL</td></tr></tbody></table>

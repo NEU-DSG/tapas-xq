@@ -10,13 +10,11 @@
   <xsl:import href="tei2mods.xsl"/>
   
   <!-- The title of the item as it appears on TAPAS. -->
-  <xsl:param name="displayTitle" select="''" as="xs:string"/>
+  <xsl:param name="displayTitle" as="xs:string?"/>
   <!-- A string with each author's name concatenated by a '|'. -->
-  <xsl:param name="displayAuthors" select="''" as="xs:string"/>
+  <xsl:param name="displayAuthors" as="xs:string?"/>
   <!-- A string with each contributor's name concatenated by a '|'. -->
-  <xsl:param name="displayContributors" select="''" as="xs:string"/>
-  <!-- The date corresponding to the item in the TAPAS timeline. xs:date format preferred. -->
-  <xsl:param name="timelineDate" select="''" as="xs:string"/>
+  <xsl:param name="displayContributors" as="xs:string?"/>
   
   <xsl:variable name="displayFields">
     <xsl:if test="$displayTitle">
@@ -53,12 +51,6 @@
           <xsl:copy-of select="$ctrbRole"/>
         </mods:name>
       </xsl:for-each>
-    </xsl:if>
-    <xsl:if test="$timelineDate">
-      <mods:note type="date" displayLabel="TAPAS Timeline Date">
-        <xsl:value-of select="if ($timelineDate castable as xs:date) then xs:date($timelineDate)
-                              else $timelineDate"/>
-      </mods:note>
     </xsl:if>
   </xsl:variable>
   

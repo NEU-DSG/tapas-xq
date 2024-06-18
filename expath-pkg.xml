@@ -1,12 +1,12 @@
 <package xmlns="http://expath.org/ns/pkg"
     name="http://www.tapasproject.org/apps/tapas-xq"
-    abbrev="tapas-xq" version="0.6.1" spec="1.0">
+    abbrev="tapas-xq" version="1.0.0" spec="1.0">
   <title>TAPAS-xq</title>
   
-  <dependency processor="http://exist-db.org" semver-min="2.2"/>
-  <!-- EXPath package dependencies -->
-  <dependency package="http://exist-db.org/apps/shared"/>
-  <dependency package="http://exist-db.org/apps/markdown"/>
-  <dependency package="http://www.functx.com"/>
-  <dependency package="http://xqilla.sourceforge.net/pkg/xqjson"/>
+  <dependency processor="basex" semver-min="10.0" semver-max="10.7"/>
+  
+  <xquery>
+    <namespace>http://tapasproject.org/tapas-xq/view-pkgs</namespace>
+    <file>modules/view-packages.xql</file>
+  </xquery>
 </package>

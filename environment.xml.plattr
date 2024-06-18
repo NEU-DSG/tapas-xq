@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-model href="./exist-environment.rnc" type="application/relax-ng-compact-syntax"?>
-<!-- This is the default environment for a TAPAS eXist instance, which assumes that 
-  eXist is being run locally, on a Plattr VM. -->
-<environ type="development-local">
-  
-  <railsBaseURI host="railsapi.localhost:8080">http://127.0.0.1:8080</railsBaseURI>
-  <defaultGitBranch name="develop"/>
-</environ>
