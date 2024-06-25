@@ -202,6 +202,7 @@ xquery version "3.1";
       (: Start the compilation process in 500 ms. Cache the result temporarily, which will make it 
         easier to debug any errors. :)
       let $jobOptions := map { 'start': 'PT0.5S', 'cache': true() }
+      (: Note: job:eval() requires admin permissions to run! :)
       return job:eval($makeRegistry, (), $jobOptions)
     return dpkg:update-database-from-filesystem()
   };

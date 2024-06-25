@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql">source code</a> on May 3rd, 2024, 3:54 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on June 25th, 2024, 12:06 p.m. GMT-04:00.
 
 # API documentation
 
@@ -201,6 +201,9 @@ This endpoint returns the XML registry of view packages, with status code 200.
 
 Update the view packages database using the latest commits from the GitHub repository. Then, update 
 the view package registry.
+
+<strong>Important:</strong> This endpoint can only be accessed by BaseX accounts with administrator
+permissions.
 
 This endpoint returns a short confirmation in XML that the view package repository and database has been updated,
 with status code 201. The view package registry will be re-generated after 500 milliseconds.

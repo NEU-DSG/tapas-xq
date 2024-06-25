@@ -106,8 +106,8 @@ xquery version "3.1";
       let $params := map {
           'html-title': "TAPAS-xq API",
           'source-code-url':
-            "https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql"
-        }(: TODO: update link! :)
+            "https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql"
+        }
       return
         if ( $formatAsMarkdown ) then
           xslt:transform-text($xqDocXML, doc('../resources/xqdoc-to-markdown.xsl'), $params)
@@ -571,6 +571,9 @@ xquery version "3.1";
     Update the view packages database using the latest commits from the GitHub repository. Then, update 
     the view package registry.
     
+    <strong>Important:</strong> This endpoint can only be accessed by BaseX accounts with administrator
+    permissions.
+    
     @return a short confirmation in XML that the view package repository and database has been updated,
       with status code 201. The view package registry will be re-generated after 500 milliseconds.
    :)
@@ -582,10 +585,21 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:update-registered-view-packages() {
     let $successCode := 201
-    return (
-        dpkg:update-database-to-latest(),
-        update:output(tap:plan-response(201, ()))
-      )
+    return 
+      (: Attempt to update the view package database. If the current user does not have permission to 
+        run `job:eval()`, or some other error occurs, return the error. :)
+      try {
+        (
+          dpkg:update-database-to-latest(),
+          update:output(tap:plan-response(201, ()))
+        )
+      } catch Q{http://basex.org}permission {
+        let $err := tgen:set-error(401, "This endpoint is limited to administrator accounts only.")
+        return update:output(tap:plan-response(201, $err))
+      } catch * {
+        let $err := tgen:set-error(500, $err:code||' '||$err:value)
+        return update:output(tap:plan-response(201, $err))
+      }
   };
   
   
