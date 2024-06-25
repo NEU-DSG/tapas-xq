@@ -141,7 +141,7 @@ BaseX will allow XSL 3.0 transformations if it finds a [Saxon processor](https:/
 
 To set this up, [download the latest Saxon HE package](https://github.com/Saxonica/Saxon-HE/releases) and unpack it. Place the extracted directory into `BASEX/lib/custom` (ZIP installation) or `BASEX/lib` (WAR installation). You'll need to restart BaseX so that it registers the library.
 
-To make sure you've installed Saxon HE correctly, navigate to `BASE-URL/dba/queries` in your browser, and run `xslt:processor()`. You should see the result "Saxon HE", not "Java".
+To make sure you've installed Saxon HE correctly, navigate to `BASE-URL/dba/editor` in your browser, and run `xslt:processor()`. You should see the result "Saxon HE", not "Java".
 
 
 #### Require authentication
@@ -216,7 +216,7 @@ curl -X GET -u admin "http://localhost:8088/BaseX107/rest?run=tapas-xq/modules/i
 
 The [TAPAS-xq installation script](modules/installation.bxs) sets up the `tapas-data` and `tapas-view-packages` databases for you. It also sets up the "tapas" user (whose default password is "tapas"). The "tapas" user is the primary user of the TAPAS-xq; it is the account through which the TAPAS Rails service interacts with the TAPAS-xq databases.
 
-**Note:** Earlier versions of TAPAS-xq were installed by generating an EXPath application "XAR file". This method is no longer useful for installation, since BaseX doesn't register API endpoints when XQuery modules are installed from XARs.
+**Note:** Earlier versions of TAPAS-xq were installed by generating an [EXPath application "XAR file"](http://expath.org/spec/pkg#concepts). This method is no longer useful for installation, since BaseX doesn't register API endpoints when XQuery modules are installed from XARs. We have retained the [EXPath package descriptor](./expath-pkg.xml), which is still helpful for tracking versions and dependencies.
 
 
 ***
