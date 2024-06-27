@@ -102,6 +102,10 @@ xquery version "3.1";
     let $successCode := 200
     let $formatAsMarkdown := lower-case($format) eq 'markdown'
     let $xqDocXML := inspect:xqdoc('tapas-api.xql')
+    (: Test for a bug in BaseX 11.0 where every <xqdoc:description> contains only digits, not readable 
+      text. :)
+    let $useFallback := 
+      $xqDocXML//Q{http://www.xqdoc.org/1.0}description[1][not(contains(., ' '))]
     let $outputDocs := 
       let $params := map {
           'html-title': "TAPAS-xq API",
@@ -109,11 +113,23 @@ xquery version "3.1";
             "https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql"
         }
       return
-        if ( $formatAsMarkdown ) then
+        (: If the request is for Markdown and the auto-processed descriptions are unusable, respond with 
+          the contents of the Markdown file previously saved to the TAPAS-xq repository. :)
+        if ( $formatAsMarkdown and $useFallback ) then
+          unparsed-text("../API.md")
+        (: If the request is for Markdown, transform the automatically processed XQDoc format into 
+          Markdown documentation. :)
+        else if ( $formatAsMarkdown ) then
           xslt:transform-text($xqDocXML, doc('../resources/xqdoc-to-markdown.xsl'), $params)
+        (: If the request is for HTML and the auto-processed descriptions are unusable, respond with the 
+          (serialized) HTML documentation previously saved to the TAPAS-xq repository. :)
+        else if ( $useFallback ) then
+          doc("../API.html") => serialize()
+        (: If the request is for HTML, transform the automatically processed XQDoc format into HTML, 
+          then serialize it. :)
         else
           xslt:transform($xqDocXML, doc('../resources/xqdoc-to-api-docs.xsl'), $params)
-          => serialize()
+            => serialize()
     let $mediaTypeHeader :=
       let $contentType := if ( $formatAsMarkdown ) then 'markdown' else 'html'
       return
