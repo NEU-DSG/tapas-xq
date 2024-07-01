@@ -95,7 +95,7 @@ For local development work, you may wish to use the [Docker instructions](docker
 
 ### Setting up BaseX
 
-TAPAS-xq is designed to run in [BaseX](https://basex.org/), an open source XML database engine. [Download either the ZIP or WAR package](https://basex.org/download/) of BaseX at major semantic version 10.
+TAPAS-xq is designed to run in [BaseX](https://basex.org/), an open source XML database engine. [Download either the ZIP or WAR package](https://basex.org/download/) of BaseX at major semantic version 10 or 11.
 
 If using the BaseX ZIP, unpack the archive and place the directory wherever you'd like.
 
