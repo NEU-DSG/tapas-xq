@@ -103,9 +103,10 @@ If using the BaseX WAR, place the web archive in the `webapps` directory of [Apa
 
 To make full use of TAPAS-xq, you will need to configure BaseX further:
 
-- Set up credentials for the BaseX "admin" account
-- Enable XSLT 3.0 transformation
-- Require authentication through BaseX
+- [Set up credentials for the BaseX "admin" account](#set-up-credentials-for-the-basex-admin-account)
+- [Enable XSLT 3.0 transformation](#enable-xslt-30)
+- [Require authentication through BaseX](#require-authentication)
+- [Deploy TAPAS-xq](#deploying-tapas-xq)
 
 
 #### Set up credentials for the BaseX "admin" account
