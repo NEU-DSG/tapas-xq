@@ -49,4 +49,4 @@ WORKDIR /opt/basex
 RUN bin/basex webapp/tapas-xq/modules/installation.bxs
 
 # When the Docker container starts up, run BaseX
-CMD /opt/basex/bin/basexhttp
+CMD /opt/basex/bin/basexhttp -h8080
