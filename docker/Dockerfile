@@ -14,11 +14,11 @@ WORKDIR /var/cache/basex
 
 # Download BaseX
 RUN --mount=type=cache,target=/var/cache/basex \
-    wget https://files.basex.org/releases/11.0/BaseX110.zip
+    wget https://files.basex.org/releases/11.1/BaseX111.zip
 
 # Unpack BaseX
 RUN --mount=type=cache,target=/var/cache/basex \
-    unzip BaseX110.zip -d /opt
+    unzip BaseX111.zip -d /opt
 
 # Download the Saxon HE processor
 WORKDIR /var/cache/saxonhe
