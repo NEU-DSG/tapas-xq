@@ -102,18 +102,34 @@ xquery version "3.1";
     let $successCode := 200
     let $formatAsMarkdown := lower-case($format) eq 'markdown'
     let $xqDocXML := inspect:xqdoc('tapas-api.xql')
+    (: Test for a bug in BaseX 11.0 where every <xqdoc:description> contains only digits, not readable 
+      text. :)
+    let $useFallback := 
+      $xqDocXML//Q{http://www.xqdoc.org/1.0}description[1][not(contains(., ' '))]
     let $outputDocs := 
       let $params := map {
           'html-title': "TAPAS-xq API",
           'source-code-url':
-            "https://github.com/NEU-DSG/tapas-xq/blob/migrate/to-basex-10/modules/tapas-api.xql"
-        }(: TODO: update link! :)
+            "https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql"
+        }
       return
-        if ( $formatAsMarkdown ) then
+        (: If the request is for Markdown and the auto-processed descriptions are unusable, respond with 
+          the contents of the Markdown file previously saved to the TAPAS-xq repository. :)
+        if ( $formatAsMarkdown and $useFallback ) then
+          unparsed-text("../API.md")
+        (: If the request is for Markdown, transform the automatically processed XQDoc format into 
+          Markdown documentation. :)
+        else if ( $formatAsMarkdown ) then
           xslt:transform-text($xqDocXML, doc('../resources/xqdoc-to-markdown.xsl'), $params)
+        (: If the request is for HTML and the auto-processed descriptions are unusable, respond with the 
+          (serialized) HTML documentation previously saved to the TAPAS-xq repository. :)
+        else if ( $useFallback ) then
+          doc("../API.html") => serialize()
+        (: If the request is for HTML, transform the automatically processed XQDoc format into HTML, 
+          then serialize it. :)
         else
           xslt:transform($xqDocXML, doc('../resources/xqdoc-to-api-docs.xsl'), $params)
-          => serialize()
+            => serialize()
     let $mediaTypeHeader :=
       let $contentType := if ( $formatAsMarkdown ) then 'markdown' else 'html'
       return
@@ -571,6 +587,9 @@ xquery version "3.1";
     Update the view packages database using the latest commits from the GitHub repository. Then, update 
     the view package registry.
     
+    <strong>Important:</strong> This endpoint can only be accessed by BaseX accounts with administrator
+    permissions.
+    
     @return a short confirmation in XML that the view package repository and database has been updated,
       with status code 201. The view package registry will be re-generated after 500 milliseconds.
    :)
@@ -582,10 +601,21 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:update-registered-view-packages() {
     let $successCode := 201
-    return (
-        dpkg:update-database-to-latest(),
-        update:output(tap:plan-response(201, ()))
-      )
+    return 
+      (: Attempt to update the view package database. If the current user does not have permission to 
+        run `job:eval()`, or some other error occurs, return the error. :)
+      try {
+        (
+          dpkg:update-database-to-latest(),
+          update:output(tap:plan-response(201, ()))
+        )
+      } catch Q{http://basex.org}permission {
+        let $err := tgen:set-error(401, "This endpoint is limited to administrator accounts only.")
+        return update:output(tap:plan-response(201, $err))
+      } catch * {
+        let $err := tgen:set-error(500, $err:code||' '||$err:value)
+        return update:output(tap:plan-response(201, $err))
+      }
   };
   
   

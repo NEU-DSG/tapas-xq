@@ -6,9 +6,6 @@ RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update && \
     apt-get install -y wget unzip git curl
 
-# Create a folder for BaseX
-#RUN mkdir /opt/basex
-
 # Set up the cache directory for zipped resources
 WORKDIR /var/cache
 RUN mkdir basex
@@ -17,11 +14,11 @@ WORKDIR /var/cache/basex
 
 # Download BaseX
 RUN --mount=type=cache,target=/var/cache/basex \
-    wget https://files.basex.org/releases/10.7/BaseX107.zip
+    wget https://files.basex.org/releases/11.1/BaseX111.zip
 
 # Unpack BaseX
 RUN --mount=type=cache,target=/var/cache/basex \
-    unzip BaseX107.zip -d /opt
+    unzip BaseX111.zip -d /opt
 
 # Download the Saxon HE processor
 WORKDIR /var/cache/saxonhe
@@ -52,4 +49,4 @@ WORKDIR /opt/basex
 RUN bin/basex webapp/tapas-xq/modules/installation.bxs
 
 # When the Docker container starts up, run BaseX
-CMD /opt/basex/bin/basexhttp
+CMD /opt/basex/bin/basexhttp -h8080
