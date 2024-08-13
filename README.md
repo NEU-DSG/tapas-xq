@@ -153,7 +153,7 @@ By default, [BaseX is configured with a default user](https://docs.basex.org/wik
 
 To make use of [standard authentication schemes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes), BaseX **must** be configured so that there is no default user for the RESTXQ service. 
 
-To do so, find the `web.xml` file inside the BaseX folder. If you downloaded the ZIP package, the file will be located at `webapps/WEB-INF/web.xml`. 
+To do so, find the `web.xml` file inside the BaseX folder. If you downloaded the ZIP package, the file will be located at `webapp/WEB-INF/web.xml`. 
 
 Inside `web.xml`, find the RESTXQ service entry and either comment out the `<init-param>` that sets the `org.basex.user` property, or delete the setting completely. An example is given below.
 
