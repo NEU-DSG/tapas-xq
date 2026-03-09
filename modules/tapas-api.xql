@@ -37,6 +37,31 @@ xquery version "3.1";
   concerned with the program component, and the configuration file which defines how to execute that 
   program.
   
+  If an endpoint accepts TEI XML in a request, TAPAS-xq must receive a single, well-formed XML file, 
+  with <code>&lt;TEI xmlns="http://www.tei-c.org/ns/1.0"&gt;</code> (or an equivalent) as the outermost 
+  element, and exactly one <code>&lt;teiHeader&gt;</code>. No arbitrary Javascript is allowed. TAPAS-xq 
+  does not, however, validate the file against a full TEI schema. This allows TAPAS users to upload 
+  files that adhere to arbitrary (modern) TEI versions, or even their own custom schemas.
+  
+  TAPAS-xq will run minimal validation processes on a request’s file parameter before doing anything 
+  else. Processing will halt and a 422 error will be returned for any of the following cases:
+  
+  <ul>
+    <li>Multiple files are identified</li>
+    <li>The file is an unparsable binary file</li>
+    <li>The file cannot be parsed as XML (it may be ill-formed)</li>
+    <li>The file is parsable XML but one or more of the following is true:
+      <ul>
+        <li>The outermost element is not in the TEI namespace 
+          (<code>http://www.tei-c.org/ns/1.0</code>)</li>
+        <li>The outermost element’s name is not <code>TEI</code></li>
+        <li>There is no <code>teiHeader</code> element</li>
+        <li>There are multiple <code>teiHeader</code> elements</li>
+        <li>An element named <code>script</code> is found in any namespace</li>
+      </ul>
+    </li>
+  </ul>
+  
   All POST and DELETE requests <strong>must</strong> include an Authentication header containing the 
   credentials for a BaseX user with write access to the TAPAS databases. If a request doesn’t meet this
   criteria, a response with an HTTP status code 401 will be returned.
@@ -271,8 +296,8 @@ xquery version "3.1";
     @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
       separated by vertical bars.
     @return the MODS record derived from the TEI file, with status code 201. If no TEI document is 
-      associated with the given <code class="param">doc-id</code>, the response will have a status code 
-      of 500.
+      associated with the given <code class="param">doc-id</code>, or if something went wrong with the 
+      MODS transformation, the response will have a status code of 500.
    :)
   (: Originally ../legacy/store-mods.xq :)
   declare
