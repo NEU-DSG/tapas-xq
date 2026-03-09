@@ -126,11 +126,16 @@ xquery version "3.1";
   function tap:get-documentation($format as xs:string?) {
     let $successCode := 200
     let $formatAsMarkdown := lower-case($format) eq 'markdown'
-    let $xqDocXML := inspect:xqdoc('tapas-api.xql')
-    (: Test for a bug in BaseX 11.0 where every <xqdoc:description> contains only digits, not readable 
-      text. :)
-    let $useFallback := 
-      $xqDocXML//Q{http://www.xqdoc.org/1.0}description[1][not(contains(., ' '))]
+    let $xqDocXML := 
+      try { inspect:xqdoc('tapas-api.xql') }
+      (: If the BaseX user doesn't have admin privileges, recover. :)
+      catch basex:permission { () }
+    (: If there was a permissions issue, dynamically generating XQDoc documentation is not an option. 
+      We'll need to use a fallback. :)
+    let $useFallback := empty($xqDocXML) or
+      (: A fallback is also needed if <xqdoc:description> contains only digits, not readable text. (This 
+        was a bug in BaseX v11.) :)
+      exists($xqDocXML//Q{http://www.xqdoc.org/1.0}description[1][not(contains(., ' '))])
     let $outputDocs := 
       let $params := map {
           'html-title': "TAPAS-xq API",
