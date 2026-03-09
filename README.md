@@ -1,7 +1,7 @@
 TAPAS-xq
 ========
 
-TAPAS-xq is an EXPath application to manage [TEI](https://tei-c.org/)-encoded resources in an XML database. TAPAS-xq provides an API for the [Ruby on Rails component of TAPAS](https://github.com/NEU-DSG/tapas_rails) to accomplish tasks that are easier to do in an XML-native environment. Among these tasks:
+TAPAS-xq is an EXPath application to manage [TEI](https://tei-c.org/)-encoded resources in an XML database. TAPAS-xq provides an API for the [Ruby on Rails component of TAPAS](https://github.com/NEU-DSG/TAPAS) to accomplish tasks that are easier to do in an XML-native environment. Among these tasks:
 
 - Test that files are wellformed XML in the TEI namespace.
 - Store and index TEI files.
@@ -95,7 +95,7 @@ For local development work, you may wish to use the [Docker instructions](docker
 
 ### Setting up BaseX
 
-TAPAS-xq is designed to run in [BaseX](https://basex.org/), an open source XML database engine. [Download either the ZIP or WAR package](https://basex.org/download/) of BaseX at major semantic version 10 or 11.
+TAPAS-xq is designed to run in [BaseX](https://basex.org/), an open source XML database engine. [Download either the ZIP or WAR package](https://basex.org/download/) of the latest BaseX version. TAPAS-xq has most recently been tested on version 12.2.
 
 If using the BaseX ZIP, unpack the archive and place the directory wherever you'd like.
 
@@ -140,7 +140,7 @@ It's a little harder to set the admin password for the BaseX WAR installation. H
 
 BaseX will allow XSL 3.0 transformations if it finds a [Saxon processor](https://www.saxonica.com) on the classpath.
 
-To set this up, [download the latest Saxon HE package](https://github.com/Saxonica/Saxon-HE/releases) and unpack it. Place the extracted directory into `BASEX/lib/custom` (ZIP installation) or `BASEX/lib` (WAR installation). You'll need to restart BaseX so that it registers the library.
+To set this up, [download the latest Saxon HE package](https://github.com/Saxonica/Saxon-HE/releases) and unpack it. Copy all the contents of the Saxon HE directory into `BASEX/lib/custom` (ZIP installation) or `BASEX/lib` (WAR installation). You'll need to restart BaseX so that it registers the library.
 
 To make sure you've installed Saxon HE correctly, navigate to `BASE-URL/dba/editor` in your browser, and run `xslt:processor()`. You should see the result "Saxon HE", not "Java".
 
@@ -220,14 +220,3 @@ The [TAPAS-xq installation script](modules/installation.bxs) sets up the `tapas-
 **Note:** Earlier versions of TAPAS-xq were installed by generating an [EXPath application "XAR file"](http://expath.org/spec/pkg#concepts). This method is no longer useful for installation, since BaseX doesn't register API endpoints when XQuery modules are installed from XARs. We have retained the [EXPath package descriptor](./expath-pkg.xml), which is still helpful for tracking versions and dependencies.
 
 
-***
-
-## Hungry for more TAPAS?
-
-[TAPAS website](https://tapasproject.org/)
-
-[TAPAS Rails repository](https://github.com/NEU-DSG/tapas_rails)
-
-[TAPAS View Packages repository](https://github.com/NEU-DSG/tapas-view-packages)
-
-[Public documents, documentation, and meeting notes for TAPAS](https://github.com/NEU-DSG/tapas-docs)
