@@ -23,7 +23,7 @@ Then, instruct Docker to use the `Dockerfile` in this folder to construct an ima
 docker build --file docker/Dockerfile --tag tapas-xq . 
 ```
 
-As part of this process, Docker follows the instructions given in [the Dockerfile](./Dockerfile). We start with a pre-built [Java JRE Docker container from AdoptOpenJDK](https://hub.docker.com/r/adoptopenjdk/openjdk16). From there, Docker:
+As part of this process, Docker follows the instructions given in [the Dockerfile](./Dockerfile). We start with a pre-built [Eclipse Temurin Docker container](https://hub.docker.com/_/eclipse-temurin). From there, Docker:
 
 * installs software packages for `git`, `unzip`, and `curl`;
 * installs BaseX and places a copy of the Saxon HE processor into its `lib/custom` directory;
