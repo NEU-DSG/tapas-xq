@@ -25,7 +25,7 @@
    -->
   
   <!-- The title of the output webpage. -->
-  <xsl:param name="html-title" select="'TAPAS-xq API'" as="xs:string?"/>
+  <xsl:param name="html-title" select="'TAPAS-xq API documentation'" as="xs:string?"/>
   
   <!-- A URL to the XQuery which is considered the source of the xqDoc XML. If a URL is provided, a link 
     to the XQuery is included along with the generation statement. -->
@@ -88,7 +88,9 @@
           </p>
         </aside>
         <main>
-          <h1>API documentation</h1>
+          <h1>
+            <xsl:value-of select="$html-title"/>
+          </h1>
           <xsl:apply-templates select="//module/comment"/>
           <h2 id="all-endpoints">Request endpoints</h2>
           <xsl:apply-templates select="//functions"/>
