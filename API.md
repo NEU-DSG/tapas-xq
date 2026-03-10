@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 10th, 2026, 1:37 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 10th, 2026, 2:00 p.m. GMT-04:00.
 
 # TAPAS-xq API documentation
 
@@ -17,7 +17,7 @@ credentials for a BaseX user with write access to the TAPAS databases. If a requ
 criteria, a response with an HTTP status code 401 will be returned.
 
 
-## TEI viability testing
+<h2 id="tei-viability-testing">TEI viability testing</h2>
 
 
 If an endpoint accepts TEI XML in a request, TAPAS-xq must receive a single, <a href="https://wwp.northeastern.edu/outreach/seminars/_current/presentations/xml_intro/xml_newIntro_tutorial_13.xhtml">well-formed</a> XML file, with <code>&lt;TEI xmlns="http://www.tei-c.org/ns/1.0"&gt;</code> 
@@ -48,7 +48,7 @@ else. Processing will halt for any of the following cases:
 When a test failure occurs, HTTP status code 422 will be returned. The response body will contain a 
 description of identified problems.
 
-## Request endpoints
+<h2 id="all-endpoints">Request endpoints</h2>
 
 ### Get documentation
 
