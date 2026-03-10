@@ -324,9 +324,13 @@ xquery version "3.1";
       by vertical bars.
     @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
       separated by vertical bars.
-    @return the MODS record derived from the TEI file, with status code 201. If no TEI document is 
-      associated with the given <code class="param">doc-id</code>, or if something went wrong with the 
-      MODS transformation, the response will have a status code of 500.
+    @return the MODS record derived from the TEI file, with status code 201.
+      
+      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      HTTP status code 404 will be returned.
+      
+      If something went wrong with the MODS transformation, the response will have a status code of 500. 
+      If necessary, the TAPAS-xq maintainer should be alerted so they can fix the problem.
    :)
   (: Originally ../legacy/store-mods.xq :)
   declare
@@ -371,9 +375,10 @@ xquery version "3.1";
     @param is-public Optional. Value of “true” or “false”. Indicates if the XML document should be 
       queryable by the public. By default, the document is considered private. (Note that if the 
       document belongs to even one public collection, it should be queryable.)
-    @return a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201. If 
-      no TEI document is associated with the given <code class="param">doc-id</code>, the response will 
-      have a status code of 500.
+    @return a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201.
+      
+      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/store-tfe.xq :)
   declare
@@ -477,8 +482,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the TEI file, with status code 200. If the file does not exist, the response will 
-      have a status code of 404.
+    @return a copy of the TEI file, with status code 200.
+      
+      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -502,8 +509,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the MODS metadata, with status code 200. If the file does not exist, the response 
-      will have a status code of 404.
+    @return a copy of the MODS metadata, with status code 200.
+      
+      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -527,8 +536,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the TFE metadata, with status code 200. If the file does not exist, the response 
-      will have a status code of 404.
+    @return a copy of the TFE metadata, with status code 200.
+      
+      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -553,8 +564,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a short confirmation in XML that the resources will be deleted, with status code 202. If no 
-      TEI document is associated with the given identifier, the response will have a status code of 500.
+    @return a short confirmation in XML that the resources will be deleted, with status code 202.
+      
+      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/delete-by-docid.xq :)
   declare
@@ -565,8 +578,8 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:delete-core-file($project-id as xs:string, $doc-id as xs:string) {
     (: Originally, this endpoint returned a 200 response, since it could check to make sure that the 
-    file was gone after deletion. The "202 Accepted" response is more appropriate now, since we can only 
-    promise that we *will* delete the item, we can't say that we *have done* it. :)
+      file was gone after deletion. The "202 Accepted" response is more appropriate now, since we can 
+      only promise that we *will* delete the item, we can't say that we *have done* it. :)
     let $successCode := 202
     let $response := 
       let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
@@ -591,8 +604,10 @@ xquery version "3.1";
     Completely remove all database records associated with the given TAPAS project.
     
     @param project-id The unique identifier of the project to be deleted.
-    @return a short confirmation in XML that the resources will be deleted, with status code 202. If no 
-      TEI document is associated with the given identifier, the response will have a status code of 500.
+    @return a short confirmation in XML that the resources will be deleted, with status code 202.
+      
+      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/delete-by-projid.xq :)
   declare
@@ -680,9 +695,10 @@ xquery version "3.1";
     Retrieve the configuration file for a given view package.
     
     @param package-id The identifier of the view package.
-    @return the XML configuration file of the view package with status code 200. If the requested 
-      identifier does not match a view package registered with TAPAS-xq, the response will have a status 
-      code of 400.
+    @return the XML configuration file of the view package with status code 200. 
+      
+      If the requested identifier does not match a view package registered with TAPAS-xq, the response 
+      will have an HTTP status code of 400.
    :)
   declare
     %rest:GET

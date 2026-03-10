@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 10th, 2026, 2:00 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 10th, 2026, 2:22 p.m. GMT-04:00.
 
 # TAPAS-xq API documentation
 
@@ -114,9 +114,13 @@ request. Store the MODS in the database alongside its core file TEI.
 
 The TEI core file must be stored <em>before</em> any of its derivatives.
 
-This endpoint returns the MODS record derived from the TEI file, with status code 201. If no TEI document is 
-associated with the given <code>doc-id</code>, or if something went wrong with the 
-MODS transformation, the response will have a status code of 500.
+This endpoint returns the MODS record derived from the TEI file, with status code 201.
+
+If no TEI document is associated with the given <code>doc-id</code>, a response with 
+HTTP status code 404 will be returned.
+
+If something went wrong with the MODS transformation, the response will have a status code of 500. 
+If necessary, the TAPAS-xq maintainer should be alerted so they can fix the problem.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
 its derivatives.</td><td>URL</td></tr><tr><th scope="row">title</th><td>Optional. The work’s title as it should appear in TAPAS metadata.</td><td>form parameter</td></tr><tr><th scope="row">authors</th><td>Optional. A list of authors’ names as they should appear in TAPAS metadata, separated 
@@ -132,9 +136,10 @@ containing useful information about the context of the TEI document, such as its
 
 The TEI core file must be stored <em>before</em> any of its derivatives.
 
-This endpoint returns a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201. If 
-no TEI document is associated with the given <code>doc-id</code>, the response will 
-have a status code of 500.
+This endpoint returns a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201.
+
+If no TEI document is associated with the given <code>doc-id</code>, a response with 
+HTTP status code 404 will be returned.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
 its derivatives.</td><td>URL</td></tr><tr><th scope="row">collections</th><td>Comma-separated list of collection identifiers with which the work should be 
@@ -170,8 +175,10 @@ view package makes use of a different input source (such as a TAPAS collection o
 
 Retrieve a TEI file stored in the XML database.
 
-This endpoint returns a copy of the TEI file, with status code 200. If the file does not exist, the response will 
-have a status code of 404.
+This endpoint returns a copy of the TEI file, with status code 200.
+
+If no TEI document is associated with the given <code>doc-id</code>, a response with 
+HTTP status code 404 will be returned.
 
 If the file is marked as private in the contextual metadata (TFE file), only users with write 
 access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -185,8 +192,10 @@ yield a 403 status code and error.
 
 Retrieve a MODS file associated with a given core file identifier.
 
-This endpoint returns a copy of the MODS metadata, with status code 200. If the file does not exist, the response 
-will have a status code of 404.
+This endpoint returns a copy of the MODS metadata, with status code 200.
+
+If no TEI document is associated with the given <code>doc-id</code>, a response with 
+HTTP status code 404 will be returned.
 
 If the file is marked as private in the contextual metadata (TFE file), only users with write 
 access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -200,8 +209,10 @@ yield a 403 status code and error.
 
 Retrieve a TAPAS-friendly environment (TFE) file associated with a given core file identifier.
 
-This endpoint returns a copy of the TFE metadata, with status code 200. If the file does not exist, the response 
-will have a status code of 404.
+This endpoint returns a copy of the TFE metadata, with status code 200.
+
+If no TEI document is associated with the given <code>doc-id</code>, a response with 
+HTTP status code 404 will be returned.
 
 If the file is marked as private in the contextual metadata (TFE file), only users with write 
 access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -216,8 +227,10 @@ yield a 403 status code and error.
 Completely remove all database records associated with a given TEI core file identifier: TEI file, 
 MODS metadata, and TAPAS-friendly environment record.
 
-This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202. If no 
-TEI document is associated with the given identifier, the response will have a status code of 500.
+This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202.
+
+If no TEI document is associated with the given <code>doc-id</code>, a response with 
+HTTP status code 404 will be returned.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The identifier of the project which owns the core file.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>The identifier of the TEI core file.</td><td>URL</td></tr></tbody></table>
 
@@ -227,8 +240,10 @@ TEI document is associated with the given identifier, the response will have a s
 
 Completely remove all database records associated with the given TAPAS project.
 
-This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202. If no 
-TEI document is associated with the given identifier, the response will have a status code of 500.
+This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202.
+
+If no TEI document is associated with the given <code>doc-id</code>, a response with 
+HTTP status code 404 will be returned.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project to be deleted.</td><td>URL</td></tr></tbody></table>
 
@@ -259,8 +274,9 @@ with status code 201. The view package registry will be re-generated after 500 m
 
 Retrieve the configuration file for a given view package.
 
-This endpoint returns the XML configuration file of the view package with status code 200. If the requested 
-identifier does not match a view package registered with TAPAS-xq, the response will have a status 
-code of 400.
+This endpoint returns the XML configuration file of the view package with status code 200. 
+
+If the requested identifier does not match a view package registered with TAPAS-xq, the response 
+will have an HTTP status code of 400.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">package-id</th><td>The identifier of the view package.</td><td>URL</td></tr></tbody></table>
