@@ -52,7 +52,7 @@ HTTP Server was started (port: 8080).
 HTTP STOP Server was started (port: 8081).
 ```
 
-...you can visit BaseX's [Database Administration page](http://localhost:8080/dba/login). You'll be prompted for a BaseX user name and password twice — once to access RESTXQ, and once to enter the DBA application.
+...you can visit BaseX's [Database Administration page](http://localhost:8080/dba/login). You'll be prompted for a BaseX user name and password twice — once to access RESTXQ, and once to enter the DBA application. As the name implies, the interface is only accessible by users with "admin" permissions.
 
 The DBA interface gives you access to the BaseX logs, and information on the databases and users that BaseX knows about. You'll see two databases, `tapas-data` and `tapas-view-packages`, which were set up as part of the TAPAS-xq installation script. Besides the "admin" user, the installation script has also added a "tapas" user (pw: "tapas"), which can run XSLTs and write to both TAPAS databases.
 
