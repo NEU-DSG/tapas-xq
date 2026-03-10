@@ -41,7 +41,7 @@ xquery version "3.1";
   credentials for a BaseX user with write access to the TAPAS databases. If a request doesn’t meet this
   criteria, a response with an HTTP status code 401 will be returned.
   
-  <h2>TEI viability testing</h2>
+  <h2 id="tei-viability-testing">TEI viability testing</h2>
   
   If an endpoint accepts TEI XML in a request, TAPAS-xq must receive a single, <a 
   href="https://wwp.northeastern.edu/outreach/seminars/_current/presentations/xml_intro/xml_newIntro_tutorial_13.xhtml"
@@ -209,7 +209,7 @@ xquery version "3.1";
     @return the MODS record derived from the TEI file, with HTTP status code 201.
       
       If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
-      “TEI viability testing” section above for more information.
+      <a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
       
       If the MODS file could not be generated because of a problem with the XSLT stylesheet, an HTTP 
       status code 500 will be returned. If necessary, the TAPAS-xq maintainer should be alerted so they 
@@ -278,7 +278,7 @@ xquery version "3.1";
     @return a URL path for accessing the stored TEI file through the TAPAS-xq API, with status code 201.
       
       If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
-      “TEI viability testing” section above for more information.
+      <a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
    :)
   (: Originally ../legacy/store-tei.xq :)
   declare
@@ -422,7 +422,7 @@ xquery version "3.1";
     @return generated XHTML with status code 200.
       
       If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
-      “TEI viability testing” section above for more information.
+      <a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
    :)
   (: Originally ../legacy/derive-reader.xq :)
   declare

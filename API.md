@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 10th, 2026, 1:20 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 10th, 2026, 1:37 p.m. GMT-04:00.
 
 # TAPAS-xq API documentation
 
@@ -77,7 +77,7 @@ created, this endpoint alone will suffice to generate everything needed by TAPAS
 This endpoint returns the MODS record derived from the TEI file, with HTTP status code 201.
 
 If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
-“TEI viability testing” section above for more information.
+<a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
 
 If the MODS file could not be generated because of a problem with the XSLT stylesheet, an HTTP 
 status code 500 will be returned. If necessary, the TAPAS-xq maintainer should be alerted so they 
@@ -100,7 +100,7 @@ Store a TEI document.
 This endpoint returns a URL path for accessing the stored TEI file through the TAPAS-xq API, with status code 201.
 
 If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
-“TEI viability testing” section above for more information.
+<a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">project-id</th><td>The unique identifier of the project which owns the work.</td><td>URL</td></tr><tr><th scope="row">doc-id</th><td>A unique identifier for the document record attached to the original TEI document and 
 its derivatives (MODS, TFE).</td><td>URL</td></tr><tr><th scope="row">file</th><td>The TEI-encoded XML document to be stored.</td><td>form parameter</td></tr></tbody></table>
@@ -158,7 +158,7 @@ the view package’s configuration file for additional parameters.
 This endpoint returns generated XHTML with status code 200.
 
 If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
-“TEI viability testing” section above for more information.
+<a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
 
 <table><caption>Request settings</caption><thead><tr><th style="min-width:10%;">Name</th><th>Description</th><th>Where to set value</th></tr></thead><tbody><tr><th scope="row">type</th><td>A keyword representing the type of reader view to generate. Valid keywords can be found 
 by making a request to  the “List registered view packages” endpoint.</td><td>URL</td></tr><tr><th scope="row">file</th><td>A TEI-encoded XML document. The file parameter may become optional in the future, if a 
