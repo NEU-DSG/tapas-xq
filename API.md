@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 17th, 2026, 12:42 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 17th, 2026, 12:56 p.m. GMT-04:00.
 
 # TAPAS-xq API documentation
 
@@ -32,6 +32,7 @@ else. Processing will halt for any of the following cases:
 <li>The file is an unparsable binary file</li>
 <li>The file cannot be parsed as XML (it may be ill-formed)</li>
 <li>The file is parsable XML but one or more of the following is true:
+
 <ul>
 <li>The outermost element is not in the TEI namespace 
 (<code>http://www.tei-c.org/ns/1.0</code>)</li>
@@ -40,6 +41,7 @@ else. Processing will halt for any of the following cases:
 <li>There are multiple <code>teiHeader</code> elements</li>
 <li>An element named <code>script</code> is found in any namespace</li>
 </ul>
+
 </li>
 </ul>
 

@@ -179,8 +179,8 @@
         <xsl:apply-templates select="current-group()" mode="remove-paragraph-boundaries"/>
       </xsl:variable>
       <xsl:choose>
-        <!-- If this is an <h2> element, we shouldn't wrap it in <p>. -->
-        <xsl:when test="current-group()[self::*:h2]">
+        <!-- Some (namespace-less) elements shouldn't be wrapped in <p>. -->
+        <xsl:when test="current-group()[local-name(.) = ('h2', 'ul')]">
           <xsl:sequence select="$content"/>
         </xsl:when>
         <xsl:otherwise>

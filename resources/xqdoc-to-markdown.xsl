@@ -114,12 +114,10 @@
     <xsl:value-of select="$newline"/>
   </xsl:template>
   
-  <!-- We'll keep the <table> mostly as-is, rather than try to convert it to Markdown. -->
-  <xsl:template match="table" mode="markdown">
+  <!-- We'll keep the <table> and <ul> mostly as-is, rather than try to convert them to Markdown. -->
+  <xsl:template match="table | ul" mode="markdown">
     <xsl:value-of select="$newline"/>
-    <xsl:element name="table">
-      <xsl:apply-templates mode="#current"/>
-    </xsl:element>
+    <xsl:next-match/>
     <xsl:value-of select="$newline"/>
   </xsl:template>
   
