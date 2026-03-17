@@ -175,9 +175,20 @@
     </xsl:variable>
     <xsl:for-each-group select="$paragraphsMarked" 
        group-ending-with="*:br[@class eq 'paragraph-boundary']">
-      <p>
+      <xsl:variable name="content" as="node()*">
         <xsl:apply-templates select="current-group()" mode="remove-paragraph-boundaries"/>
-      </p>
+      </xsl:variable>
+      <xsl:choose>
+        <!-- If this is an <h2> element, we shouldn't wrap it in <p>. -->
+        <xsl:when test="current-group()[self::*:h2]">
+          <xsl:sequence select="$content"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <p>
+            <xsl:sequence select="$content"/>
+          </p>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:for-each-group>
   </xsl:template>
   

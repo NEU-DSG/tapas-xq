@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 17th, 2026, 12:23 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 17th, 2026, 12:42 p.m. GMT-04:00.
 
 # TAPAS-xq API documentation
 
@@ -16,9 +16,7 @@ All POST and DELETE requests <strong>must</strong> include an Authentication hea
 credentials for a BaseX user with write access to the TAPAS databases. If a request doesn’t meet this
 criteria, a response with an HTTP status code 401 will be returned.
 
-
 <h2 id="tei-viability-testing">TEI viability testing</h2>
-
 
 If an endpoint accepts TEI XML in a request, TAPAS-xq must receive a single, <a href="https://wwp.northeastern.edu/outreach/seminars/_current/presentations/xml_intro/xml_newIntro_tutorial_13.xhtml">well-formed</a> XML file, with <code>&lt;TEI xmlns="http://www.tei-c.org/ns/1.0"&gt;</code> 
 (<a href="https://en.wikipedia.org/wiki/XML_namespace#Namespace_declaration">or an equivalent</a>) as 
