@@ -92,7 +92,7 @@
             <xsl:value-of select="$html-title"/>
           </h1>
           <xsl:apply-templates select="//module/comment"/>
-          <h2 id="all-endpoints">Request endpoints</h2>
+          <h2 id="request-endpoints">Request endpoints</h2>
           <xsl:apply-templates select="//functions"/>
         </main>
       </body>

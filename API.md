@@ -1,5 +1,5 @@
 
-This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 10th, 2026, 2:22 p.m. GMT-04:00.
+This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 17th, 2026, 12:23 p.m. GMT-04:00.
 
 # TAPAS-xq API documentation
 
@@ -48,7 +48,7 @@ else. Processing will halt for any of the following cases:
 When a test failure occurs, HTTP status code 422 will be returned. The response body will contain a 
 description of identified problems.
 
-<h2 id="all-endpoints">Request endpoints</h2>
+<h2 id="request-endpoints">Request endpoints</h2>
 
 ### Get documentation
 
