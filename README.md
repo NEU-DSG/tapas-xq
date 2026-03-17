@@ -101,6 +101,8 @@ If using the BaseX ZIP, unpack the archive and place the directory wherever you'
 
 If using the BaseX WAR, place the web archive in the `webapps` directory of [Apache Tomcat](https://tomcat.apache.org/). Then, start Tomcat in order to unpack the archive.
 
+You will need a modern Java JDK (Java Development Kit). The [OpenJDK implementation](https://openjdk.org/) is recommended. OpenJDK can be installed on a Mac with `brew install java`.
+
 To make full use of TAPAS-xq, you will need to configure BaseX further:
 
 - [Set up credentials for the BaseX "admin" account](#set-up-credentials-for-the-basex-admin-account)
@@ -212,7 +214,7 @@ bin/basex webapp/tapas-xq/modules/installation.bxs
 
 If you used the Tomcat WAR method of installing BaseX, you'll need to use `curl` to prompt BaseX to run the script, e.g.
 ```shell
-curl -X GET -u admin "http://localhost:8088/BaseX107/rest?run=tapas-xq/modules/installation.bxs"
+curl -X GET -u admin "http://localhost:8088/BaseX122/rest?run=tapas-xq/modules/installation.bxs"
 ```
 
 The [TAPAS-xq installation script](modules/installation.bxs) sets up the `tapas-data` and `tapas-view-packages` databases for you. It also sets up the "tapas" user (whose default password is "tapas"). The "tapas" user is the primary user of the TAPAS-xq; it is the account through which the TAPAS Rails service interacts with the TAPAS-xq databases.
@@ -220,3 +222,10 @@ The [TAPAS-xq installation script](modules/installation.bxs) sets up the `tapas-
 **Note:** Earlier versions of TAPAS-xq were installed by generating an [EXPath application "XAR file"](http://expath.org/spec/pkg#concepts). This method is no longer useful for installation, since BaseX doesn't register API endpoints when XQuery modules are installed from XARs. We have retained the [EXPath package descriptor](./expath-pkg.xml), which is still helpful for tracking versions and dependencies.
 
 
+### Working with BaseX and TAPAS-xq
+
+While the BaseX HTTP server is running, you can access BaseX's [Database Administration (DBA) page](http://localhost:8080/dba/login). You'll be prompted for a BaseX user name and password twice — once to access RESTXQ, and once to enter the DBA application. As the name implies, the interface is only accessible by users with "admin" permissions.
+
+The DBA interface gives you access to the BaseX logs, and information on the databases and users that BaseX knows about. You'll see two databases, `tapas-data` and `tapas-view-packages`, which were set up as part of the TAPAS-xq installation script. Besides the "admin" user, the installation script has also added a "tapas" user (pw: "tapas"), which can run XSLTs and write to both TAPAS databases.
+
+The TAPAS-xq API is available at <http://localhost:8080/tapas-xq>. It's a good idea to start by accessing the [API documentation](http://localhost:8080/tapas-xq/api) before preparing to test any requests with `curl` or some other tool. While it's possible to make requests with either the BaseX "admin" or "tapas" user credentials, I recommend using the "admin" account to monitor the database in the browser, and using the "tapas" account to simulate requests from the [TAPAS Rails](https://github.com/NEU-DSG/tapas_rails) service.
