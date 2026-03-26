@@ -41,6 +41,38 @@ xquery version "3.1";
   credentials for a BaseX user with write access to the TAPAS databases. If a request doesn’t meet this
   criteria, a response with an HTTP status code 401 will be returned.
   
+  <h2 id="tei-viability-testing">TEI viability testing</h2>
+  
+  If an endpoint accepts TEI XML in a request, TAPAS-xq must receive a single, <a 
+  href="https://wwp.northeastern.edu/outreach/seminars/_current/presentations/xml_intro/xml_newIntro_tutorial_13.xhtml"
+  >well-formed</a> XML file, with <code>&lt;TEI xmlns="http://www.tei-c.org/ns/1.0"&gt;</code> 
+  (<a href="https://en.wikipedia.org/wiki/XML_namespace#Namespace_declaration">or an equivalent</a>) as 
+  the outermost element, and exactly one <code>&lt;teiHeader&gt;</code>. No arbitrary Javascript is 
+  allowed. TAPAS-xq does not, however, validate the file against a full TEI schema. This allows TAPAS 
+  users to upload files that adhere to arbitrary (modern) TEI versions, or even their own custom schemas.
+  
+  TAPAS-xq will run minimal validation processes on a request’s file parameter before doing anything 
+  else. Processing will halt for any of the following cases:
+  
+  <ul>
+    <li>Multiple files are identified</li>
+    <li>The file is an unparsable binary file</li>
+    <li>The file cannot be parsed as XML (it may be ill-formed)</li>
+    <li>The file is parsable XML but one or more of the following is true:
+      <ul>
+        <li>The outermost element is not in the TEI namespace 
+          (<code>http://www.tei-c.org/ns/1.0</code>)</li>
+        <li>The outermost element’s name is not <code>TEI</code></li>
+        <li>There is no <code>teiHeader</code> element</li>
+        <li>There are multiple <code>teiHeader</code> elements</li>
+        <li>An element named <code>script</code> is found in any namespace</li>
+      </ul>
+    </li>
+  </ul>
+  
+  When a test failure occurs, HTTP status code 422 will be returned. The response body will contain a 
+  description of identified problems.
+  
   @author Ash Clark
   @since 2023
  :)
@@ -83,10 +115,12 @@ xquery version "3.1";
  :)
   
   (:~
-    Generate documentation for the TAPAS-xq API, in XHTML or Markdown.
+    Generate documentation for the TAPAS-xq API, in XHTML or Markdown. If the user has administrator 
+    privileges, this documentation is generated dynamically from the RESTXQ code. Otherwise, a cached 
+    HTML or Markdown file is used.
     
     @param format The formatting method to use when producing documentation. Valid options are 
-      "markdown" or "html". The default is to return XHTML.
+      "markdown" or "html". The default is to return HTML, in XHTML format.
     @return a representation of the API documentation, with status code 200.
    :)
   (: NOTE: Because we're producing two wildly different formats of documentation at the same endpoint, 
@@ -101,14 +135,26 @@ xquery version "3.1";
   function tap:get-documentation($format as xs:string?) {
     let $successCode := 200
     let $formatAsMarkdown := lower-case($format) eq 'markdown'
-    let $xqDocXML := inspect:xqdoc('tapas-api.xql')
-    (: Test for a bug in BaseX 11.0 where every <xqdoc:description> contains only digits, not readable 
-      text. :)
-    let $useFallback := 
-      $xqDocXML//Q{http://www.xqdoc.org/1.0}description[1][not(contains(., ' '))]
+    (: Try dynamically generating the API documentation, but recover from any errors. :)
+    let $xqDocXML := 
+      try { inspect:xqdoc('tapas-api.xql') }
+      (: Starting in BaseX v12, the `inspect:xqdoc()` function can only be run by administrators. :)
+      catch basex:permission { () }
+      (: Also recover from other errors, but make sure the error is recorded in the logs, e.g.
+          TRACE   TAPAS-xq recovery: "basex:permission in tapas-api.xql line 143. No admin permission: inspect:xqdoc(""tapas-api.xql"")."
+        (Tested by commenting out the basex:permission catch above.) :)
+      catch * {
+          let $logMsg := $err:code || " in " || $err:module || " line " || $err:line-number || ". "
+            || $err:description
+          return message($logMsg, "TAPAS-xq recovery")
+        }
+    (: If dynamically generating XQDoc documentation is not an option, we'll need to use a fallback. :)
+    let $useFallback := empty($xqDocXML) or
+      (: A fallback is also needed if <xqdoc:description> contains only digits, not readable text. (This 
+        was a bug in BaseX v11.) :)
+      exists($xqDocXML//Q{http://www.xqdoc.org/1.0}description[1][not(contains(., ' '))])
     let $outputDocs := 
       let $params := map {
-          'html-title': "TAPAS-xq API",
           'source-code-url':
             "https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql"
         }
@@ -160,9 +206,14 @@ xquery version "3.1";
       by vertical bars.
     @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
       separated by vertical bars.
-    @return the MODS record derived from the TEI file, with HTTP status code 201. Any problems with the 
-      TEI file will result in a response code of 500. If the MODS file could not be generated due to 
-      transformation issues, the TEI and TFE files will still be stored despite the response error code.
+    @return the MODS record derived from the TEI file, with HTTP status code 201.
+      
+      If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
+      <a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
+      
+      If the MODS file could not be generated because of a problem with the XSLT stylesheet, an HTTP 
+      status code 500 will be returned. If necessary, the TAPAS-xq maintainer should be alerted so they 
+      can fix the problem. The TEI and TFE files will be stored regardless.
    :)
   declare
     %updating
@@ -225,6 +276,9 @@ xquery version "3.1";
       its derivatives (MODS, TFE).
     @param file The TEI-encoded XML document to be stored.
     @return a URL path for accessing the stored TEI file through the TAPAS-xq API, with status code 201.
+      
+      If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
+      <a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
    :)
   (: Originally ../legacy/store-tei.xq :)
   declare
@@ -270,9 +324,13 @@ xquery version "3.1";
       by vertical bars.
     @param contributors Optional. A list of contributors’ names as they should appear in TAPAS metadata, 
       separated by vertical bars.
-    @return the MODS record derived from the TEI file, with status code 201. If no TEI document is 
-      associated with the given <code class="param">doc-id</code>, the response will have a status code 
-      of 500.
+    @return the MODS record derived from the TEI file, with status code 201.
+      
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
+      
+      If something went wrong with the MODS transformation, the response will have a status code of 500. 
+      If necessary, the TAPAS-xq maintainer should be alerted so they can fix the problem.
    :)
   (: Originally ../legacy/store-mods.xq :)
   declare
@@ -317,9 +375,10 @@ xquery version "3.1";
     @param is-public Optional. Value of “true” or “false”. Indicates if the XML document should be 
       queryable by the public. By default, the document is considered private. (Note that if the 
       document belongs to even one public collection, it should be queryable.)
-    @return a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201. If 
-      no TEI document is associated with the given <code class="param">doc-id</code>, the response will 
-      have a status code of 500.
+    @return a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201.
+      
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/store-tfe.xq :)
   declare
@@ -363,9 +422,12 @@ xquery version "3.1";
     
     @param type A keyword representing the type of reader view to generate. Valid keywords can be found 
       by making a request to  the “List registered view packages” endpoint.
-    @param file A TEI-encoded XML document. If, in the future, a view package makes use of a different 
-      input source (such as a TAPAS collection or a project), the file parameter may become optional.
+    @param file A TEI-encoded XML document. The file parameter may become optional in the future, if a 
+      view package makes use of a different input source (such as a TAPAS collection or a project).
     @return generated XHTML with status code 200.
+      
+      If the provided file is not viable TEI, processing will halt with HTTP status code 422. See the 
+      <a href="#tei-viability-testing">“TEI viability testing”</a> section above for more information.
    :)
   (: Originally ../legacy/derive-reader.xq :)
   declare
@@ -420,8 +482,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the TEI file, with status code 200. If the file does not exist, the response will 
-      have a status code of 404.
+    @return a copy of the TEI file, with status code 200.
+      
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -445,8 +509,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the MODS metadata, with status code 200. If the file does not exist, the response 
-      will have a status code of 404.
+    @return a copy of the MODS metadata, with status code 200.
+      
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -470,8 +536,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a copy of the TFE metadata, with status code 200. If the file does not exist, the response 
-      will have a status code of 404.
+    @return a copy of the TFE metadata, with status code 200.
+      
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -496,8 +564,10 @@ xquery version "3.1";
     
     @param project-id The identifier of the project which owns the core file.
     @param doc-id The identifier of the TEI core file.
-    @return a short confirmation in XML that the resources will be deleted, with status code 202. If no 
-      TEI document is associated with the given identifier, the response will have a status code of 500.
+    @return a short confirmation in XML that the resources will be deleted, with status code 202.
+      
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/delete-by-docid.xq :)
   declare
@@ -508,8 +578,8 @@ xquery version "3.1";
     %output:media-type("application/xml")
   function tap:delete-core-file($project-id as xs:string, $doc-id as xs:string) {
     (: Originally, this endpoint returned a 200 response, since it could check to make sure that the 
-    file was gone after deletion. The "202 Accepted" response is more appropriate now, since we can only 
-    promise that we *will* delete the item, we can't say that we *have done* it. :)
+      file was gone after deletion. The "202 Accepted" response is more appropriate now, since we can 
+      only promise that we *will* delete the item, we can't say that we *have done* it. :)
     let $successCode := 202
     let $response := 
       let $teiDoc := tap:get-stored-xml($project-id, $doc-id)
@@ -534,8 +604,10 @@ xquery version "3.1";
     Completely remove all database records associated with the given TAPAS project.
     
     @param project-id The unique identifier of the project to be deleted.
-    @return a short confirmation in XML that the resources will be deleted, with status code 202. If no 
-      TEI document is associated with the given identifier, the response will have a status code of 500.
+    @return a short confirmation in XML that the resources will be deleted, with status code 202.
+      
+      If no project is associated with the given <code class="param">project-id</code>, a response with 
+      HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/delete-by-projid.xq :)
   declare
@@ -623,9 +695,10 @@ xquery version "3.1";
     Retrieve the configuration file for a given view package.
     
     @param package-id The identifier of the view package.
-    @return the XML configuration file of the view package with status code 200. If the requested 
-      identifier does not match a view package registered with TAPAS-xq, the response will have a status 
-      code of 400.
+    @return the XML configuration file of the view package with status code 200. 
+      
+      If the requested identifier does not match a view package registered with TAPAS-xq, the response 
+      will have an HTTP status code of 400.
    :)
   declare
     %rest:GET

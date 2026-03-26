@@ -65,7 +65,7 @@
   </xsl:template>
   
   <!-- Strip the namespaces from XHTML elements by default. -->
-  <xsl:template match="*" mode="markdown">
+  <xsl:template match="*" mode="markdown" name="copy-element">
     <xsl:element name="{local-name(.)}">
       <xsl:apply-templates select="@*" mode="#current"/>
       <xsl:apply-templates mode="#current"/>
@@ -94,6 +94,13 @@
     <xsl:value-of select="$newline"/>
   </xsl:template>
   
+  <!-- Don't convert <h2> elements to Markdown if their IDs would be lost on conversion. -->
+  <xsl:template match="h2[@id]" mode="markdown" priority="2">
+    <xsl:value-of select="$newline"/>
+    <xsl:call-template name="copy-element"/>
+    <xsl:value-of select="$newline"/>
+  </xsl:template>
+  
   <xsl:template match="h3" mode="markdown">
     <xsl:value-of select="$newline"/>
     <xsl:text>### </xsl:text>
@@ -107,12 +114,10 @@
     <xsl:value-of select="$newline"/>
   </xsl:template>
   
-  <!-- We'll keep the <table> mostly as-is, rather than try to convert it to Markdown. -->
-  <xsl:template match="table" mode="markdown">
+  <!-- We'll keep the <table> and <ul> mostly as-is, rather than try to convert them to Markdown. -->
+  <xsl:template match="table | ul" mode="markdown">
     <xsl:value-of select="$newline"/>
-    <xsl:element name="table">
-      <xsl:apply-templates mode="#current"/>
-    </xsl:element>
+    <xsl:next-match/>
     <xsl:value-of select="$newline"/>
   </xsl:template>
   

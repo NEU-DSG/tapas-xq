@@ -25,7 +25,7 @@
    -->
   
   <!-- The title of the output webpage. -->
-  <xsl:param name="html-title" select="'TAPAS-xq API'" as="xs:string?"/>
+  <xsl:param name="html-title" select="'TAPAS-xq API documentation'" as="xs:string?"/>
   
   <!-- A URL to the XQuery which is considered the source of the xqDoc XML. If a URL is provided, a link 
     to the XQuery is included along with the generation statement. -->
@@ -88,9 +88,11 @@
           </p>
         </aside>
         <main>
-          <h1>API documentation</h1>
+          <h1>
+            <xsl:value-of select="$html-title"/>
+          </h1>
           <xsl:apply-templates select="//module/comment"/>
-          <h2 id="all-endpoints">Request endpoints</h2>
+          <h2 id="request-endpoints">Request endpoints</h2>
           <xsl:apply-templates select="//functions"/>
         </main>
       </body>
@@ -173,9 +175,20 @@
     </xsl:variable>
     <xsl:for-each-group select="$paragraphsMarked" 
        group-ending-with="*:br[@class eq 'paragraph-boundary']">
-      <p>
+      <xsl:variable name="content" as="node()*">
         <xsl:apply-templates select="current-group()" mode="remove-paragraph-boundaries"/>
-      </p>
+      </xsl:variable>
+      <xsl:choose>
+        <!-- Some (namespace-less) elements shouldn't be wrapped in <p>. -->
+        <xsl:when test="current-group()[local-name(.) = ('h2', 'ul')]">
+          <xsl:sequence select="$content"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <p>
+            <xsl:sequence select="$content"/>
+          </p>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:for-each-group>
   </xsl:template>
   

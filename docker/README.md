@@ -23,7 +23,7 @@ Then, instruct Docker to use the `Dockerfile` in this folder to construct an ima
 docker build --file docker/Dockerfile --tag tapas-xq . 
 ```
 
-As part of this process, Docker follows the instructions given in [the Dockerfile](./Dockerfile). We start with a pre-built [Java JRE Docker container from AdoptOpenJDK](https://hub.docker.com/r/adoptopenjdk/openjdk16). From there, Docker:
+As part of this process, Docker follows the instructions given in [the Dockerfile](./Dockerfile). We start with a pre-built [Eclipse Temurin Docker container](https://hub.docker.com/_/eclipse-temurin). From there, Docker:
 
 * installs software packages for `git`, `unzip`, and `curl`;
 * installs BaseX and places a copy of the Saxon HE processor into its `lib/custom` directory;
@@ -52,11 +52,7 @@ HTTP Server was started (port: 8080).
 HTTP STOP Server was started (port: 8081).
 ```
 
-...you can visit BaseX's [Database Administration page](http://localhost:8080/dba/login). You'll be prompted for a BaseX user name and password twice — once to access RESTXQ, and once to enter the DBA application.
-
-The DBA interface gives you access to the BaseX logs, and information on the databases and users that BaseX knows about. You'll see two databases, `tapas-data` and `tapas-view-packages`, which were set up as part of the TAPAS-xq installation script. Besides the "admin" user, the installation script has also added a "tapas" user (pw: "tapas"), which can run XSLTs and write to both TAPAS databases.
-
-The TAPAS-xq API is available at <http://localhost:8080/tapas-xq>. It's a good idea to start by accessing the [API documentation](http://localhost:8080/tapas-xq/api) before preparing to test any requests with `curl` or some other tool. While it's possible to make requests with either the BaseX "admin" or "tapas" user credentials, I recommend using the "admin" account to monitor the database in the browser, and using the "tapas" account to simulate requests from the [TAPAS Rails](https://github.com/NEU-DSG/tapas_rails) service.
+...you can visit BaseX's [Database Administration page](http://localhost:8080/dba/login). Visit the TAPAS-xq README for more information on [working with BaseX and TAPAS-xq](../README.md#working-with-basex-and-tapas-xq).
 
 To stop the Docker container, hit the <kbd>Control</kbd> and <kbd>c</kbd> keys while inside the Terminal window where the Docker container is running.
 
