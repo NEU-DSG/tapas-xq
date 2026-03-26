@@ -37,7 +37,7 @@
    </head>
    <body>
       <aside>
-         <p>This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 17th, 2026, 12:49 p.m. GMT-04:00.</p>
+         <p>This documentation was generated from its <a href="https://github.com/NEU-DSG/tapas-xq/blob/develop/modules/tapas-api.xql">source code</a> on March 26th, 2026, 11:42 a.m. GMT-04:00.</p>
       </aside>
       <main>
          <h1>TAPAS-xq API documentation</h1>
@@ -255,8 +255,8 @@
                request. Store the MODS in the database alongside its core file TEI.</p>
             <p>The TEI core file must be stored <em>before</em> any of its derivatives.</p>
             <p>This endpoint returns the MODS record derived from the TEI file, with status code 201.</p>
-            <p>If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-               HTTP status code 404 will be returned.</p>
+            <p>If no TEI document is associated with the given <code class="param">project-id</code> and 
+               <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.</p>
             <p>If something went wrong with the MODS transformation, the response will have a status
                code of 500. 
                If necessary, the TAPAS-xq maintainer should be alerted so they can fix the problem.</p>
@@ -313,8 +313,8 @@
             <p>The TEI core file must be stored <em>before</em> any of its derivatives.</p>
             <p>This endpoint returns a URL path for reading the new TFE file through the TAPAS-xq API, with status code
                201.</p>
-            <p>If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-               HTTP status code 404 will be returned.</p>
+            <p>If no TEI document is associated with the given <code class="param">project-id</code> and 
+               <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.</p>
             <table class="function-params">
                <caption>Request settings</caption>
                <thead>
@@ -402,8 +402,8 @@
             <p><code class="endpoint">GET /tapas-xq/<strong class="param">project-id</strong>/<strong class="param">doc-id</strong>/tei</code></p>
             <p>Retrieve a TEI file stored in the XML database.</p>
             <p>This endpoint returns a copy of the TEI file, with status code 200.</p>
-            <p>If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-               HTTP status code 404 will be returned.</p>
+            <p>If no TEI document is associated with the given <code class="param">project-id</code> and 
+               <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.</p>
             <p>If the file is marked as private in the contextual metadata (TFE file), only users
                with write 
                access to the database will be able to access the file. An attempt at unauthorized
@@ -437,8 +437,8 @@
             <p><code class="endpoint">GET /tapas-xq/<strong class="param">project-id</strong>/<strong class="param">doc-id</strong>/mods</code></p>
             <p>Retrieve a MODS file associated with a given core file identifier.</p>
             <p>This endpoint returns a copy of the MODS metadata, with status code 200.</p>
-            <p>If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-               HTTP status code 404 will be returned.</p>
+            <p>If no TEI document is associated with the given <code class="param">project-id</code> and 
+               <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.</p>
             <p>If the file is marked as private in the contextual metadata (TFE file), only users
                with write 
                access to the database will be able to access the file. An attempt at unauthorized
@@ -473,8 +473,8 @@
             <p>Retrieve a TAPAS-friendly environment (TFE) file associated with a given core file
                identifier.</p>
             <p>This endpoint returns a copy of the TFE metadata, with status code 200.</p>
-            <p>If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-               HTTP status code 404 will be returned.</p>
+            <p>If no TEI document is associated with the given <code class="param">project-id</code> and 
+               <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.</p>
             <p>If the file is marked as private in the contextual metadata (TFE file), only users
                with write 
                access to the database will be able to access the file. An attempt at unauthorized
@@ -510,8 +510,8 @@
                TEI file, 
                MODS metadata, and TAPAS-friendly environment record.</p>
             <p>This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202.</p>
-            <p>If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-               HTTP status code 404 will be returned.</p>
+            <p>If no TEI document is associated with the given <code class="param">project-id</code> and 
+               <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.</p>
             <table class="function-params">
                <caption>Request settings</caption>
                <thead>
@@ -540,7 +540,7 @@
             <p><code class="endpoint">DELETE /tapas-xq/<strong class="param">project-id</strong></code></p>
             <p>Completely remove all database records associated with the given TAPAS project.</p>
             <p>This endpoint returns a short confirmation in XML that the resources will be deleted, with status code 202.</p>
-            <p>If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+            <p>If no project is associated with the given <code class="param">project-id</code>, a response with 
                HTTP status code 404 will be returned.</p>
             <table class="function-params">
                <caption>Request settings</caption>

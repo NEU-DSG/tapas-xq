@@ -326,8 +326,8 @@ xquery version "3.1";
       separated by vertical bars.
     @return the MODS record derived from the TEI file, with status code 201.
       
-      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-      HTTP status code 404 will be returned.
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
       
       If something went wrong with the MODS transformation, the response will have a status code of 500. 
       If necessary, the TAPAS-xq maintainer should be alerted so they can fix the problem.
@@ -377,8 +377,8 @@ xquery version "3.1";
       document belongs to even one public collection, it should be queryable.)
     @return a URL path for reading the new TFE file through the TAPAS-xq API, with status code 201.
       
-      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-      HTTP status code 404 will be returned.
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/store-tfe.xq :)
   declare
@@ -484,8 +484,8 @@ xquery version "3.1";
     @param doc-id The identifier of the TEI core file.
     @return a copy of the TEI file, with status code 200.
       
-      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-      HTTP status code 404 will be returned.
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -511,8 +511,8 @@ xquery version "3.1";
     @param doc-id The identifier of the TEI core file.
     @return a copy of the MODS metadata, with status code 200.
       
-      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-      HTTP status code 404 will be returned.
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -538,8 +538,8 @@ xquery version "3.1";
     @param doc-id The identifier of the TEI core file.
     @return a copy of the TFE metadata, with status code 200.
       
-      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-      HTTP status code 404 will be returned.
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
       
       If the file is marked as private in the contextual metadata (TFE file), only users with write 
       access to the database will be able to access the file. An attempt at unauthorized access will 
@@ -566,8 +566,8 @@ xquery version "3.1";
     @param doc-id The identifier of the TEI core file.
     @return a short confirmation in XML that the resources will be deleted, with status code 202.
       
-      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
-      HTTP status code 404 will be returned.
+      If no TEI document is associated with the given <code class="param">project-id</code> and 
+      <code class="param">doc-id</code>, a response with HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/delete-by-docid.xq :)
   declare
@@ -606,7 +606,7 @@ xquery version "3.1";
     @param project-id The unique identifier of the project to be deleted.
     @return a short confirmation in XML that the resources will be deleted, with status code 202.
       
-      If no TEI document is associated with the given <code class="param">doc-id</code>, a response with 
+      If no project is associated with the given <code class="param">project-id</code>, a response with 
       HTTP status code 404 will be returned.
    :)
   (: Originally ../legacy/delete-by-projid.xq :)
